@@ -18,6 +18,7 @@ func main() {
 			commands.Logout(),
 			commands.Access(),
 			commands.Operator(),
+			commands.Tenant(),
 		},
 	}
 

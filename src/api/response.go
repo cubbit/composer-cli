@@ -48,3 +48,10 @@ type TokenAndExpirationResponseModel struct {
 	Exp     int       `json:"exp" example:"3600000"`
 	ExpDate time.Time `json:"expDate" example:"2022-12-27T11:21:23.478555Z"`
 }
+
+type CreateTenantRequestBody struct {
+	Name        string                 `json:"name" binding:"required,min=3,max=63" example:"cubbit"`
+	Description *string                `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
+	ImageUrl    *string                `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
+	Settings    map[string]interface{} `json:"settings"`
+}

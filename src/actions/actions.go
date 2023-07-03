@@ -231,3 +231,8 @@ func GenerateAccessToken(cCtx *cli.Context) error {
 
 	return nil
 }
+
+func CreateTenant(cCtx *cli.Context) error {
+	fmt.Printf("Costruisco un tenant")
+	return nil
+}
