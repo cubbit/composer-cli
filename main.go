@@ -8,8 +8,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const DEFAULT_FILE_PATH = "./"
-
 func main() {
 	app := &cli.App{
 		Name:        "Cubbit",
