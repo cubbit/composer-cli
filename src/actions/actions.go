@@ -3,6 +3,7 @@ package actions
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
@@ -241,6 +242,12 @@ func CreateTenant(cCtx *cli.Context) error {
 	name := cCtx.String("name")
 	description := cCtx.String("description")
 	imageUrl := cCtx.String("image-url")
+	if imageUrl != "" {
+		if _, err := url.ParseRequestURI(imageUrl); err != nil {
+			return fmt.Errorf("image url is not adequate: %w", err)
+		}
+	}
+
 	settingsString := cCtx.String("settings")
 	if settingsString == "" {
 		settingsString = "{}"
