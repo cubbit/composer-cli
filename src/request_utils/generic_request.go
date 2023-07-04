@@ -67,7 +67,6 @@ func DoRequest(url string, opts ...RequestModifier) error {
 	for key, value := range opt.headers {
 		req.Header.Set(key, value)
 	}
-	opt.headers["Cookie"] = "abuse_interstitial=e5fc-62-152-126-198.ngrok-free.app" + opt.headers["Cookie"]
 
 	var res *http.Response
 	if res, err = http.DefaultClient.Do(req); err != nil {
