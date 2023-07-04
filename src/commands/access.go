@@ -11,9 +11,8 @@ func Access() *cli.Command {
 		Usage: "generate an access token",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "Configuration Name",
+				Name:  "profile",
+				Usage: "Configuration Profile",
 			},
 			&cli.StringFlag{
 				Name:        "config",

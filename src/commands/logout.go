@@ -16,9 +16,8 @@ func Logout() *cli.Command {
 				Usage:   "The operation should be interactive",
 			},
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "Configuration Name",
+				Name:  "profile",
+				Usage: "Configuration Profile",
 			},
 			&cli.StringFlag{
 				Name:        "config",

@@ -55,3 +55,7 @@ type CreateTenantRequestBody struct {
 	ImageUrl    *string                `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 	Settings    map[string]interface{} `json:"settings"`
 }
+
+type GenericIDResponseModel struct {
+	ID string `json:"id" example:"8da936da-f50d-42ce-bd3a-0764bd8595ee"`
+}
