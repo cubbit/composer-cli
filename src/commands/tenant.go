@@ -11,9 +11,8 @@ func Tenant() *cli.Command {
 		Usage: "execute commands in tenant sections",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "Configuration Name",
+				Name:  "profile",
+				Usage: "Configuration Profile",
 			},
 			&cli.StringFlag{
 				Name:        "config",

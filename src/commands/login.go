@@ -36,9 +36,8 @@ func Login() *cli.Command {
 				Usage:   "Two factor authentication code",
 			},
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "Configuration Name",
+				Name:  "profile",
+				Usage: "Configuration Profile",
 			},
 			&cli.StringFlag{
 				Name:        "config",

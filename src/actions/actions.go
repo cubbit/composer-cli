@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -233,6 +234,52 @@ func GenerateAccessToken(cCtx *cli.Context) error {
 }
 
 func CreateTenant(cCtx *cli.Context) error {
-	fmt.Printf("Costruisco un tenant")
+	var err error
+	var accessToken, refreshToken string
+	var response *api.GenericIDResponseModel
+
+	name := cCtx.String("name")
+	description := cCtx.String("description")
+	imageUrl := cCtx.String("image-url")
+	settingsString := cCtx.String("settings")
+	if settingsString == "" {
+		settingsString = "{}"
+	}
+	profile := cCtx.String("profile")
+	if profile == "" {
+		profile = "default"
+	}
+
+	configPath := cCtx.String("config")
+	if configPath == "" {
+		configPath = DEFAULT_FILE_PATH
+	}
+	var conf = configuration.NewConfig(profile, "", "")
+
+	if err = conf.Load(configPath, profile); err != nil {
+		return err
+	}
+
+	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
+		return err
+	}
+
+	conf.RefreshToken = refreshToken
+
+	if err = conf.Store(configPath); err != nil {
+		return err
+	}
+	var settings map[string]interface{}
+
+	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
+		fmt.Printf("could not marshal json: %s\n", err)
+		return err
+	}
+
+	if response, err = api.CreateTenant(conf.ApiServerUrl, accessToken, name, &description, &imageUrl, settings); err != nil {
+		return nil
+	}
+
+	fmt.Printf("Successfully created tenant: %s\n", response.ID)
 	return nil
 }
