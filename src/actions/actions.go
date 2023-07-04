@@ -70,11 +70,11 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
-		return err
+		return fmt.Errorf("error while opening api server url: %w", err)
 	}
 
 	if refreshToken, err = api.PerformOperatorSignin(apiServerUrl, email, password, challenge, code); err != nil {
-		return err
+		return fmt.Errorf("error while generating refresh token: %w", err)
 	}
 
 	var conf = configuration.NewConfig(name, apiServerUrl, refreshToken)
@@ -111,17 +111,17 @@ func SignInOperator(cCtx *cli.Context) error {
 	apiServerUrl = cCtx.String("api-server-url")
 
 	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
-		return err
+		return fmt.Errorf("error while opening api server url: %w", err)
 	}
 
 	if refreshToken, err = api.PerformOperatorSignin(apiServerUrl, email, password, challenge, code); err != nil {
-		return err
+		return fmt.Errorf("error while generating refresh token: %w", err)
 	}
 
 	var conf = configuration.NewConfig(name, apiServerUrl, refreshToken)
 
 	if err = conf.Store(configPath); err != nil {
-		return err
+		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
 	fmt.Printf("User %s signed in in successfully\n", email)
@@ -144,7 +144,7 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 	var conf = configuration.NewConfig(name, "", "")
 
 	if err = conf.Store(configPath); err != nil {
-		return err
+		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
 	fmt.Printf("Configuration %s signed out successfully\n", name)
@@ -172,7 +172,7 @@ func SignOutOperator(cCtx *cli.Context) error {
 	var conf = configuration.NewConfig(name, "", "")
 
 	if err = conf.Store(configPath); err != nil {
-		return err
+		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
 	fmt.Printf("Configuration %s signed out successfully\n", name)
@@ -215,17 +215,17 @@ func GenerateAccessToken(cCtx *cli.Context) error {
 	var conf = configuration.NewConfig(name, "", "")
 
 	if err = conf.Load(configPath, name); err != nil {
-		return err
+		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
 	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
-		return err
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
 	conf.RefreshToken = refreshToken
 
 	if err = conf.Store(configPath); err != nil {
-		return err
+		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
 	fmt.Printf("Access token: %s\n", accessToken)
@@ -257,27 +257,26 @@ func CreateTenant(cCtx *cli.Context) error {
 	var conf = configuration.NewConfig(profile, "", "")
 
 	if err = conf.Load(configPath, profile); err != nil {
-		return err
+		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
 	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
-		return err
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
 	conf.RefreshToken = refreshToken
 
 	if err = conf.Store(configPath); err != nil {
-		return err
+		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 	var settings map[string]interface{}
 
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
-		fmt.Printf("could not marshal json: %s\n", err)
-		return err
+		return fmt.Errorf("error while unmarshaling json file: %w", err)
 	}
 
 	if response, err = api.CreateTenant(conf.ApiServerUrl, accessToken, name, &description, &imageUrl, settings); err != nil {
-		return nil
+		return fmt.Errorf("error while creating the tenant: %w", err)
 	}
 
 	fmt.Printf("Successfully created tenant: %s\n", response.ID)
