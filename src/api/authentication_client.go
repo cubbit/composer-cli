@@ -17,7 +17,7 @@ func GenerateOperatorChallenge(apiServerUrl, email string) (*ChallengeResponseMo
 	var response ChallengeResponseModel
 	url := apiServerUrl + "/v1/auth/operators/signin/challenge"
 
-	requestBody := map[string]string{
+	requestBody := map[string]interface{}{
 		"email": email,
 	}
 
@@ -51,7 +51,7 @@ func PerformOperatorSignin(apiServerUrl, email, password string, challenge *Chal
 
 	signedChallenge := ed25519.Sign(privateKey, []byte(challenge.Challenge))
 
-	requestBody := map[string]string{
+	requestBody := map[string]interface{}{
 		"email":            email,
 		"signed_challenge": base64.StdEncoding.EncodeToString(signedChallenge),
 		"tfa_code":         code,
@@ -101,7 +101,7 @@ func CreateOperator(apiServerUrl, firstName, lastName, email, password string) e
 	}
 
 	url := apiServerUrl + "/v1/operators/signup"
-	requestBody := map[string]string{
+	requestBody := map[string]interface{}{
 		"first_name":                firstName,
 		"last_name":                 lastName,
 		"email":                     email,
