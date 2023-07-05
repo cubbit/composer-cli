@@ -14,6 +14,7 @@ import (
 const DEFAULT_FILE_PATH = "./"
 
 func CreateOperatorInteractive(cCtx *cli.Context) error {
+	var err error
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu/iam)")
 	if apiServerUrl == "" {
 		apiServerUrl = "https://api.cubbit.eu/iam"
@@ -24,10 +25,16 @@ func CreateOperatorInteractive(cCtx *cli.Context) error {
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
 
-	return api.CreateOperator(apiServerUrl, firstName, lastName, email, password)
+	if err = api.CreateOperator(apiServerUrl, firstName, lastName, email, password); err != nil {
+		return fmt.Errorf("error while creating operator: %w", err)
+	}
+
+	fmt.Printf("Operator %s created successfully\n", email)
+	return nil
 }
 
 func CreateOperator(cCtx *cli.Context) error {
+	var err error
 	var apiServerUrl, email, password, firstName, lastName string
 
 	if cCtx.Bool("interactive") {
@@ -40,7 +47,12 @@ func CreateOperator(cCtx *cli.Context) error {
 	lastName = cCtx.String("last-name")
 	apiServerUrl = cCtx.String("api-server-url")
 
-	return api.CreateOperator(apiServerUrl, firstName, lastName, email, password)
+	if err = api.CreateOperator(apiServerUrl, firstName, lastName, email, password); err != nil {
+		return fmt.Errorf("error while creating operator: %w", err)
+	}
+
+	fmt.Printf("Operator %s created successfully\n", email)
+	return nil
 }
 
 func SignInOperatorInteractive(cCtx *cli.Context) error {
@@ -65,9 +77,9 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 		configPath = DEFAULT_FILE_PATH
 	}
 
-	name := input.TextPrompt("Enter the configuration name (default: default)")
-	if name == "" {
-		name = "default"
+	profile := input.TextPrompt("Enter the configuration profile (default: default)")
+	if profile == "" {
+		profile = "default"
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
@@ -78,7 +90,7 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 		return fmt.Errorf("error while performing operator signin: %w", err)
 	}
 
-	var conf = configuration.NewConfig(name, apiServerUrl, refreshToken)
+	var conf = configuration.NewConfig(profile, apiServerUrl, refreshToken)
 
 	conf.Store(configPath)
 
@@ -101,9 +113,9 @@ func SignInOperator(cCtx *cli.Context) error {
 		configPath = DEFAULT_FILE_PATH
 	}
 
-	name := cCtx.String("name")
-	if name == "" {
-		name = "default"
+	profile := cCtx.String("profile")
+	if profile == "" {
+		profile = "default"
 	}
 
 	email = cCtx.String("email")
@@ -119,7 +131,7 @@ func SignInOperator(cCtx *cli.Context) error {
 		return fmt.Errorf("error while performing operator singin: %w", err)
 	}
 
-	var conf = configuration.NewConfig(name, apiServerUrl, refreshToken)
+	var conf = configuration.NewConfig(profile, apiServerUrl, refreshToken)
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
@@ -197,11 +209,16 @@ func readConfigFile() (string, string) {
 
 func GenerateAccessToken(cCtx *cli.Context) error {
 	var err error
-	var accessToken, configPath string
-	var conf configuration.Config
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
 
-	readConfiguration()
-	rehydrateTokenConfig(configPath, conf)
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
