@@ -122,7 +122,7 @@ func SignInOperator(cCtx *cli.Context) error {
 	var conf = configuration.NewConfig(name, apiServerUrl, refreshToken)
 
 	if err = conf.Store(configPath); err != nil {
-		return fmt.Errorf("error while loading file path configuration: %w", err)
+		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
 	fmt.Printf("User %s signed in in successfully\n", email)
@@ -137,18 +137,18 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 		configPath = DEFAULT_FILE_PATH
 	}
 
-	name := input.TextPrompt("Enter the configuration name (default: default)")
-	if name == "" {
-		name = "default"
+	profile := input.TextPrompt("Enter the configuration profile (default: default)")
+	if profile == "" {
+		profile = "default"
 	}
 
-	var conf = configuration.NewConfig(name, "", "")
+	var conf = configuration.NewConfig(profile, "", "")
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
-	fmt.Printf("Configuration %s signed out successfully\n", name)
+	fmt.Printf("Configuration %s signed out successfully\n", profile)
 
 	return nil
 }
@@ -160,9 +160,9 @@ func SignOutOperator(cCtx *cli.Context) error {
 		return SignOutOperatorInteractive(cCtx)
 	}
 
-	name := cCtx.String("name")
-	if name == "" {
-		name = "default"
+	profile := cCtx.String("profile")
+	if profile == "" {
+		profile = "default"
 	}
 
 	configPath := cCtx.String("config")
@@ -170,13 +170,13 @@ func SignOutOperator(cCtx *cli.Context) error {
 		configPath = DEFAULT_FILE_PATH
 	}
 
-	var conf = configuration.NewConfig(name, "", "")
+	var conf = configuration.NewConfig(profile, "", "")
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
-	fmt.Printf("Configuration %s signed out successfully\n", name)
+	fmt.Printf("Configuration %s signed out successfully\n", profile)
 
 	return nil
 }
@@ -197,33 +197,11 @@ func readConfigFile() (string, string) {
 
 func GenerateAccessToken(cCtx *cli.Context) error {
 	var err error
-	var refreshToken, accessToken, name, configPath string
+	var accessToken, configPath string
+	var conf configuration.Config
 
-	if cCtx.Bool("interactive") {
-		name, configPath = readConfigFile()
-	} else {
-		name = cCtx.String("name")
-		if name == "" {
-			name = "default"
-		}
-
-		configPath = cCtx.String("config")
-		if configPath == "" {
-			configPath = DEFAULT_FILE_PATH
-		}
-	}
-
-	var conf = configuration.NewConfig(name, "", "")
-
-	if err = conf.Load(configPath, name); err != nil {
-		return fmt.Errorf("error while loading file path configuration: %w", err)
-	}
-
-	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
-		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
-	}
-
-	conf.RefreshToken = refreshToken
+	readConfiguration()
+	rehydrateTokenConfig(configPath, conf)
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
@@ -236,8 +214,10 @@ func GenerateAccessToken(cCtx *cli.Context) error {
 
 func CreateTenant(cCtx *cli.Context) error {
 	var err error
-	var accessToken, refreshToken string
+	var accessToken *string
+	var configPath string
 	var response *api.GenericIDResponseModel
+	var conf *configuration.Config
 
 	name := cCtx.String("name")
 	description := cCtx.String("description")
@@ -252,40 +232,69 @@ func CreateTenant(cCtx *cli.Context) error {
 	if settingsString == "" {
 		settingsString = "{}"
 	}
-	profile := cCtx.String("profile")
-	if profile == "" {
-		profile = "default"
-	}
 
-	configPath := cCtx.String("config")
-	if configPath == "" {
-		configPath = DEFAULT_FILE_PATH
-	}
-	var conf = configuration.NewConfig(profile, "", "")
-
-	if err = conf.Load(configPath, profile); err != nil {
+	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-
-	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	conf.RefreshToken = refreshToken
-
-	if err = conf.Store(configPath); err != nil {
-		return fmt.Errorf("error while storing file path configuration: %w", err)
-	}
 	var settings map[string]interface{}
 
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("error while parsing json settings: %w", err)
 	}
 
-	if response, err = api.CreateTenant(conf.ApiServerUrl, accessToken, name, &description, &imageUrl, settings); err != nil {
+	if response, err = api.CreateTenant(conf.ApiServerUrl, *accessToken, name, &description, &imageUrl, settings); err != nil {
 		return fmt.Errorf("error while creating the tenant: %w", err)
 	}
 
 	fmt.Printf("Successfully created tenant: %s\n", response.ID)
 	return nil
+}
+
+func rehydrateTokenConfig(configPath string, conf configuration.Config) (*string, error) {
+	var accessToken, refreshToken string
+	var err error
+
+	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
+		return nil, fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	conf.RefreshToken = refreshToken
+
+	if err = conf.Store(configPath); err != nil {
+		return nil, fmt.Errorf("error while storing file path configuration: %w", err)
+	}
+
+	return &accessToken, nil
+}
+
+func readConfiguration() (*configuration.Config, string, error) {
+	var cCtx *cli.Context
+	var configPath string
+	var err error
+	var profile string
+
+	if cCtx.Bool("interactive") {
+		profile, configPath = readConfigFile()
+	} else {
+		profile = cCtx.String("profile")
+		if profile == "" {
+			profile = "default"
+		}
+		configPath = cCtx.String("config")
+		if configPath == "" {
+			configPath = DEFAULT_FILE_PATH
+		}
+	}
+
+	var conf = configuration.NewConfig(profile, "", "")
+
+	if err = conf.Load(configPath, profile); err != nil {
+		return nil, "", fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+
+	return &conf, configPath, nil
 }
