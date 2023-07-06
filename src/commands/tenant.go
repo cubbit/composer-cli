@@ -51,6 +51,18 @@ func Tenant() *cli.Command {
 				},
 				Action: actions.CreateTenant,
 			},
+			{
+				Name:  "show",
+				Usage: "lists all the available tenants for the current logged operator",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "list",
+						Aliases: []string{"ls"},
+						Usage:   "lists available tenants for the operator",
+					},
+				},
+				Action: actions.ListTenant,
+			},
 		},
 	}
 

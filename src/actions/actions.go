@@ -315,3 +315,9 @@ func readConfiguration() (*configuration.Config, string, error) {
 
 	return &conf, configPath, nil
 }
+
+func ListTenant(cCtx *cli.Context) error {
+	fmt.Println("these are your tenants")
+
+	return nil
+}

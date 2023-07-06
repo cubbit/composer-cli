@@ -38,3 +38,19 @@ func CreateTenant(apiServerUrl, accessToken, name string, description *string, i
 
 	return &response, nil
 }
+
+func ListTenant(apiServerUrl, accessToken, ownerID string) (*TenantList, error) {
+	var err error
+	url := apiServerUrl + "/v1/tenants?owner=" + ownerID
+	var response TenantList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractTenantListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed unable to list tenants request: %w", err)
+	}
+	return &response, nil
+}
