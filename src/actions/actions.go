@@ -67,7 +67,6 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
-	fmt.Println(password)
 
 	if input.YesNoPrompt("Do you want to add a 2fa code?", false) {
 		code = input.TextPrompt("Please insert the 2fa code:")
