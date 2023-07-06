@@ -67,6 +67,7 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
+	fmt.Println(password)
 
 	if input.YesNoPrompt("Do you want to add a 2fa code?", false) {
 		code = input.TextPrompt("Please insert the 2fa code:")
@@ -94,7 +95,7 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	conf.Store(configPath)
 
-	fmt.Printf("User %s signed in in successfully\n", email)
+	fmt.Printf("User %s signed in successfully\n", email)
 
 	return nil
 }
@@ -137,7 +138,7 @@ func SignInOperator(cCtx *cli.Context) error {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
-	fmt.Printf("User %s signed in in successfully\n", email)
+	fmt.Printf("User %s signed in successfully\n", email)
 
 	return nil
 }
