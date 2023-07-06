@@ -19,7 +19,7 @@ func GetOperator(apiServerUrl, accessToken, meOrID string) (*Operator, error) {
 		request_utils.WithAccessToken(accessToken),
 		extractOperatorResponseModel(&operator),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to dispatch a recovery token: %w", err)
+		return nil, fmt.Errorf("failed: unable to get an operator: %w", err)
 	}
 
 	return &operator, nil
