@@ -359,6 +359,7 @@ func ListTenant(cCtx *cli.Context) error {
 	return nil
 }
 
+<<<<<<< HEAD
 func DescribeTenant(cCtx *cli.Context) error {
 	var err error
 	var accessToken *string
@@ -474,5 +475,10 @@ func FormatTenant(format string, tenant *api.Tenant) error {
 		}
 	}
 	fmt.Println()
+=======
+func RemoveTenant(cCtx *cli.Context) error {
+	id := cCtx.String("id")
+	fmt.Println(id, "tenant removed")
+>>>>>>> a796b82 (feat(tenant): remove tenants command)
 	return nil
 }

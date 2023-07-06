@@ -70,6 +70,7 @@ func Tenant() *cli.Command {
 				Action: actions.ListTenant,
 			},
 			{
+<<<<<<< HEAD
 				Name:    "describe",
 				Aliases: []string{"info"},
 				Usage:   "describes a tenant",
@@ -91,6 +92,18 @@ func Tenant() *cli.Command {
 					},
 				},
 				Action: actions.DescribeTenant,
+=======
+				Name:    "remove",
+				Aliases: []string{"rm"},
+				Usage:   "removes tenants",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "id",
+						Usage: "removes the tenant with the specified id",
+					},
+				},
+				Action: actions.RemoveTenant,
+>>>>>>> a796b82 (feat(tenant): remove tenants command)
 			},
 		},
 	}
