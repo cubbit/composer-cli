@@ -52,13 +52,19 @@ func Tenant() *cli.Command {
 				Action: actions.CreateTenant,
 			},
 			{
-				Name:  "show",
-				Usage: "lists all the available tenants for the current logged operator",
+				Name:    "list",
+				Aliases: []string{"ls"},
+				Usage:   "lists all the available tenants for the current logged operator",
 				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "list",
-						Aliases: []string{"ls"},
-						Usage:   "lists available tenants for the operator",
+					&cli.BoolFlag{
+						Name:    "verbose",
+						Aliases: []string{"v"},
+						Usage:   "lists all available information for tenants",
+					},
+					&cli.BoolFlag{
+						Name:    "line",
+						Aliases: []string{"l"},
+						Usage:   "adds a line between the information about different tentants",
 					},
 				},
 				Action: actions.ListTenant,
