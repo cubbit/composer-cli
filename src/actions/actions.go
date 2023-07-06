@@ -224,7 +224,7 @@ func GenerateAccessToken(cCtx *cli.Context) error {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
-	fmt.Printf("Access token: %s\n", accessToken)
+	fmt.Printf("Access token: %s\n", *accessToken)
 
 	return nil
 }
