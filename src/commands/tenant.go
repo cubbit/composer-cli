@@ -69,7 +69,21 @@ func Tenant() *cli.Command {
 				},
 				Action: actions.ListTenant,
 			},
+			// {
+			// 	Name:    "remove",
+			// 	Aliases: []string{"rm"},
+			// 	Usage:   "removes tenants",
+			// 	Flags: []cli.Flag{
+			// 		&cli.StringFlag{
+			// 			Name:     "id",
+			// 			Usage:    "removes the tenant with the specified id",
+			// 			Required: true,
+			// 		},
+			// 	},
+			// 	Action: actions.RemoveTenant,
+			// },
 			{
+<<<<<<< HEAD
 <<<<<<< HEAD
 				Name:    "describe",
 				Aliases: []string{"info"},
@@ -96,14 +110,34 @@ func Tenant() *cli.Command {
 				Name:    "remove",
 				Aliases: []string{"rm"},
 				Usage:   "removes tenants",
+=======
+				Name:    "describe",
+				Aliases: []string{"desc"},
+				Usage:   "describes a tenant",
+>>>>>>> 09ed954 (feat(tenant): gives information abpout tenant)
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "id",
-						Usage: "removes the tenant with the specified id",
+						Usage: "shows information about the tenant with the specified id",
+					},
+					&cli.StringFlag{
+						Name:    "name",
+						Aliases: []string{"n"},
+						Usage:   "shows information about the tenant with the specified name",
+					},
+					&cli.StringFlag{
+						Name:        "format",
+						Usage:       "formats the description",
+						DefaultText: "default",
+						Value:       "default",
 					},
 				},
+<<<<<<< HEAD
 				Action: actions.RemoveTenant,
 >>>>>>> a796b82 (feat(tenant): remove tenants command)
+=======
+				Action: actions.DescribeTenant,
+>>>>>>> 09ed954 (feat(tenant): gives information abpout tenant)
 			},
 		},
 	}
