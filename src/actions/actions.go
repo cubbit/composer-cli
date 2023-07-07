@@ -360,6 +360,34 @@ func ListTenant(cCtx *cli.Context) error {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+// func RemoveTenant(cCtx *cli.Context) error {
+// 	var err error
+// 	var accessToken *string
+// 	var configPath string
+// 	var conf *configuration.Config
+// 	var tenant *api.Tenant
+// 	var tenants *api.TenantList
+
+// 	if conf, configPath, err = readConfiguration(); err != nil {
+// 		return fmt.Errorf("error while loading file path configuration: %w", err)
+// 	}
+
+// 	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+// 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+// 	}
+
+// 	if tenants, err = api.RemoveTenant(conf.ApiServerUrl, *accessToken, tenant.ID); err != nil {
+// 		return fmt.Errorf("error while retrieving tenant list: %w", err)
+// 	}
+
+// 	fmt.Printf("Tenant removed: %s %s ", tenant.ID, tenant.Name)
+
+// 	return nil
+// }
+
+>>>>>>> 09ed954 (feat(tenant): gives information abpout tenant)
 func DescribeTenant(cCtx *cli.Context) error {
 	var err error
 	var accessToken *string
@@ -375,6 +403,7 @@ func DescribeTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
+<<<<<<< HEAD
 	id := cCtx.String("id")
 	name := cCtx.String("name")
 	format := cCtx.String("format")
@@ -480,5 +509,109 @@ func RemoveTenant(cCtx *cli.Context) error {
 	id := cCtx.String("id")
 	fmt.Println(id, "tenant removed")
 >>>>>>> a796b82 (feat(tenant): remove tenants command)
+=======
+	id := cCtx.String("id")
+	name := cCtx.String("name")
+	format := cCtx.String("format")
+	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+		return fmt.Errorf("error while retrieving operator id: %w", err)
+	}
+	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+
+	switch {
+	case id == "" && name == "":
+		return fmt.Errorf("error while retrieving tenant description: %w", err)
+	case name == "":
+		for _, tenant := range tenants.Tenants {
+			if id == tenant.ID {
+				fmt.Printf("%s\n %s ", tenant.ID, *tenant.Description)
+			}
+		}
+	case id == "":
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				FormatTenant(format, tenant)
+			}
+		}
+	}
+
+>>>>>>> 09ed954 (feat(tenant): gives information abpout tenant)
 	return nil
+}
+
+func FormatTenant(format string, tenant *api.Tenant) {
+	switch {
+	case format == "default":
+		fmt.Printf("ID: %s\n", tenant.ID)
+		fmt.Printf("Name: %s\n", tenant.Name)
+
+		if tenant.Description != nil {
+			fmt.Printf("Description: %s\n", *tenant.Description)
+		}
+
+		fmt.Printf("OwnerID: %s\n", tenant.OwnerID)
+		fmt.Printf("CreatedAt: %s\n", tenant.CreatedAt)
+
+		if tenant.DeletedAt != nil {
+			fmt.Printf("DeletedAt: %s\n", tenant.DeletedAt)
+		}
+
+		if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
+			fmt.Printf("ImageUrl: %s\n", *tenant.ImageUrl)
+		}
+
+		fmt.Printf("Settings:\n")
+		for key, value := range tenant.Settings {
+			fmt.Printf(" - %s: %s\n", key, value)
+		}
+
+	case format == "json":
+		formatJson, err := json.Marshal(api.Tenant{ID: tenant.ID, Name: tenant.Name, Description: tenant.Description, OwnerID: tenant.OwnerID, CreatedAt: tenant.CreatedAt, DeletedAt: tenant.DeletedAt, ImageUrl: tenant.ImageUrl, Settings: tenant.Settings})
+
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(string(formatJson))
+
+	case format == "csv":
+		fmt.Printf("ID,Name,")
+		fmt.Printf("Description,")
+		fmt.Printf("OwnerID,CreatedAt,")
+		fmt.Printf("DeletedAt,")
+		fmt.Printf("ImageUrl")
+		for key := range tenant.Settings {
+			fmt.Printf(",%s", key)
+		}
+
+		fmt.Println()
+
+		fmt.Printf("%s,", tenant.ID)
+		fmt.Printf("%s,", tenant.Name)
+
+		if tenant.Description != nil {
+			fmt.Printf("\"%s\",", *tenant.Description)
+		} else {
+			fmt.Printf(",")
+		}
+		fmt.Printf("%s,", tenant.OwnerID)
+		fmt.Printf("%s,", tenant.CreatedAt)
+
+		if tenant.DeletedAt != nil {
+			fmt.Printf("%s,", tenant.DeletedAt)
+		} else {
+			fmt.Printf(",")
+		}
+
+		if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
+			fmt.Printf("%s", *tenant.ImageUrl)
+		}
+
+		for _, value := range tenant.Settings {
+			fmt.Printf(",%s", value)
+		}
+		fmt.Println()
+	}
 }
