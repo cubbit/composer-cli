@@ -94,7 +94,7 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	conf.Store(configPath)
 
-	fmt.Printf("User %s signed in in successfully\n", email)
+	fmt.Printf("User %s signed in successfully\n", email)
 
 	return nil
 }
@@ -137,7 +137,7 @@ func SignInOperator(cCtx *cli.Context) error {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
-	fmt.Printf("User %s signed in in successfully\n", email)
+	fmt.Printf("User %s signed in successfully\n", email)
 
 	return nil
 }
@@ -314,4 +314,45 @@ func readConfiguration() (*configuration.Config, string, error) {
 	}
 
 	return &conf, configPath, nil
+}
+
+func ListTenant(cCtx *cli.Context) error {
+	var err error
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var tenants *api.TenantList
+
+	fmt.Println("these are your tenants")
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+		return fmt.Errorf("error while retrieving operator id: %w", err)
+	}
+	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+
+	verbose := cCtx.Bool("verbose")
+	l := cCtx.Bool("l")
+
+	for _, tenant := range tenants.Tenants {
+		if verbose {
+			fmt.Printf("%s %s %s ", tenant.ID, tenant.Name, *tenant.Description)
+		} else {
+			fmt.Printf("%s ", tenant.Name)
+		}
+		if l {
+			fmt.Println()
+		}
+	}
+
+	return nil
 }

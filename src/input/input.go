@@ -12,25 +12,28 @@ import (
 )
 
 func LineBreak() string {
-    var separator = fmt.Sprintf("%c", os.PathSeparator)
-    var line_break = "\n"
-    if separator != "/" {
-        line_break = "\r\n"
-    }
+	var separator = fmt.Sprintf("%c", os.PathSeparator)
+	var line_break = "\n"
+	if separator != "/" {
+		line_break = "\r\n"
+	}
 
-    return line_break
+	return line_break
 }
 
 func PasswordPrompt(label string) string {
 	var s string
+
 	for {
 		fmt.Fprint(os.Stderr, label+" ")
 		b, _ := term.ReadPassword(int(syscall.Stdin))
 		s = string(b)
+
 		if s != "" {
 			break
 		}
 	}
+
 	fmt.Println()
 	return s
 }
@@ -39,8 +42,10 @@ func TextPrompt(label string) string {
 	fmt.Println(label)
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
+	text = strings.Replace(text, LineBreak(), "", -1)
+	text = strings.Trim(text, " ")
 
-	return strings.Replace(text, LineBreak(), "", -1)
+	return text
 }
 
 func YesNoPrompt(label string, def bool) bool {

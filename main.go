@@ -10,9 +10,10 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:        "Cubbit",
-		Description: "The official Cubbit CLI (Command-Line Interface) for operators",
-		Usage:       "The CLI for managing operators, tenants and swarms in Cubbit distributed datacenter",
+		Name:                   "Cubbit",
+		Description:            "The official Cubbit CLI (Command-Line Interface) for operators",
+		Usage:                  "The CLI for managing operators, tenants and swarms in Cubbit distributed datacenter",
+		UseShortOptionHandling: true,
 		Commands: []*cli.Command{
 			commands.Login(),
 			commands.Logout(),
