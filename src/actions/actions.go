@@ -1,11 +1,12 @@
 package actions
 
 import (
-	"encoding/csv"
+	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/url"
-	"os"
 
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
@@ -591,27 +592,107 @@ func FormatTenant(format string, tenant *api.Tenant) {
 		fmt.Printf("%s,", tenant.ID)
 		fmt.Printf("%s,", tenant.Name)
 
-		if tenant.Description != nil {
-			fmt.Printf("\"%s\",", *tenant.Description)
+		if tenant.Description != nil { // invoca funzione
+
+			fmt.Printf("\"%s\",", *tenant.Description) //replaceAll
 		} else {
 			fmt.Printf(",")
 		}
-		fmt.Printf("%s,", tenant.OwnerID)
-		fmt.Printf("%s,", tenant.CreatedAt)
-
-		if tenant.DeletedAt != nil {
-			fmt.Printf("%s,", tenant.DeletedAt)
-		} else {
-			fmt.Printf(",")
-		}
-
-		if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
-			fmt.Printf("%s", *tenant.ImageUrl)
-		}
-
-		for _, value := range tenant.Settings {
-			fmt.Printf(",%s", value)
-		}
-		fmt.Println()
 	}
+	fmt.Printf("%s,", tenant.OwnerID)
+	fmt.Printf("%s,", tenant.CreatedAt)
+
+	if tenant.DeletedAt != nil {
+		fmt.Printf("%s,", tenant.DeletedAt)
+	} else {
+		fmt.Printf(",")
+	}
+
+	if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
+		fmt.Printf("%s", *tenant.ImageUrl)
+	}
+
+	for _, value := range tenant.Settings {
+		fmt.Printf(",%s", value)
+	}
+	fmt.Println()
+}
+
+type Writer struct {
+	Comma   rune
+	UseCRLF bool
+	w       *bufio.Writer
+}
+
+func NewWriter(w io.Writer) *Writer {
+	return &Writer{
+		Comma: ',',
+		w:     bufio.NewWriter(w),
+	}
+}
+
+func validDelim(r rune) bool {
+	return r != 0 && r != '"' && r != '\r' && r != '\n' && utf8.ValidRune(r) && r != utf8.RuneError
+}
+
+func (w *Writer) Write(record []string) error {
+	var errInvalidDelim = errors.New("csv: invalid field or comment delimiter")
+	if !validDelim(w.Comma) {
+		return errInvalidDelim
+	}
+
+	for n, field := range record {
+		if n > 0 {
+			if _, err := w.w.WriteRune(w.Comma); err != nil {
+				return err
+			}
+		}
+
+		if err := w.w.WriteByte('"'); err != nil {
+			return err
+		}
+		for len(field) > 0 {
+			i := strings.IndexAny(field, "\"\r\n")
+			if i < 0 {
+				i = len(field)
+			}
+
+			if _, err := w.w.WriteString(field[:i]); err != nil {
+				return err
+			}
+			field = field[i:]
+
+			if len(field) > 0 {
+				var err error
+				switch field[0] {
+				case '"':
+					_, err = w.w.WriteString(`""`)
+				case '\r':
+					if !w.UseCRLF {
+						err = w.w.WriteByte('\r')
+					}
+				case '\n':
+					if w.UseCRLF {
+						_, err = w.w.WriteString("\r\n")
+					} else {
+						err = w.w.WriteByte('\n')
+					}
+				}
+				field = field[1:]
+				if err != nil {
+					return err
+				}
+			}
+		}
+		if err := w.w.WriteByte('"'); err != nil {
+			return err
+		}
+	}
+	var err error
+	if w.UseCRLF {
+		_, err = w.w.WriteString("\r\n")
+	} else {
+		err = w.w.WriteByte('\n')
+	}
+	return err
 }
