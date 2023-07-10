@@ -1,12 +1,15 @@
 package actions
 
 import (
-	"bufio"
+	"encoding/csv"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
+	"log"
 	"net/url"
+<<<<<<< HEAD
+=======
+	"os"
+>>>>>>> d26adce (fix(tenant): csv formatting)
 
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
@@ -578,121 +581,36 @@ func FormatTenant(format string, tenant *api.Tenant) {
 		fmt.Println(string(formatJson))
 
 	case format == "csv":
-		fmt.Printf("ID,Name,")
-		fmt.Printf("Description,")
-		fmt.Printf("OwnerID,CreatedAt,")
-		fmt.Printf("DeletedAt,")
-		fmt.Printf("ImageUrl")
+		records := [][]string{
+			{"ID", "Name", "Description", "OwnerID", "CreatedAt", "DeletedAt", "ImageUrl"},
+		}
 		for key := range tenant.Settings {
 			fmt.Printf(",%s", key)
 		}
+		var values []string
+		values = append(values, tenant.ID, tenant.Name, *tenant.Description, tenant.OwnerID, tenant.CreatedAt.String(), *tenant.ImageUrl)
 
-		fmt.Println()
-
-		fmt.Printf("%s,", tenant.ID)
-		fmt.Printf("%s,", tenant.Name)
-
-		if tenant.Description != nil { // invoca funzione
-
-			fmt.Printf("\"%s\",", *tenant.Description) //replaceAll
+		if tenant.DeletedAt != nil {
+			values = append(values, tenant.DeletedAt.String())
 		} else {
-			fmt.Printf(",")
+			values = append(values, "")
 		}
-	}
-	fmt.Printf("%s,", tenant.OwnerID)
-	fmt.Printf("%s,", tenant.CreatedAt)
 
-	if tenant.DeletedAt != nil {
-		fmt.Printf("%s,", tenant.DeletedAt)
-	} else {
-		fmt.Printf(",")
-	}
+		records = append(records, values)
 
-	if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
-		fmt.Printf("%s", *tenant.ImageUrl)
-	}
+		w := csv.NewWriter(os.Stdout)
 
-	for _, value := range tenant.Settings {
-		fmt.Printf(",%s", value)
+		for _, record := range records {
+			if err := w.Write(record); err != nil {
+				log.Fatalln("error writing record to csv:", err)
+			}
+		}
+
+		w.Flush()
+
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
 	}
 	fmt.Println()
-}
-
-type Writer struct {
-	Comma   rune
-	UseCRLF bool
-	w       *bufio.Writer
-}
-
-func NewWriter(w io.Writer) *Writer {
-	return &Writer{
-		Comma: ',',
-		w:     bufio.NewWriter(w),
-	}
-}
-
-func validDelim(r rune) bool {
-	return r != 0 && r != '"' && r != '\r' && r != '\n' && utf8.ValidRune(r) && r != utf8.RuneError
-}
-
-func (w *Writer) Write(record []string) error {
-	var errInvalidDelim = errors.New("csv: invalid field or comment delimiter")
-	if !validDelim(w.Comma) {
-		return errInvalidDelim
-	}
-
-	for n, field := range record {
-		if n > 0 {
-			if _, err := w.w.WriteRune(w.Comma); err != nil {
-				return err
-			}
-		}
-
-		if err := w.w.WriteByte('"'); err != nil {
-			return err
-		}
-		for len(field) > 0 {
-			i := strings.IndexAny(field, "\"\r\n")
-			if i < 0 {
-				i = len(field)
-			}
-
-			if _, err := w.w.WriteString(field[:i]); err != nil {
-				return err
-			}
-			field = field[i:]
-
-			if len(field) > 0 {
-				var err error
-				switch field[0] {
-				case '"':
-					_, err = w.w.WriteString(`""`)
-				case '\r':
-					if !w.UseCRLF {
-						err = w.w.WriteByte('\r')
-					}
-				case '\n':
-					if w.UseCRLF {
-						_, err = w.w.WriteString("\r\n")
-					} else {
-						err = w.w.WriteByte('\n')
-					}
-				}
-				field = field[1:]
-				if err != nil {
-					return err
-				}
-			}
-		}
-		if err := w.w.WriteByte('"'); err != nil {
-			return err
-		}
-	}
-	var err error
-	if w.UseCRLF {
-		_, err = w.w.WriteString("\r\n")
-	} else {
-		err = w.w.WriteByte('\n')
-	}
-	return err
 }
