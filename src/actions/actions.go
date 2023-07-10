@@ -1,9 +1,12 @@
 package actions
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
+	"os"
 
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
@@ -355,4 +358,119 @@ func ListTenant(cCtx *cli.Context) error {
 	}
 
 	return nil
+}
+
+func DescribeTenant(cCtx *cli.Context) error {
+	var err error
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
+	var tenants *api.TenantList
+	var operator *api.Operator
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	id := cCtx.String("id")
+	name := cCtx.String("name")
+	format := cCtx.String("format")
+	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+		return fmt.Errorf("error while retrieving operator id: %w", err)
+	}
+	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+
+	switch {
+	case id == "" && name == "":
+		return fmt.Errorf("error while retrieving tenant description: %w", err)
+	case name == "":
+		for _, tenant := range tenants.Tenants {
+			if id == tenant.ID {
+				fmt.Printf("%s\n %s ", tenant.ID, *tenant.Description)
+			}
+		}
+	case id == "":
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				FormatTenant(format, tenant)
+			}
+		}
+	}
+
+	return nil
+}
+
+func FormatTenant(format string, tenant *api.Tenant) {
+	switch {
+	case format == "default":
+		fmt.Printf("ID: %s\n", tenant.ID)
+		fmt.Printf("Name: %s\n", tenant.Name)
+
+		if tenant.Description != nil {
+			fmt.Printf("Description: %s\n", *tenant.Description)
+		}
+
+		fmt.Printf("OwnerID: %s\n", tenant.OwnerID)
+		fmt.Printf("CreatedAt: %s\n", tenant.CreatedAt)
+
+		if tenant.DeletedAt != nil {
+			fmt.Printf("DeletedAt: %s\n", tenant.DeletedAt)
+		}
+
+		if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
+			fmt.Printf("ImageUrl: %s\n", *tenant.ImageUrl)
+		}
+
+		fmt.Printf("Settings:\n")
+		for key, value := range tenant.Settings {
+			fmt.Printf(" - %s: %s\n", key, value)
+		}
+
+	case format == "json":
+		formatJson, err := json.Marshal(api.Tenant{ID: tenant.ID, Name: tenant.Name, Description: tenant.Description, OwnerID: tenant.OwnerID, CreatedAt: tenant.CreatedAt, DeletedAt: tenant.DeletedAt, ImageUrl: tenant.ImageUrl, Settings: tenant.Settings})
+
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(string(formatJson))
+
+	case format == "csv":
+		records := [][]string{
+			{"ID", "Name", "Description", "OwnerID", "CreatedAt", "DeletedAt", "ImageUrl"},
+		}
+		for key := range tenant.Settings {
+			fmt.Printf(",%s", key)
+		}
+		var values []string
+		values = append(values, tenant.ID, tenant.Name, *tenant.Description, tenant.OwnerID, tenant.CreatedAt.String(), *tenant.ImageUrl)
+
+		if tenant.DeletedAt != nil {
+			values = append(values, tenant.DeletedAt.String())
+		} else {
+			values = append(values, "")
+		}
+
+		records = append(records, values)
+
+		w := csv.NewWriter(os.Stdout)
+
+		for _, record := range records {
+			if err := w.Write(record); err != nil {
+				log.Fatalln("error writing record to csv:", err)
+			}
+		}
+
+		w.Flush()
+
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
+	}
+	fmt.Println()
 }
