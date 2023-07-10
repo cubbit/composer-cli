@@ -69,6 +69,29 @@ func Tenant() *cli.Command {
 				},
 				Action: actions.ListTenant,
 			},
+			{
+				Name:    "describe",
+				Aliases: []string{"desc"},
+				Usage:   "describes a tenant",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "id",
+						Usage: "shows information about the tenant with the specified id",
+					},
+					&cli.StringFlag{
+						Name:    "name",
+						Aliases: []string{"n"},
+						Usage:   "shows information about the tenant with the specified name",
+					},
+					&cli.StringFlag{
+						Name:        "format",
+						Usage:       "formats the description",
+						DefaultText: "default",
+						Value:       "default",
+					},
+				},
+				Action: actions.DescribeTenant,
+			},
 		},
 	}
 
