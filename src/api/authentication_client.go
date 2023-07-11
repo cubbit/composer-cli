@@ -151,3 +151,49 @@ func getOperatorAccessToken(refreshToken string, url string) (string, string, er
 
 	return tokenExpirationResponse.Token, refreshToken, nil
 }
+
+func ForgeOperatorDeleteTenantToken(apiServerUrl, email, password, refreshToken string, challenge *ChallengeResponseModel, code, tenantID string) (string, error) {
+
+	var err error
+	var privateKey ed25519.PrivateKey
+	var tokenExpirationResponse TokenAndExpirationResponseModel
+
+	h := sha256.New()
+	h.Write([]byte(password + challenge.Salt))
+
+	seed := h.Sum(nil)
+
+	if _, privateKey, err = utils.GenerateKeyPairFromSeed(seed); err != nil {
+		return "", err
+	}
+
+	url := apiServerUrl + "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id=" + tenantID
+	signedChallenge := ed25519.Sign(privateKey, []byte(challenge.Challenge))
+
+	body := map[string]interface{}{
+		"email":            email,
+		"signed_challenge": base64.StdEncoding.EncodeToString(signedChallenge),
+		"tfa_code":         code,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithRefreshToken(refreshToken),
+		request_utils.WithRequestBody(body),
+		extractTokenExpirationModel(&tokenExpirationResponse),
+	); err != nil {
+		return "", fmt.Errorf("failed unable to forge token request: %w", err)
+	}
+
+	if tokenExpirationResponse.Exp == 0 {
+		return "", fmt.Errorf("wrong token expiration returned")
+	}
+
+	if tokenExpirationResponse.Token == "" {
+		return "", errors.New("access token cannot be empty")
+	}
+
+	return tokenExpirationResponse.Token, nil
+}

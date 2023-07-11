@@ -69,19 +69,38 @@ func Tenant() *cli.Command {
 				},
 				Action: actions.ListTenant,
 			},
-			// {
-			// 	Name:    "remove",
-			// 	Aliases: []string{"rm"},
-			// 	Usage:   "removes tenants",
-			// 	Flags: []cli.Flag{
-			// 		&cli.StringFlag{
-			// 			Name:     "id",
-			// 			Usage:    "removes the tenant with the specified id",
-			// 			Required: true,
-			// 		},
-			// 	},
-			// 	Action: actions.RemoveTenant,
-			// },
+			{
+				Name:    "remove",
+				Aliases: []string{"rm"},
+				Usage:   "removes tenants",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "id",
+						Usage: "removes the tenant with the specified id",
+					},
+					&cli.StringFlag{
+						Name:    "name",
+						Aliases: []string{"n"},
+						Usage:   "removes the tenant with the specified name",
+					},
+					&cli.StringFlag{
+						Name:    "email",
+						Aliases: []string{"e"},
+						Usage:   "Email address",
+					},
+					&cli.StringFlag{
+						Name:    "password",
+						Aliases: []string{"p"},
+						Usage:   "Password",
+					},
+					&cli.StringFlag{
+						Name:    "code",
+						Aliases: []string{"2fa"},
+						Usage:   "Two factor authentication code",
+					},
+				},
+				Action: actions.RemoveTenant,
+			},
 			{
 <<<<<<< HEAD
 <<<<<<< HEAD

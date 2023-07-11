@@ -55,19 +55,18 @@ func ListTenant(apiServerUrl, accessToken, ownerID string) (*TenantList, error) 
 	return &response, nil
 }
 
-// func RemoveTenant(apiServerUrl, accessToken, tenantId string) (*TenantList, error) {
-// 	var err error
-// 	url := apiServerUrl + "/v1/tenants/" + tenantId
-// 	var response Tenant
+func RemoveTenant(apiServerUrl, accessToken, tenantId, deleteTenantToken string) error {
+	var err error
+	url := apiServerUrl + "/v1/tenants/" + tenantId + "?token=" + deleteTenantToken
 
-// 	if err = request_utils.DoRequest(
-// 		url,
-// 		request_utils.WithRequestMethod(http.MethodDelete),
-// 		request_utils.WithAccessToken(accessToken),
-// 		request_utils.WithExpectedStatusCode(http.StatusOK),
-// 		extractTenantRemoveModel(&response),
-// 	); err != nil {
-// 		return nil, fmt.Errorf("failed unable to delete tenant request: %w", err)
-// 	}
-// 	return &response, nil
-// }
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+	); err != nil {
+		return fmt.Errorf("failed unable to delete tenant request: %w", err)
+	}
+
+	return nil
+}

@@ -365,6 +365,7 @@ func ListTenant(cCtx *cli.Context) error {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // func RemoveTenant(cCtx *cli.Context) error {
 // 	var err error
@@ -373,23 +374,66 @@ func ListTenant(cCtx *cli.Context) error {
 // 	var conf *configuration.Config
 // 	var tenant *api.Tenant
 // 	var tenants *api.TenantList
+=======
+func RemoveTenant(cCtx *cli.Context) error {
+	var err error
+	var accessToken, refreshToken *string
+	var configPath, deleteTenantToken string
+	var conf *configuration.Config
+	var tenants api.TenantList
+	var challenge *api.ChallengeResponseModel
+>>>>>>> ca039c0 (feat(tenant): tenant remove logic)
 
-// 	if conf, configPath, err = readConfiguration(); err != nil {
-// 		return fmt.Errorf("error while loading file path configuration: %w", err)
-// 	}
+	id := cCtx.String("id")
+	name := cCtx.String("name")
+	email := cCtx.String("email")
+	password := cCtx.String("password")
+	code := cCtx.String("code")
 
-// 	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
-// 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
-// 	}
+	apiServerUrl := "https://a145-62-152-126-198.ngrok-free.app"
 
-// 	if tenants, err = api.RemoveTenant(conf.ApiServerUrl, *accessToken, tenant.ID); err != nil {
-// 		return fmt.Errorf("error while retrieving tenant list: %w", err)
-// 	}
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
 
-// 	fmt.Printf("Tenant removed: %s %s ", tenant.ID, tenant.Name)
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
 
-// 	return nil
-// }
+	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
+		return fmt.Errorf("error while generating operator challenge: %w", err)
+	}
+
+	conf.RefreshToken = *refreshToken
+
+	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.ApiServerUrl, email, password, *refreshToken, challenge, code, id); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+	//se l'utente inserisce il nome al posto dll'id? required?
+
+	if err = api.RemoveTenant(conf.ApiServerUrl, *accessToken, id, deleteTenantToken); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+
+	switch {
+	case id == "" && name == "":
+		return fmt.Errorf("error while retrieving tenant: %w", err)
+	case name == "":
+		for _, tenant := range tenants.Tenants {
+			if id == tenant.ID {
+				fmt.Printf("Tenant removed: %s ", tenant.ID)
+			}
+		}
+	case id == "":
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				fmt.Printf("Tenant removed: %s ", tenant.Name)
+			}
+		}
+	}
+
+	return nil
+}
 
 >>>>>>> 09ed954 (feat(tenant): gives information abpout tenant)
 func DescribeTenant(cCtx *cli.Context) error {
