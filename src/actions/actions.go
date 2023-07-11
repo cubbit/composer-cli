@@ -399,6 +399,8 @@ func DescribeTenant(cCtx *cli.Context) error {
 				FormatTenant(format, tenant)
 			}
 		}
+	default:
+		return fmt.Errorf("error, tenant name or id incorrect: %w", err)
 	}
 
 	return nil
