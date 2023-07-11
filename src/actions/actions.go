@@ -222,7 +222,7 @@ func GenerateAccessToken(cCtx *cli.Context) error {
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
@@ -259,7 +259,7 @@ func CreateTenant(cCtx *cli.Context) error {
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
@@ -277,7 +277,7 @@ func CreateTenant(cCtx *cli.Context) error {
 	return nil
 }
 
-func rehydrateTokenConfig(configPath string, conf configuration.Config) (*string, error) {
+func rehydrateTokenConfig(configPath string, conf *configuration.Config) (*string, error) {
 	var accessToken, refreshToken string
 	var err error
 
@@ -335,7 +335,7 @@ func ListTenant(cCtx *cli.Context) error {
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
@@ -397,7 +397,7 @@ func RemoveTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
@@ -416,6 +416,10 @@ func RemoveTenant(cCtx *cli.Context) error {
 				id = tenant.ID
 			}
 		}
+		if id == "" {
+			fmt.Printf("Tenant %s not found\n", name)
+			return nil
+		}
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.ApiServerUrl, email); err != nil {
@@ -430,6 +434,7 @@ func RemoveTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while deleting tenant: %w", err)
 	}
 
+	fmt.Printf("tenant %s removed successfully\n", id)
 	return nil
 }
 
@@ -445,7 +450,7 @@ func DescribeTenant(cCtx *cli.Context) error {
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 

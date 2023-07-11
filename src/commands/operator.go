@@ -19,7 +19,7 @@ func Operator() *cli.Command {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			return errors.New("please specify a command")
+			return errors.New("please specify a valid command")
 		},
 		Subcommands: []*cli.Command{
 			{
