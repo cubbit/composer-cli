@@ -39,6 +39,18 @@ How to create a tenant
 tenant create --name cubbit --description "The Cubbit tenant" --image-url https://image.png --settings "{\"test\": 42}"
 ```
 
+How to list all of the available tenants
+
+```
+tenant list --verbose --line
+```
+
+How to delete a tenant 
+
+```
+tenant remove --id 
+```
+
 ## Build
 
 ```
