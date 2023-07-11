@@ -377,10 +377,9 @@ func ListTenant(cCtx *cli.Context) error {
 =======
 func RemoveTenant(cCtx *cli.Context) error {
 	var err error
-	var accessToken, refreshToken *string
+	var accessToken *string
 	var configPath, deleteTenantToken string
 	var conf *configuration.Config
-	var tenants api.TenantList
 	var challenge *api.ChallengeResponseModel
 >>>>>>> ca039c0 (feat(tenant): tenant remove logic)
 
@@ -390,7 +389,9 @@ func RemoveTenant(cCtx *cli.Context) error {
 	password := cCtx.String("password")
 	code := cCtx.String("code")
 
-	apiServerUrl := "https://a145-62-152-126-198.ngrok-free.app"
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid tenant id or name: %w", err)
+	}
 
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
@@ -400,36 +401,33 @@ func RemoveTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
+	if id == "" {
+		var operator *api.Operator
+		var tenants *api.TenantList
+
+		if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+			return fmt.Errorf("error while retrieving operator id: %w", err)
+		}
+		if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("error while retrieving tenant list: %w", err)
+		}
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+	}
+
+	if challenge, err = api.GenerateOperatorChallenge(conf.ApiServerUrl, email); err != nil {
 		return fmt.Errorf("error while generating operator challenge: %w", err)
 	}
 
-	conf.RefreshToken = *refreshToken
-
-	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.ApiServerUrl, email, password, *refreshToken, challenge, code, id); err != nil {
-		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.ApiServerUrl, email, password, conf.RefreshToken, challenge, code, id); err != nil {
+		return fmt.Errorf("error while forging operator delete token: %w", err)
 	}
-	//se l'utente inserisce il nome al posto dll'id? required?
 
 	if err = api.RemoveTenant(conf.ApiServerUrl, *accessToken, id, deleteTenantToken); err != nil {
-		return fmt.Errorf("error while retrieving tenant list: %w", err)
-	}
-
-	switch {
-	case id == "" && name == "":
-		return fmt.Errorf("error while retrieving tenant: %w", err)
-	case name == "":
-		for _, tenant := range tenants.Tenants {
-			if id == tenant.ID {
-				fmt.Printf("Tenant removed: %s ", tenant.ID)
-			}
-		}
-	case id == "":
-		for _, tenant := range tenants.Tenants {
-			if name == tenant.Name {
-				fmt.Printf("Tenant removed: %s ", tenant.Name)
-			}
-		}
+		return fmt.Errorf("error while deleting tenant: %w", err)
 	}
 
 	return nil
