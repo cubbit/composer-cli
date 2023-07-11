@@ -539,3 +539,85 @@ func FormatTenant(format string, tenant *api.Tenant) error {
 	fmt.Println()
 	return nil
 }
+
+func EditTenantDescription(cCtx *cli.Context) error { //implement actual description update
+	var err error
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
+	var tenants *api.TenantList
+
+	name := cCtx.String("name")
+	id := cCtx.String("id")
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid tenant id or name: %w", err)
+	}
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if tenants, err = api.EditTenantDescription(conf.ApiServerUrl, *accessToken, id); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+
+	if id == "" {
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+		if id == "" {
+			fmt.Printf("Tenant %s not found\n", name)
+			return nil
+		}
+	}
+
+	fmt.Printf("tenant %s description updated successfully\n", id)
+	return nil
+}
+
+func EditTenantImage(cCtx *cli.Context) error { //implement actual image update with valid url check
+	var err error
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
+	var tenants *api.TenantList
+
+	name := cCtx.String("name")
+	id := cCtx.String("id")
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid tenant id or name: %w", err)
+	}
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if tenants, err = api.EditTenantImage(conf.ApiServerUrl, *accessToken, id); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+
+	if id == "" {
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+		if id == "" {
+			fmt.Printf("Tenant %s not found\n", name)
+			return nil
+		}
+	}
+
+	fmt.Printf("tenant %s image updated successfully\n", id)
+	return nil
+}

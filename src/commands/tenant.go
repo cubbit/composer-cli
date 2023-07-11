@@ -128,6 +128,38 @@ func Tenant() *cli.Command {
 				},
 				Action: actions.DescribeTenant,
 			},
+			{
+				Name:  "edit-description",
+				Usage: "changes the tenant description",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "name",
+						Aliases: []string{"n"},
+						Usage:   "tenant name",
+					},
+					&cli.StringFlag{
+						Name:  "id",
+						Usage: "tenant id",
+					},
+				},
+				Action: actions.EditTenantDescription,
+			},
+			{
+				Name:  "edit-image",
+				Usage: "changes the tenant image",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "name",
+						Aliases: []string{"n"},
+						Usage:   "tenant name",
+					},
+					&cli.StringFlag{
+						Name:  "id",
+						Usage: "tenant id",
+					},
+				},
+				Action: actions.EditTenantImage,
+			},
 		},
 	}
 
