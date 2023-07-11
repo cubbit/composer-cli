@@ -71,7 +71,7 @@ func Tenant() *cli.Command {
 			},
 			{
 				Name:    "describe",
-				Aliases: []string{"desc"},
+				Aliases: []string{"info"},
 				Usage:   "describes a tenant",
 				Flags: []cli.Flag{
 					&cli.StringFlag{

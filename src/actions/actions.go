@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 
@@ -405,7 +404,7 @@ func DescribeTenant(cCtx *cli.Context) error {
 	return nil
 }
 
-func FormatTenant(format string, tenant *api.Tenant) {
+func FormatTenant(format string, tenant *api.Tenant) error {
 	switch {
 	case format == "default":
 		fmt.Printf("ID: %s\n", tenant.ID)
@@ -435,7 +434,7 @@ func FormatTenant(format string, tenant *api.Tenant) {
 		formatJson, err := json.Marshal(api.Tenant{ID: tenant.ID, Name: tenant.Name, Description: tenant.Description, OwnerID: tenant.OwnerID, CreatedAt: tenant.CreatedAt, DeletedAt: tenant.DeletedAt, ImageUrl: tenant.ImageUrl, Settings: tenant.Settings})
 
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("error while opening json file: %w", err)
 		}
 
 		fmt.Println(string(formatJson))
@@ -462,15 +461,16 @@ func FormatTenant(format string, tenant *api.Tenant) {
 
 		for _, record := range records {
 			if err := w.Write(record); err != nil {
-				log.Fatalln("error writing record to csv:", err)
+				return fmt.Errorf("error writing record to csv: %w", err)
 			}
 		}
 
 		w.Flush()
 
 		if err := w.Error(); err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("error occurred during the Flush: %w", err)
 		}
 	}
 	fmt.Println()
+	return nil
 }
