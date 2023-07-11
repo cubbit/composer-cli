@@ -45,12 +45,6 @@ How to list all of the available tenants
 tenant list --verbose --line
 ```
 
-How to delete a tenant 
-
-```
-tenant remove --id 
-```
-
 ## Build
 
 ```
