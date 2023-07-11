@@ -390,7 +390,7 @@ func DescribeTenant(cCtx *cli.Context) error {
 	case name == "":
 		for _, tenant := range tenants.Tenants {
 			if id == tenant.ID {
-				fmt.Printf("%s\n %s ", tenant.ID, *tenant.Description)
+				FormatTenant(format, tenant)
 			}
 		}
 	case id == "":
