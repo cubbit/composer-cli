@@ -84,14 +84,16 @@ func Tenant() *cli.Command {
 						Usage:   "removes the tenant with the specified name",
 					},
 					&cli.StringFlag{
-						Name:    "email",
-						Aliases: []string{"e"},
-						Usage:   "Email address",
+						Name:     "email",
+						Aliases:  []string{"e"},
+						Usage:    "Email address",
+						Required: true,
 					},
 					&cli.StringFlag{
-						Name:    "password",
-						Aliases: []string{"p"},
-						Usage:   "Password",
+						Name:     "password",
+						Aliases:  []string{"p"},
+						Usage:    "Password",
+						Required: true,
 					},
 					&cli.StringFlag{
 						Name:    "code",
