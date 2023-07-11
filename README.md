@@ -45,6 +45,18 @@ How to list all of the available tenants
 tenant list --verbose --line
 ```
 
+How to delete a tenant
+
+```
+tenant remove --id a37b4 --name cubbit --email test@cubbit.io --password 123456 --code 000-000
+```
+
+How to get the description of a tenant
+
+```
+tenant describe --id a37b4 --name cubbit --format default
+```
+
 ## Build
 
 ```
