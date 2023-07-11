@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"errors"
+
 	"github.com/cubbit/cubbit/client/cli/src/actions"
 	"github.com/urfave/cli/v2"
 )
@@ -17,7 +19,7 @@ func Operator() *cli.Command {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			return nil
+			return errors.New("please specify a command")
 		},
 		Subcommands: []*cli.Command{
 			{
