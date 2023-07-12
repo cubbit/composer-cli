@@ -367,7 +367,7 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 	id := cCtx.String("id")
 	name := cCtx.String("name")
 
-	fmt.Println("these are your swarms")
+	fmt.Println("there are the swarms connect to the tenant")
 
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
