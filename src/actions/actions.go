@@ -556,7 +556,7 @@ func EditTenantDescription(cCtx *cli.Context) error {
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
@@ -593,7 +593,7 @@ func EditTenantImage(cCtx *cli.Context) error {
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
