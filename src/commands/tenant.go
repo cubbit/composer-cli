@@ -69,6 +69,27 @@ func Tenant() *cli.Command {
 				},
 				Action: actions.ListTenant,
 			},
+			{
+				Name:  "list-available-swarms",
+				Usage: "lists the swarms that can be connected",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "id",
+						Usage: "lists all available information for swarms",
+					},
+					&cli.BoolFlag{
+						Name:    "verbose",
+						Aliases: []string{"v"},
+						Usage:   "lists all available information for swarms",
+					},
+					&cli.BoolFlag{
+						Name:    "line",
+						Aliases: []string{"l"},
+						Usage:   "adds a line between the information about different swarms",
+					},
+				},
+				Action: actions.ListAvailableSwarmsTenant,
+			},
 		},
 	}
 

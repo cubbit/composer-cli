@@ -54,3 +54,20 @@ func ListTenant(apiServerUrl, accessToken, ownerID string) (*TenantList, error) 
 	}
 	return &response, nil
 }
+
+func ListAvailableSwarmsTenant(apiServerUrl, accessToken, tenantID string) (*SwarmList, error) {
+	var err error
+	url := apiServerUrl + "/v1/tenants/" + tenantID + "/swarms"
+	var response SwarmList
+	fmt.Println(url)
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractSwarmListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed unable to list available swarms request: %w", err)
+	}
+	return &response, nil
+}
