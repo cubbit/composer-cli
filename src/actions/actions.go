@@ -668,3 +668,69 @@ func EditTenantImage(cCtx *cli.Context) error {
 	fmt.Printf("tenant %s image updated successfully\n", id)
 	return nil
 }
+
+func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
+	var err error
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
+	var swarms *api.SwarmList
+
+	id := cCtx.String("id")
+	name := cCtx.String("name")
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid tenant id or name: %w", err)
+	}
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id == "" {
+		var operator *api.Operator
+		var tenants *api.TenantList
+
+		if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("error while retrieving tenant list: %w", err)
+		}
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+		if id == "" {
+			fmt.Printf("Tenant %s not found\n", name)
+			return nil
+		}
+	}
+
+	fmt.Printf("there are the swarms connect to the tenant %s\n", id)
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if swarms, err = api.ListAvailableSwarmsTenant(conf.ApiServerUrl, *accessToken, id); err != nil {
+		return fmt.Errorf("error while retrieving available swarms list: %w", err)
+	}
+
+	fmt.Println(len(swarms.Swarms))
+
+	for _, swarm := range swarms.Swarms {
+		if swarm.Default {
+			fmt.Printf("[x] %s\n", swarm.SwarmID)
+		} else {
+			fmt.Printf("[ ] %s\n", swarm.SwarmID)
+		}
+
+	}
+	return nil
+}
