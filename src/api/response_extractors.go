@@ -139,3 +139,24 @@ func extractOperatorResponseModel(response *Operator) request_utils.RequestModif
 		return nil
 	}
 }
+
+func extractSwarmListModel(response *SwarmList) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}

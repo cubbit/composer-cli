@@ -68,6 +68,16 @@ type TenantList struct {
 	Tenants []*Tenant `json:"tenants"`
 }
 
+type Swarm struct {
+	SwarmID  string `json:"swarm_id"`
+	TenantID string `json:"tenant_id"`
+	Default  bool   `json:"default"`
+}
+
+type SwarmList struct {
+	Swarms []*Swarm `json:"swarms"`
+}
+
 type Operator struct {
 	ID                 string          `json:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
 	FirstName          string          `json:"first_name" example:"Mario"`
