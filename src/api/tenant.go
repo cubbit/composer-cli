@@ -71,9 +71,12 @@ func RemoveTenant(apiServerUrl, accessToken, tenantId, deleteTenantToken string)
 	return nil
 }
 
-func EditTenantDescription(apiServerUrl, accessToken, tenantID string) (*TenantList, error) {
+func EditTenantDescription(apiServerUrl, accessToken, tenantID, description string) error {
 	var err error
-	var response TenantList
+
+	requestBody := map[string]interface{}{
+		"description": description,
+	}
 
 	url := apiServerUrl + "/v1/tenants/" + tenantID
 
@@ -81,18 +84,21 @@ func EditTenantDescription(apiServerUrl, accessToken, tenantID string) (*TenantL
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractTenantListModel(&response),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to delete tenant request: %w", err)
+		return fmt.Errorf("failed unable to edit tenant description: %w", err)
 	}
 
-	return &response, nil
+	return nil
 }
 
-func EditTenantImage(apiServerUrl, accessToken, tenantID string) (*TenantList, error) {
+func EditTenantImage(apiServerUrl, accessToken, tenantID, imageUrl string) error {
 	var err error
-	var response TenantList
+
+	requestBody := map[string]interface{}{
+		"image_url": imageUrl,
+	}
 
 	url := apiServerUrl + "/v1/tenants/" + tenantID
 
@@ -100,11 +106,11 @@ func EditTenantImage(apiServerUrl, accessToken, tenantID string) (*TenantList, e
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractTenantListModel(&response),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to delete tenant request: %w", err)
+		return fmt.Errorf("failed unable to edit tenant image: %w", err)
 	}
 
-	return &response, nil
+	return nil
 }
