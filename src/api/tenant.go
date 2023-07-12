@@ -59,7 +59,6 @@ func ListAvailableSwarmsTenant(apiServerUrl, accessToken, tenantID string) (*Swa
 	var err error
 	url := apiServerUrl + "/v1/tenants/" + tenantID + "/swarms"
 	var response SwarmList
-	fmt.Println(url)
 
 	if err = request_utils.DoRequest(
 		url,

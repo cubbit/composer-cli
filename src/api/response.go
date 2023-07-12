@@ -69,9 +69,9 @@ type TenantList struct {
 }
 
 type Swarm struct {
-	Default  bool
-	SwarmID  string
-	TenantID string
+	SwarmID  string `json:"swarm_id"`
+	TenantID string `json:"tenant_id"`
+	Default  bool   `json:"default"`
 }
 
 type SwarmList struct {

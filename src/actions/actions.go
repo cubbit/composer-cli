@@ -367,7 +367,37 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 	id := cCtx.String("id")
 	name := cCtx.String("name")
 
-	fmt.Println("there are the swarms connect to the tenant")
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid tenant id or name: %w", err)
+	}
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, *conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id == "" {
+		var operator *api.Operator
+		var tenants *api.TenantList
+
+		if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("error while retrieving tenant list: %w", err)
+		}
+		for _, tenant := range tenants.Tenants {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+		if id == "" {
+			fmt.Printf("Tenant %s not found\n", name)
+			return nil
+		}
+	}
+
+	fmt.Printf("there are the swarms connect to the tenant %s\n", id)
 
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
@@ -380,19 +410,15 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while retrieving available swarms list: %w", err)
 	}
 
-	verbose := cCtx.Bool("verbose")
-	l := cCtx.Bool("l")
+	fmt.Println(len(swarms.Swarms))
 
 	for _, swarm := range swarms.Swarms {
-		if verbose {
-			fmt.Printf("%s %s", swarm.SwarmID, swarm.TenantID)
+		if swarm.Default {
+			fmt.Printf("[x] %s\n", swarm.SwarmID)
 		} else {
-			fmt.Printf("%s ", name)
+			fmt.Printf("[ ] %s\n", swarm.SwarmID)
 		}
-		if l {
-			fmt.Println()
-		}
-	}
 
+	}
 	return nil
 }

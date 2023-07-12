@@ -77,16 +77,6 @@ func Tenant() *cli.Command {
 						Name:  "id",
 						Usage: "lists all available information for swarms",
 					},
-					&cli.BoolFlag{
-						Name:    "verbose",
-						Aliases: []string{"v"},
-						Usage:   "lists all available information for swarms",
-					},
-					&cli.BoolFlag{
-						Name:    "line",
-						Aliases: []string{"l"},
-						Usage:   "adds a line between the information about different swarms",
-					},
 				},
 				Action: actions.ListAvailableSwarmsTenant,
 			},
