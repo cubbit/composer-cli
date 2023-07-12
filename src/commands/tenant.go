@@ -21,6 +21,15 @@ func Tenant() *cli.Command {
 				Usage:       "Configuration path for file ./",
 				DefaultText: "./",
 			},
+			&cli.StringFlag{
+				Name:    "name",
+				Aliases: []string{"n"},
+				Usage:   "The name of the tenant",
+			},
+			&cli.StringFlag{
+				Name:  "id",
+				Usage: "The id of the tenant",
+			},
 		},
 		Action: func(cCtx *cli.Context) error {
 			return errors.New("please specify a valid command")
@@ -111,15 +120,6 @@ func Tenant() *cli.Command {
 				Usage:   "describes a tenant",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:  "id",
-						Usage: "shows information about the tenant with the specified id",
-					},
-					&cli.StringFlag{
-						Name:    "name",
-						Aliases: []string{"n"},
-						Usage:   "shows information about the tenant with the specified name",
-					},
-					&cli.StringFlag{
 						Name:        "format",
 						Usage:       "formats the description",
 						DefaultText: "default",
@@ -129,35 +129,15 @@ func Tenant() *cli.Command {
 				Action: actions.DescribeTenant,
 			},
 			{
-				Name:  "edit-description",
-				Usage: "changes the tenant description",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "name",
-						Aliases: []string{"n"},
-						Usage:   "tenant name",
-					},
-					&cli.StringFlag{
-						Name:  "id",
-						Usage: "tenant id",
-					},
-				},
+				Name:   "edit-description",
+				Usage:  "changes the tenant description",
+				Flags:  []cli.Flag{},
 				Action: actions.EditTenantDescription,
 			},
 			{
-				Name:  "edit-image",
-				Usage: "changes the tenant image",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "name",
-						Aliases: []string{"n"},
-						Usage:   "tenant name",
-					},
-					&cli.StringFlag{
-						Name:  "id",
-						Usage: "tenant id",
-					},
-				},
+				Name:   "edit-image",
+				Usage:  "changes the tenant image",
+				Flags:  []cli.Flag{},
 				Action: actions.EditTenantImage,
 			},
 		},

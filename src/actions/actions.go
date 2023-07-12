@@ -540,12 +540,11 @@ func FormatTenant(format string, tenant *api.Tenant) error {
 	return nil
 }
 
-func EditTenantDescription(cCtx *cli.Context) error { //implement actual description update
+func EditTenantDescription(cCtx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
-	var tenants *api.TenantList
 
 	name := cCtx.String("name")
 	id := cCtx.String("id")
@@ -561,32 +560,28 @@ func EditTenantDescription(cCtx *cli.Context) error { //implement actual descrip
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if tenants, err = api.EditTenantDescription(conf.ApiServerUrl, *accessToken, id); err != nil {
-		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	if cCtx.Args().Len() != 1 {
+		return fmt.Errorf("invalid umage url: %w", err)
 	}
 
-	if id == "" {
-		for _, tenant := range tenants.Tenants {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
-		}
-		if id == "" {
-			fmt.Printf("Tenant %s not found\n", name)
-			return nil
-		}
+	description := cCtx.Args().First()
+	if len(description) > 200 {
+		return fmt.Errorf("tenant description is over 200 characters: %w", err)
+	}
+
+	if err = api.EditTenantDescription(conf.ApiServerUrl, *accessToken, id, description); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
 	fmt.Printf("tenant %s description updated successfully\n", id)
 	return nil
 }
 
-func EditTenantImage(cCtx *cli.Context) error { //implement actual image update with valid url check
+func EditTenantImage(cCtx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
-	var tenants *api.TenantList
 
 	name := cCtx.String("name")
 	id := cCtx.String("id")
@@ -602,20 +597,19 @@ func EditTenantImage(cCtx *cli.Context) error { //implement actual image update 
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if tenants, err = api.EditTenantImage(conf.ApiServerUrl, *accessToken, id); err != nil {
-		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	if cCtx.Args().Len() != 1 {
+		return fmt.Errorf("invalid umage url: %w", err)
 	}
 
-	if id == "" {
-		for _, tenant := range tenants.Tenants {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
+	image := cCtx.Args().First()
+	if image != "" {
+		if _, err := url.ParseRequestURI(image); err != nil {
+			return fmt.Errorf("image url is not adequate: %w", err)
 		}
-		if id == "" {
-			fmt.Printf("Tenant %s not found\n", name)
-			return nil
-		}
+	}
+
+	if err = api.EditTenantImage(conf.ApiServerUrl, *accessToken, id, image); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
 	fmt.Printf("tenant %s image updated successfully\n", id)
