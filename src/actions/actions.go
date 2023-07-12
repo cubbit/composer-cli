@@ -692,24 +692,10 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 	}
 
 	if id == "" {
-		var operator *api.Operator
-		var tenants *api.TenantList
-
-		if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
-			return fmt.Errorf("error while retrieving tenant list: %w", err)
-		}
-		for _, tenant := range tenants.Tenants {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
-		}
-		if id == "" {
-			fmt.Printf("Tenant %s not found\n", name)
-			return nil
-		}
+		getTenantByName(conf, accessToken, name, id)
 	}
 
-	fmt.Printf("there are the swarms connect to the tenant %s\n", id)
+	fmt.Printf("those are the swarms connect to the tenant %s\n", id)
 
 	if conf, configPath, err = readConfiguration(); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
@@ -725,12 +711,33 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 	fmt.Println(len(swarms.Swarms))
 
 	for _, swarm := range swarms.Swarms {
+		cross := " "
 		if swarm.Default {
-			fmt.Printf("[x] %s\n", swarm.SwarmID)
-		} else {
-			fmt.Printf("[ ] %s\n", swarm.SwarmID)
+			cross = "x"
 		}
 
+		fmt.Printf("[%s] %s\n", cross, swarm.SwarmID)
+
+	}
+	return nil
+}
+
+func getTenantByName(conf *configuration.Config, accessToken *string, name string, id string) error {
+	var err error
+	var operator *api.Operator
+	var tenants *api.TenantList
+
+	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+		return fmt.Errorf("error while retrieving tenant list: %w", err)
+	}
+	for _, tenant := range tenants.Tenants {
+		if name == tenant.Name {
+			id = tenant.ID
+		}
+	}
+	if id == "" {
+		fmt.Printf("Tenant %s not found\n", name)
+		return nil
 	}
 	return nil
 }

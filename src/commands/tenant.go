@@ -141,14 +141,8 @@ func Tenant() *cli.Command {
 				Action: actions.EditTenantImage,
 			},
 			{
-				Name:  "list-available-swarms",
-				Usage: "lists the swarms that can be connected",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "id",
-						Usage: "lists all available information for swarms",
-					},
-				},
+				Name:   "list-available-swarms",
+				Usage:  "lists the swarms that can be connected",
 				Action: actions.ListAvailableSwarmsTenant,
 			},
 		},
