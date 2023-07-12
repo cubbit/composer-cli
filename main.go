@@ -20,6 +20,7 @@ func main() {
 			commands.Access(),
 			commands.Operator(),
 			commands.Tenant(),
+			commands.Swarm(),
 		},
 	}
 

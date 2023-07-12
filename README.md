@@ -57,15 +57,26 @@ tenant list --verbose --line
 How to delete a tenant
 
 ```
-tenant remove --id a37b4 --name cubbit --email test@cubbit.io --password 123456 --code 000-000
+tenant --id a37b4 --name cubbit remove --email test@cubbit.io --password 123456 --code 000-000
 ```
 
 How to get the description of a tenant
 
 ```
-tenant describe --id a37b4 --name cubbit --format default
+tenant --id a37b4 --name cubbit describe --format default
 ```
 
+How to change the description of a tenant
+
+```
+tenant --id a37b4 --name cubbit edit-description
+```
+
+How to change the image of a tenant
+
+```
+tenant --id a37b4 --name cubbit edit-image
+```
 ## Build
 
 ```

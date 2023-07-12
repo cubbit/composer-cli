@@ -668,3 +668,44 @@ func EditTenantImage(cCtx *cli.Context) error {
 	fmt.Printf("tenant %s image updated successfully\n", id)
 	return nil
 }
+
+func CreateSwarm(cCtx *cli.Context) error {
+	var err error
+	var accessToken *string
+	var configPath string
+	var response *api.GenericIDResponseModel
+	var conf *configuration.Config
+	var operator *api.Operator
+
+	name := cCtx.String("name")
+	description := cCtx.String("description")
+
+	configurationString := cCtx.String("configuration")
+	if configurationString == "" {
+		configurationString = "{}"
+	}
+
+	if conf, configPath, err = readConfiguration(); err != nil {
+		return fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	var configuration map[string]interface{}
+
+	if err = json.Unmarshal([]byte(configurationString), &configuration); err != nil {
+		return fmt.Errorf("error while parsing json configuration: %w", err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+		return fmt.Errorf("error while retrieving operator id: %w", err)
+	}
+
+	if response, err = api.CreateSwarm(*accessToken, operator.ID, name, &description, configuration); err != nil {
+		return fmt.Errorf("error while creating the swarm: %w", err)
+	}
+
+	fmt.Printf("Successfully created swarm: %s\n", response.ID)
+	return nil
+}

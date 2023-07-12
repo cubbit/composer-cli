@@ -51,16 +51,11 @@ func Swarm() *cli.Command {
 						Usage:   "A meaningful desciription of the swarm",
 					},
 					&cli.StringFlag{
-						Name:  "image-url",
-						Usage: "The url of an image",
-					},
-					&cli.StringFlag{
-						Name:    "settings",
-						Aliases: []string{"s"},
-						Usage:   "A Json object containing the settings",
+						Name:  "configuration",
+						Usage: "A Json object containing the configuration",
 					},
 				},
-				Action: actions.CreateTenant,
+				Action: actions.CreateSwarm,
 			},
 		},
 	}
