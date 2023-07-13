@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateTenant(iamUrl, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}) (*GenericIDResponseModel, error) {
+func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := iamUrl + "/v1/tenants"
+	url := urls.IamUrl + "/v1/tenants"
 
 	requestBody := map[string]interface{}{
 		"name":     name,
@@ -39,9 +40,9 @@ func CreateTenant(iamUrl, accessToken, name string, description *string, imageUr
 	return &response, nil
 }
 
-func ListTenant(iamUrl, accessToken, ownerID string) (*TenantList, error) {
+func ListTenant(urls configuration.Url, accessToken, ownerID string) (*TenantList, error) {
 	var err error
-	url := iamUrl + "/v1/tenants?owner=" + ownerID
+	url := urls.IamUrl + "/v1/tenants?owner=" + ownerID
 	var response TenantList
 
 	if err = request_utils.DoRequest(
@@ -55,9 +56,9 @@ func ListTenant(iamUrl, accessToken, ownerID string) (*TenantList, error) {
 	return &response, nil
 }
 
-func RemoveTenant(iamUrl, accessToken, tenantId, deleteTenantToken string) error {
+func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantToken string) error {
 	var err error
-	url := iamUrl + "/v1/tenants/" + tenantId + "?token=" + deleteTenantToken
+	url := urls.IamUrl + "/v1/tenants/" + tenantId + "?token=" + deleteTenantToken
 
 	if err = request_utils.DoRequest(
 		url,
@@ -71,14 +72,14 @@ func RemoveTenant(iamUrl, accessToken, tenantId, deleteTenantToken string) error
 	return nil
 }
 
-func EditTenantDescription(iamUrl, accessToken, tenantID, description string) error {
+func EditTenantDescription(urls configuration.Url, accessToken, tenantID, description string) error {
 	var err error
 
 	requestBody := map[string]interface{}{
 		"description": description,
 	}
 
-	url := iamUrl + "/v1/tenants/" + tenantID
+	url := urls.IamUrl + "/v1/tenants/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -93,14 +94,14 @@ func EditTenantDescription(iamUrl, accessToken, tenantID, description string) er
 	return nil
 }
 
-func EditTenantImage(iamUrl, accessToken, tenantID, imageUrl string) error {
+func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl string) error {
 	var err error
 
 	requestBody := map[string]interface{}{
 		"image_url": imageUrl,
 	}
 
-	url := iamUrl + "/v1/tenants/" + tenantID
+	url := urls.IamUrl + "/v1/tenants/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
