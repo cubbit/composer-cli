@@ -15,19 +15,31 @@ import (
 
 const DEFAULT_FILE_PATH = "./"
 
+func convertUrls(apiServerUrl string) configuration.Url {
+	urls := configuration.Url{
+		IamUrl:  apiServerUrl,
+		HiveUrl: "https://9dc4-62-152-126-198.ngrok-free.app",
+	}
+	return urls
+}
+
 func CreateOperatorInteractive(cCtx *cli.Context) error {
 	var err error
-	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu/iam)")
+	var urls configuration.Url
+
+	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 	if apiServerUrl == "" {
-		apiServerUrl = "https://api.cubbit.eu/iam"
+		apiServerUrl = "https://api.cubbit.eu"
 	}
+
+	urls = convertUrls(apiServerUrl)
 
 	firstName := input.TextPrompt("Enter first name:")
 	lastName := input.TextPrompt("Enter last name:")
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
 
-	if err = api.CreateOperator(apiServerUrl, firstName, lastName, email, password); err != nil {
+	if err = api.CreateOperator(urls, firstName, lastName, email, password); err != nil {
 		return fmt.Errorf("error while creating operator: %w", err)
 	}
 
@@ -37,7 +49,8 @@ func CreateOperatorInteractive(cCtx *cli.Context) error {
 
 func CreateOperator(cCtx *cli.Context) error {
 	var err error
-	var apiServerUrl, email, password, firstName, lastName string
+	var email, password, firstName, lastName string
+	var urls configuration.Url
 
 	if cCtx.Bool("interactive") {
 		return CreateOperatorInteractive(cCtx)
@@ -47,9 +60,14 @@ func CreateOperator(cCtx *cli.Context) error {
 	password = cCtx.String("password")
 	firstName = cCtx.String("first-name")
 	lastName = cCtx.String("last-name")
-	apiServerUrl = cCtx.String("api-server-url")
+	apiServerUrl := cCtx.String("api-server-url")
+	if apiServerUrl == "" {
+		apiServerUrl = "https://api.cubbit.eu/iam"
+	}
 
-	if err = api.CreateOperator(apiServerUrl, firstName, lastName, email, password); err != nil {
+	urls = convertUrls(apiServerUrl)
+
+	if err = api.CreateOperator(urls, firstName, lastName, email, password); err != nil {
 		return fmt.Errorf("error while creating operator: %w", err)
 	}
 
@@ -61,11 +79,14 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 	var err error
 	var code, refreshToken string
 	var challenge *api.ChallengeResponseModel
+	var urls configuration.Url
 
-	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu/iam)")
+	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 	if apiServerUrl == "" {
-		apiServerUrl = "https://api.cubbit.eu/iam"
+		apiServerUrl = "https://api.cubbit.eu"
 	}
+
+	urls = convertUrls(apiServerUrl)
 
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
@@ -84,15 +105,15 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 		profile = "default"
 	}
 
-	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
+	if challenge, err = api.GenerateOperatorChallenge(urls, email); err != nil {
 		return fmt.Errorf("error while generating operator challenge: %w", err)
 	}
 
-	if refreshToken, err = api.PerformOperatorSignin(apiServerUrl, email, password, challenge, code); err != nil {
+	if refreshToken, err = api.PerformOperatorSignin(urls, email, password, challenge, code); err != nil {
 		return fmt.Errorf("error while performing operator signin: %w", err)
 	}
 
-	var conf = configuration.NewConfig(profile, apiServerUrl, refreshToken)
+	var conf = configuration.NewConfig(profile, urls, refreshToken)
 
 	conf.Store(configPath)
 
@@ -105,6 +126,7 @@ func SignInOperator(cCtx *cli.Context) error {
 	var err error
 	var apiServerUrl, email, password, code, refreshToken string
 	var challenge *api.ChallengeResponseModel
+	var urls configuration.Url
 
 	if cCtx.Bool("interactive") {
 		return SignInOperatorInteractive(cCtx)
@@ -125,17 +147,19 @@ func SignInOperator(cCtx *cli.Context) error {
 	code = cCtx.String("code")
 	apiServerUrl = cCtx.String("api-server-url")
 
-	if challenge, err = api.GenerateOperatorChallenge(apiServerUrl, email); err != nil {
+	urls = convertUrls(apiServerUrl)
+
+	if challenge, err = api.GenerateOperatorChallenge(urls, email); err != nil {
 		return fmt.Errorf("error while generating operator challenge: %w", err)
 	}
 
-	if refreshToken, err = api.PerformOperatorSignin(apiServerUrl, email, password, challenge, code); err != nil {
+	if refreshToken, err = api.PerformOperatorSignin(urls, email, password, challenge, code); err != nil {
 		return fmt.Errorf("error while performing operator singin: %w", err)
 	}
 
-	var conf = configuration.NewConfig(profile, apiServerUrl, refreshToken)
+	var confs = configuration.NewConfig(profile, urls, refreshToken)
 
-	if err = conf.Store(configPath); err != nil {
+	if err = confs.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
@@ -146,6 +170,7 @@ func SignInOperator(cCtx *cli.Context) error {
 
 func SignOutOperatorInteractive(cCtx *cli.Context) error {
 	var err error
+
 	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
 	if configPath == "" {
 		configPath = DEFAULT_FILE_PATH
@@ -156,7 +181,7 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 		profile = "default"
 	}
 
-	var conf = configuration.NewConfig(profile, "", "")
+	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
@@ -184,7 +209,7 @@ func SignOutOperator(cCtx *cli.Context) error {
 		configPath = DEFAULT_FILE_PATH
 	}
 
-	var conf = configuration.NewConfig(profile, "", "")
+	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
 	if err = conf.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
@@ -269,7 +294,7 @@ func CreateTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while parsing json settings: %w", err)
 	}
 
-	if response, err = api.CreateTenant(conf.ApiServerUrl, *accessToken, name, &description, &imageUrl, settings); err != nil {
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings); err != nil {
 		return fmt.Errorf("error while creating the tenant: %w", err)
 	}
 
@@ -281,7 +306,7 @@ func rehydrateTokenConfig(configPath string, conf *configuration.Config) (*strin
 	var accessToken, refreshToken string
 	var err error
 
-	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.ApiServerUrl, conf.RefreshToken); err != nil {
+	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.Urls, conf.RefreshToken); err != nil {
 		return nil, fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
@@ -313,7 +338,7 @@ func readConfiguration() (*configuration.Config, string, error) {
 		}
 	}
 
-	var conf = configuration.NewConfig(profile, "", "")
+	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
 	if err = conf.Load(configPath, profile); err != nil {
 		return nil, "", fmt.Errorf("error while loading file path configuration: %w", err)
@@ -339,10 +364,10 @@ func ListTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("error while retrieving operator id: %w", err)
 	}
-	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
@@ -392,10 +417,10 @@ func RemoveTenant(cCtx *cli.Context) error {
 		var operator *api.Operator
 		var tenants *api.TenantList
 
-		if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("error while retrieving operator id: %w", err)
 		}
-		if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+		if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("error while retrieving tenant list: %w", err)
 		}
 		for _, tenant := range tenants.Tenants {
@@ -409,15 +434,15 @@ func RemoveTenant(cCtx *cli.Context) error {
 		}
 	}
 
-	if challenge, err = api.GenerateOperatorChallenge(conf.ApiServerUrl, email); err != nil {
+	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
 		return fmt.Errorf("error while generating operator challenge: %w", err)
 	}
 
-	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.ApiServerUrl, email, password, conf.RefreshToken, challenge, code, id); err != nil {
+	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
 		return fmt.Errorf("error while forging operator delete token: %w", err)
 	}
 
-	if err = api.RemoveTenant(conf.ApiServerUrl, *accessToken, id, deleteTenantToken); err != nil {
+	if err = api.RemoveTenant(conf.Urls, *accessToken, id, deleteTenantToken); err != nil {
 		return fmt.Errorf("error while deleting tenant: %w", err)
 	}
 
@@ -443,10 +468,10 @@ func DescribeTenant(cCtx *cli.Context) error {
 	id := cCtx.String("id")
 	name := cCtx.String("name")
 	format := cCtx.String("format")
-	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("error while retrieving operator id: %w", err)
 	}
-	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
@@ -574,7 +599,7 @@ func EditTenantDescription(cCtx *cli.Context) error {
 		return fmt.Errorf("tenant description is over 200 characters: %w", err)
 	}
 
-	if err = api.EditTenantDescription(conf.ApiServerUrl, *accessToken, id, description); err != nil {
+	if err = api.EditTenantDescription(conf.Urls, *accessToken, id, description); err != nil {
 		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
@@ -613,7 +638,7 @@ func EditTenantImage(cCtx *cli.Context) error {
 		}
 	}
 
-	if err = api.EditTenantImage(conf.ApiServerUrl, *accessToken, id, image); err != nil {
+	if err = api.EditTenantImage(conf.Urls, *accessToken, id, image); err != nil {
 		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 

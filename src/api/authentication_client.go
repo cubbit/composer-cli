@@ -8,14 +8,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 	"github.com/cubbit/cubbit/client/cli/utils"
 )
 
-func GenerateOperatorChallenge(apiServerUrl, email string) (*ChallengeResponseModel, error) {
+func GenerateOperatorChallenge(urls configuration.Url, email string) (*ChallengeResponseModel, error) {
 	var err error
 	var response ChallengeResponseModel
-	url := apiServerUrl + "/v1/auth/operators/signin/challenge"
+	url := urls.IamUrl + "/v1/auth/operators/signin/challenge"
 
 	requestBody := map[string]interface{}{
 		"email": email,
@@ -34,9 +35,9 @@ func GenerateOperatorChallenge(apiServerUrl, email string) (*ChallengeResponseMo
 	return &response, nil
 }
 
-func PerformOperatorSignin(apiServerUrl, email, password string, challenge *ChallengeResponseModel, code string) (string, error) {
+func PerformOperatorSignin(urls configuration.Url, email, password string, challenge *ChallengeResponseModel, code string) (string, error) {
 	var err error
-	url := apiServerUrl + "/v1/auth/operators/signin"
+	url := urls.IamUrl + "/v1/auth/operators/signin"
 	var privateKey ed25519.PrivateKey
 	var tokenExpirationResponse TokenAndExpirationResponseModel
 	var refreshTokenCookie string
@@ -83,11 +84,12 @@ func PerformOperatorSignin(apiServerUrl, email, password string, challenge *Chal
 	return refreshTokenCookie, nil
 }
 
-func CreateOperator(apiServerUrl, firstName, lastName, email, password string) error {
+func CreateOperator(urls configuration.Url, firstName, lastName, email, password string) error {
 	var err error
+	var conf *configuration.Config
 
 	var challenge *ChallengeResponseModel
-	if challenge, err = GenerateOperatorChallenge(apiServerUrl, email); err != nil {
+	if challenge, err = GenerateOperatorChallenge(conf.Urls, email); err != nil {
 		return err
 	}
 
@@ -100,7 +102,7 @@ func CreateOperator(apiServerUrl, firstName, lastName, email, password string) e
 		return err
 	}
 
-	url := apiServerUrl + "/v1/operators/signup"
+	url := urls.IamUrl + "/v1/operators/signup"
 	requestBody := map[string]interface{}{
 		"first_name":                firstName,
 		"last_name":                 lastName,
@@ -115,14 +117,14 @@ func CreateOperator(apiServerUrl, firstName, lastName, email, password string) e
 	return nil
 }
 
-func ForgeOperatorAccessToken(apiServerUrl, refreshToken string) (string, string, error) {
-	url := apiServerUrl + "/v1/auth/operators/forge/access"
+func ForgeOperatorAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
+	url := urls.IamUrl + "/v1/auth/operators/forge/access"
 
 	return getOperatorAccessToken(refreshToken, url)
 }
 
-func RefreshAccessToken(apiServerUrl, refreshToken string) (string, string, error) {
-	url := apiServerUrl + "/v1/auth/operators/refresh/access"
+func RefreshAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
+	url := urls.IamUrl + "/v1/auth/operators/refresh/access"
 
 	return getOperatorAccessToken(refreshToken, url)
 }
@@ -152,7 +154,7 @@ func getOperatorAccessToken(refreshToken string, url string) (string, string, er
 	return tokenExpirationResponse.Token, refreshToken, nil
 }
 
-func ForgeOperatorDeleteTenantToken(apiServerUrl, email, password, refreshToken string, challenge *ChallengeResponseModel, code, tenantID string) (string, error) {
+func ForgeOperatorDeleteTenantToken(urls configuration.Url, email, password, refreshToken string, challenge *ChallengeResponseModel, code, tenantID string) (string, error) {
 
 	var err error
 	var privateKey ed25519.PrivateKey
@@ -167,7 +169,7 @@ func ForgeOperatorDeleteTenantToken(apiServerUrl, email, password, refreshToken 
 		return "", err
 	}
 
-	url := apiServerUrl + "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id=" + tenantID
+	url := urls.IamUrl + "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id=" + tenantID
 	signedChallenge := ed25519.Sign(privateKey, []byte(challenge.Challenge))
 
 	body := map[string]interface{}{

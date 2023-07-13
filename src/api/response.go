@@ -5,12 +5,6 @@ import (
 	"time"
 )
 
-type Url struct {
-	IamUrl             string //`json:"iam_url"`
-	HiveUrl            string //`json:"hive_url"`
-	ResourceMonitorUrl string //`json:"resource_monitor_url"`
-}
-
 type ErrorResponseModel struct {
 	Message string `json:"message"`
 	Param   string `json:"param"`

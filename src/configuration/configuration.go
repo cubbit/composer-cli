@@ -9,9 +9,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type Url struct {
+	IamUrl  string `yaml:"iam"`
+	HiveUrl string `yaml:"hive"`
+}
+
 type Config struct {
 	Name         string    `yaml:"name"`
-	ApiServerUrl string    `yaml:"server_url"`
+	Urls         Url       `yaml:"servers_url"`
 	RefreshToken string    `yaml:"refresh_token"`
 	UpdatedAt    time.Time `yaml:"updated_at"`
 }
@@ -20,10 +25,10 @@ type Session struct {
 	Session map[string]Config `yaml:"session"`
 }
 
-func NewConfig(name, serverUrl, refreshToken string) Config {
+func NewConfig(name string, urls Url, refreshToken string) Config {
 	return Config{
 		Name:         name,
-		ApiServerUrl: serverUrl,
+		Urls:         urls,
 		RefreshToken: refreshToken,
 		UpdatedAt:    time.Now(),
 	}
@@ -65,8 +70,12 @@ func (c *Config) Load(filePath string, name string) error {
 		return fmt.Errorf("Session for %s not found in configuration file", name)
 	}
 
-	if config.ApiServerUrl == "" {
-		return fmt.Errorf("api server url is not defined in configuration")
+	if config.Urls.IamUrl == "" {
+		return fmt.Errorf("iam api server url is not defined in configuration")
+	}
+
+	if config.Urls.HiveUrl == "" {
+		return fmt.Errorf("hive api server url is not defined in configuration")
 	}
 
 	if config.RefreshToken == "" {

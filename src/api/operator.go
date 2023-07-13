@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func GetOperator(apiServerUrl, accessToken, meOrID string) (*Operator, error) {
+func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator, error) {
 	var err error
 
-	url := apiServerUrl + "/v1/operators/" + meOrID
+	url := urls.IamUrl + "/v1/operators/" + meOrID
 	var operator Operator
 
 	if err = request_utils.DoRequest(
@@ -25,6 +26,6 @@ func GetOperator(apiServerUrl, accessToken, meOrID string) (*Operator, error) {
 	return &operator, nil
 }
 
-func GetOperatorSelf(apiServerUrl, accessToken string) (*Operator, error) {
-	return GetOperator(apiServerUrl, accessToken, "me")
+func GetOperatorSelf(urls configuration.Url, accessToken string) (*Operator, error) {
+	return GetOperator(urls, accessToken, "me")
 }
