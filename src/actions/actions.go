@@ -239,7 +239,11 @@ func CreateTenant(cCtx *cli.Context) error {
 	var conf *configuration.Config
 
 	name := cCtx.String("name")
-	description := cCtx.String("description")
+	description := cCtx.Args().First()
+	if len(description) > 200 {
+		return fmt.Errorf("tenant description is over 200 characters: %w", err)
+	}
+
 	imageUrl := cCtx.String("image-url")
 	if imageUrl != "" {
 		if _, err := url.ParseRequestURI(imageUrl); err != nil {
@@ -561,11 +565,12 @@ func EditTenantDescription(cCtx *cli.Context) error {
 	}
 
 	if cCtx.Args().Len() != 1 {
-		return fmt.Errorf("invalid umage url: %w", err)
+		return fmt.Errorf("invalid image url: %w", err)
 	}
 
 	description := cCtx.Args().First()
 	if len(description) > 200 {
+		fmt.Println(description)
 		return fmt.Errorf("tenant description is over 200 characters: %w", err)
 	}
 
