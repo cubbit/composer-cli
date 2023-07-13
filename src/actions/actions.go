@@ -692,7 +692,9 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 	}
 
 	if id == "" {
-		getTenantByName(conf, accessToken, name, id)
+		if id, err = getTenantByName(conf, accessToken, name); err != nil {
+			return fmt.Errorf("error while retrieving id: %w", err)
+		}
 	}
 
 	fmt.Printf("those are the swarms connect to the tenant %s\n", id)
@@ -722,13 +724,14 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 	return nil
 }
 
-func getTenantByName(conf *configuration.Config, accessToken *string, name string, id string) error {
+func getTenantByName(conf *configuration.Config, accessToken *string, name string) (string, error) {
 	var err error
 	var operator *api.Operator
 	var tenants *api.TenantList
+	var id string
 
 	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
-		return fmt.Errorf("error while retrieving tenant list: %w", err)
+		return "", fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 	for _, tenant := range tenants.Tenants {
 		if name == tenant.Name {
@@ -737,7 +740,7 @@ func getTenantByName(conf *configuration.Config, accessToken *string, name strin
 	}
 	if id == "" {
 		fmt.Printf("Tenant %s not found\n", name)
-		return nil
+		return "", nil
 	}
-	return nil
+	return id, nil
 }
