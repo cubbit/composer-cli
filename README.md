@@ -7,8 +7,7 @@ How to create an operator
 
 ```
 cubbit operator signup --api-server-url https://api.cubbit.eu --email test@cubbit.io --password 123456 --first-name gigi --last-name esposito
-//--api-server-url can either be the backend url or a keyword that gives the operator either the iam or hive url 
-```
+//--api-server-url can either be the backend url or a keyword that identifies the file containing the service endpoint 
 
 alternative
 

@@ -33,16 +33,15 @@ func apiServerUrlConfiguration(apiServerUrl string) (*configuration.Url, error) 
 
 	devPath := DEFAULT_FILE_PATH
 
-	if apiServerUrl == "" {
+	if _, err := url.ParseRequestURI(apiServerUrl); err == nil || apiServerUrl == "" {
 		urls = convertUrls(apiServerUrl)
-	} else if _, err := url.ParseRequestURI(apiServerUrl); err != nil {
-		fmt.Println("configuring endpoint")
+	} else {
+		fmt.Printf("configuring endpoint for %s", apiServerUrl)
+		fmt.Println()
 
 		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
 			return urls, fmt.Errorf("error while loading dev path: %w", err)
 		}
-	} else {
-		urls = convertUrls(apiServerUrl)
 	}
 
 	return urls, nil
