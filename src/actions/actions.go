@@ -39,7 +39,7 @@ func apiServerUrlConfiguration(apiServerUrl string) (*configuration.Url, error) 
 		fmt.Printf("configuring endpoint for %s\n", apiServerUrl)
 
 		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
-			return urls, fmt.Errorf("error while loading dev path: %w", err)
+			return nil, fmt.Errorf("error while loading dev path: %w", err)
 		}
 	}
 
