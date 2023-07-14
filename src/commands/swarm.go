@@ -62,9 +62,3 @@ func Swarm() *cli.Command {
 
 	return &command
 }
-
-// POST /v1/swarms: creates a new swarm.
-// If a swarm with the same name already exists, it should respond 409 (conflict). 201 if success
-// authentication: IAM (operator)
-// request body: {owner_id: string[uuid], name:string, configuration:json, description?:string}
-// response body: {id:uuid}
