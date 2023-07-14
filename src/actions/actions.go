@@ -706,7 +706,7 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if swarms, err = api.ListAvailableSwarmsTenant(conf.ApiServerUrl, *accessToken, id); err != nil {
+	if swarms, err = api.ListAvailableSwarmsTenant(conf.Urls, *accessToken, id); err != nil {
 		return fmt.Errorf("error while retrieving available swarms list: %w", err)
 	}
 
@@ -728,7 +728,7 @@ func getTenantByName(conf *configuration.Config, accessToken *string, name strin
 	var tenants *api.TenantList
 	var id string
 
-	if tenants, err = api.ListTenant(conf.ApiServerUrl, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
 		return "", fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 	for _, tenant := range tenants.Tenants {

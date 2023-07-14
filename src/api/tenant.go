@@ -116,9 +116,9 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 	return nil
 }
 
-func ListAvailableSwarmsTenant(apiServerUrl, accessToken, tenantID string) (*SwarmList, error) {
+func ListAvailableSwarmsTenant(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
 	var err error
-	url := apiServerUrl + "/v1/tenants/" + tenantID + "/swarms"
+	url := urls.IamUrl + "/v1/tenants/" + tenantID + "/swarms"
 	var response SwarmList
 
 	if err = request_utils.DoRequest(
