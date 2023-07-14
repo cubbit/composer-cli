@@ -8,6 +8,15 @@ How to create an operator
 ```
 cubbit operator signup --api-server-url https://api.cubbit.eu --email test@cubbit.io --password 123456 --first-name gigi --last-name esposito
 //--api-server-url can either be the backend url or a keyword that identifies the file containing the service endpoint 
+```
+
+Keyword file example
+
+```
+./.env.local
+iam: http://localhost:8181
+hive: http://localhost:9151
+```
 
 alternative
 
