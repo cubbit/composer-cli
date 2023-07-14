@@ -676,7 +676,7 @@ func CreateSwarm(cCtx *cli.Context) error {
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 	var operator *api.Operator
-
+	fmt.Println()
 	name := cCtx.String("name")
 	description := cCtx.String("description")
 
