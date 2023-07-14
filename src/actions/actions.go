@@ -698,11 +698,11 @@ func CreateSwarm(cCtx *cli.Context) error {
 		return fmt.Errorf("error while parsing json configuration: %w", err)
 	}
 
-	if operator, err = api.GetOperatorSelf(conf.ApiServerUrl, *accessToken); err != nil {
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("error while retrieving operator id: %w", err)
 	}
 
-	if response, err = api.CreateSwarm(*accessToken, operator.ID, name, &description, configuration); err != nil {
+	if response, err = api.CreateSwarm(conf.Urls, *accessToken, operator.ID, name, &description, configuration); err != nil {
 		return fmt.Errorf("error while creating the swarm: %w", err)
 	}
 

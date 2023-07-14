@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateSwarm(accessToken string, ownerID string, name string, description *string, configuration map[string]interface{}) (*GenericIDResponseModel, error) {
+func CreateSwarm(urls configuration.Url, accessToken string, ownerID string, name string, description *string, configuration map[string]interface{}) (*GenericIDResponseModel, error) {
 	var err error
-	url := "https://9dc4-62-152-126-198.ngrok-free.app" + "/v1/swarms" //sistemare apiServerUrl
+
+	url := urls.HiveUrl + "/v1/swarms"
 	var response GenericIDResponseModel
 	requestBody := map[string]interface{}{
 		"owner_id":      ownerID,
@@ -32,7 +34,7 @@ func CreateSwarm(accessToken string, ownerID string, name string, description *s
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		extractGenericIDResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to create tenant request: %w", err)
+		return nil, fmt.Errorf("failed unable to create swarm request: %w", err)
 	}
 	return &response, nil
 }
