@@ -15,16 +15,37 @@ import (
 
 const DEFAULT_FILE_PATH = "./"
 
-func convertUrls(apiServerUrl string) configuration.Url {
+func convertUrls(apiServerUrl string) *configuration.Url {
 	if apiServerUrl == "" {
 		apiServerUrl = "https://api.cubbit.eu"
 	}
 
-	urls := configuration.Url{
+	urls := &configuration.Url{
 		IamUrl:  apiServerUrl + "/iam",
 		HiveUrl: apiServerUrl + "/hive",
 	}
 	return urls
+}
+
+func apiServerUrlConfiguration(apiServerUrl string) (*configuration.Url, error) {
+	var urls *configuration.Url
+	var conf = configuration.NewConfig("", configuration.Url{}, "")
+
+	devPath := DEFAULT_FILE_PATH
+
+	if apiServerUrl == "" {
+		urls = convertUrls(apiServerUrl)
+	} else if _, err := url.ParseRequestURI(apiServerUrl); err != nil {
+		fmt.Println("configuring endpoint")
+
+		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
+			return urls, fmt.Errorf("error while loading dev path: %w", err)
+		}
+	} else {
+		urls = convertUrls(apiServerUrl)
+	}
+
+	return urls, nil
 }
 
 func CreateOperatorInteractive(cCtx *cli.Context) error {
@@ -45,7 +66,7 @@ func CreateOperatorInteractive(cCtx *cli.Context) error {
 			return fmt.Errorf("error while loading dev path: %w", err)
 		}
 	} else {
-		*urls = convertUrls(apiServerUrl)
+		urls = convertUrls(apiServerUrl)
 	}
 
 	firstName := input.TextPrompt("Enter first name:")
@@ -64,7 +85,7 @@ func CreateOperatorInteractive(cCtx *cli.Context) error {
 func CreateOperator(cCtx *cli.Context) error {
 	var err error
 	var email, password, firstName, lastName string
-	var urls configuration.Url
+	var urls *configuration.Url
 
 	if cCtx.Bool("interactive") {
 		return CreateOperatorInteractive(cCtx)
@@ -75,13 +96,12 @@ func CreateOperator(cCtx *cli.Context) error {
 	firstName = cCtx.String("first-name")
 	lastName = cCtx.String("last-name")
 	apiServerUrl := cCtx.String("api-server-url")
-	if apiServerUrl == "" {
-		apiServerUrl = "https://api.cubbit.eu/iam"
+
+	if urls, err = apiServerUrlConfiguration(apiServerUrl); err != nil {
+		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
-	urls = convertUrls(apiServerUrl)
-
-	if err = api.CreateOperator(urls, firstName, lastName, email, password); err != nil {
+	if err = api.CreateOperator(*urls, firstName, lastName, email, password); err != nil {
 		return fmt.Errorf("error while creating operator: %w", err)
 	}
 
@@ -96,19 +116,10 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 	var urls *configuration.Url
 	var conf = configuration.NewConfig("", configuration.Url{}, "")
 
-	devPath := DEFAULT_FILE_PATH
-
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
-	if apiServerUrl == "" {
-		apiServerUrl = "https://api.cubbit.eu"
-	}
 
-	if apiServerUrl == "dev" {
-		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
-			return fmt.Errorf("error while loading dev path: %w", err)
-		}
-	} else {
-		*urls = convertUrls(apiServerUrl)
+	if urls, err = apiServerUrlConfiguration(apiServerUrl); err != nil {
+		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
 	email := input.TextPrompt("Enter email:")
@@ -170,20 +181,8 @@ func SignInOperator(cCtx *cli.Context) error {
 	code = cCtx.String("code")
 	apiServerUrl = cCtx.String("api-server-url")
 
-	var conf = configuration.NewConfig("", configuration.Url{}, "")
-
-	devPath := DEFAULT_FILE_PATH
-
-	if apiServerUrl == "" {
-		*urls = convertUrls(apiServerUrl)
-	} else if _, err := url.ParseRequestURI(apiServerUrl); err != nil {
-		fmt.Println("configuring dev endpoint")
-
-		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
-			return fmt.Errorf("error while loading dev path: %w", err)
-		}
-	} else {
-		*urls = convertUrls(apiServerUrl)
+	if urls, err = apiServerUrlConfiguration(apiServerUrl); err != nil {
+		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
