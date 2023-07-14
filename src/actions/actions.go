@@ -710,8 +710,6 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("error while retrieving available swarms list: %w", err)
 	}
 
-	fmt.Println(len(swarms.Swarms))
-
 	for _, swarm := range swarms.Swarms {
 		cross := " "
 		if swarm.Default {
