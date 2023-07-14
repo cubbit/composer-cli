@@ -680,6 +680,10 @@ func CreateSwarm(cCtx *cli.Context) error {
 	name := cCtx.String("name")
 	description := cCtx.String("description")
 
+	if description == "" {
+		description = " "
+	}
+
 	configurationString := cCtx.String("configuration")
 	if configurationString == "" {
 		configurationString = "{}"

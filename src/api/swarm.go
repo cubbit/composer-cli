@@ -18,6 +18,7 @@ func CreateSwarm(urls configuration.Url, accessToken string, ownerID string, nam
 		"owner_id":      ownerID,
 		"name":          name,
 		"configuration": configuration,
+		"description":   description,
 	}
 
 	if description != nil {
