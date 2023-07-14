@@ -739,8 +739,7 @@ func getTenantByName(conf *configuration.Config, accessToken *string, name strin
 		}
 	}
 	if id == "" {
-		fmt.Printf("Tenant %s not found\n", name)
-		return "", nil
+		return "", fmt.Errorf("tenant %s not found", name)
 	}
 	return id, nil
 }
