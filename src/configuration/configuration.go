@@ -34,6 +34,30 @@ func NewConfig(name string, urls Url, refreshToken string) Config {
 	}
 }
 
+func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
+	var err error
+	var data []byte
+	var urls Url
+
+	if data, err = os.ReadFile(filePath + ".env." + envName); err != nil {
+		return nil, err
+	}
+
+	if err = yaml.Unmarshal(data, &urls); err != nil {
+		return nil, err
+	}
+
+	if urls.IamUrl == "" {
+		return nil, fmt.Errorf("iam api server url is not defined in configuration")
+	}
+
+	if urls.HiveUrl == "" {
+		return nil, fmt.Errorf("hive api server url is not defined in configuration")
+	}
+
+	return &urls, nil
+}
+
 func (c *Config) load(filePath string) (*Session, error) {
 	var err error
 	var data []byte

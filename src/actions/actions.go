@@ -16,30 +16,44 @@ import (
 const DEFAULT_FILE_PATH = "./"
 
 func convertUrls(apiServerUrl string) configuration.Url {
+	if apiServerUrl == "" {
+		apiServerUrl = "https://api.cubbit.eu"
+	}
+
 	urls := configuration.Url{
-		IamUrl:  apiServerUrl,
-		HiveUrl: "https://9dc4-62-152-126-198.ngrok-free.app",
+		IamUrl:  apiServerUrl + "/iam",
+		HiveUrl: apiServerUrl + "/hive",
 	}
 	return urls
 }
 
 func CreateOperatorInteractive(cCtx *cli.Context) error {
 	var err error
-	var urls configuration.Url
+	var urls *configuration.Url
+	var conf = configuration.NewConfig("", configuration.Url{}, "")
 
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
+
 	if apiServerUrl == "" {
 		apiServerUrl = "https://api.cubbit.eu"
 	}
 
-	urls = convertUrls(apiServerUrl)
+	devPath := DEFAULT_FILE_PATH
+
+	if apiServerUrl == "dev" {
+		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
+			return fmt.Errorf("error while loading dev path: %w", err)
+		}
+	} else {
+		*urls = convertUrls(apiServerUrl)
+	}
 
 	firstName := input.TextPrompt("Enter first name:")
 	lastName := input.TextPrompt("Enter last name:")
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
 
-	if err = api.CreateOperator(urls, firstName, lastName, email, password); err != nil {
+	if err = api.CreateOperator(*urls, firstName, lastName, email, password); err != nil {
 		return fmt.Errorf("error while creating operator: %w", err)
 	}
 
@@ -79,14 +93,23 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 	var err error
 	var code, refreshToken string
 	var challenge *api.ChallengeResponseModel
-	var urls configuration.Url
+	var urls *configuration.Url
+	var conf = configuration.NewConfig("", configuration.Url{}, "")
+
+	devPath := DEFAULT_FILE_PATH
 
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 	if apiServerUrl == "" {
 		apiServerUrl = "https://api.cubbit.eu"
 	}
 
-	urls = convertUrls(apiServerUrl)
+	if apiServerUrl == "dev" {
+		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
+			return fmt.Errorf("error while loading dev path: %w", err)
+		}
+	} else {
+		*urls = convertUrls(apiServerUrl)
+	}
 
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
@@ -105,15 +128,15 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 		profile = "default"
 	}
 
-	if challenge, err = api.GenerateOperatorChallenge(urls, email); err != nil {
+	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
 		return fmt.Errorf("error while generating operator challenge: %w", err)
 	}
 
-	if refreshToken, err = api.PerformOperatorSignin(urls, email, password, challenge, code); err != nil {
+	if refreshToken, err = api.PerformOperatorSignin(*urls, email, password, challenge, code); err != nil {
 		return fmt.Errorf("error while performing operator signin: %w", err)
 	}
 
-	var conf = configuration.NewConfig(profile, urls, refreshToken)
+	conf = configuration.NewConfig(profile, *urls, refreshToken)
 
 	conf.Store(configPath)
 
@@ -126,7 +149,7 @@ func SignInOperator(cCtx *cli.Context) error {
 	var err error
 	var apiServerUrl, email, password, code, refreshToken string
 	var challenge *api.ChallengeResponseModel
-	var urls configuration.Url
+	var urls *configuration.Url
 
 	if cCtx.Bool("interactive") {
 		return SignInOperatorInteractive(cCtx)
@@ -147,17 +170,31 @@ func SignInOperator(cCtx *cli.Context) error {
 	code = cCtx.String("code")
 	apiServerUrl = cCtx.String("api-server-url")
 
-	urls = convertUrls(apiServerUrl)
+	var conf = configuration.NewConfig("", configuration.Url{}, "")
 
-	if challenge, err = api.GenerateOperatorChallenge(urls, email); err != nil {
+	devPath := DEFAULT_FILE_PATH
+
+	if apiServerUrl == "" {
+		*urls = convertUrls(apiServerUrl)
+	} else if _, err := url.ParseRequestURI(apiServerUrl); err != nil {
+		fmt.Println("configuring dev endpoint")
+
+		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
+			return fmt.Errorf("error while loading dev path: %w", err)
+		}
+	} else {
+		*urls = convertUrls(apiServerUrl)
+	}
+
+	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
 		return fmt.Errorf("error while generating operator challenge: %w", err)
 	}
 
-	if refreshToken, err = api.PerformOperatorSignin(urls, email, password, challenge, code); err != nil {
+	if refreshToken, err = api.PerformOperatorSignin(*urls, email, password, challenge, code); err != nil {
 		return fmt.Errorf("error while performing operator singin: %w", err)
 	}
 
-	var confs = configuration.NewConfig(profile, urls, refreshToken)
+	var confs = configuration.NewConfig(profile, *urls, refreshToken)
 
 	if err = confs.Store(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
