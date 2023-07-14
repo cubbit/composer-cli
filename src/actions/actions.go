@@ -36,8 +36,7 @@ func apiServerUrlConfiguration(apiServerUrl string) (*configuration.Url, error) 
 	if _, err := url.ParseRequestURI(apiServerUrl); err == nil || apiServerUrl == "" {
 		urls = convertUrls(apiServerUrl)
 	} else {
-		fmt.Printf("configuring endpoint for %s", apiServerUrl)
-		fmt.Println()
+		fmt.Printf("configuring endpoint for %s\n", apiServerUrl)
 
 		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
 			return urls, fmt.Errorf("error while loading dev path: %w", err)
@@ -50,22 +49,11 @@ func apiServerUrlConfiguration(apiServerUrl string) (*configuration.Url, error) 
 func CreateOperatorInteractive(cCtx *cli.Context) error {
 	var err error
 	var urls *configuration.Url
-	var conf = configuration.NewConfig("", configuration.Url{}, "")
 
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 
-	if apiServerUrl == "" {
-		apiServerUrl = "https://api.cubbit.eu"
-	}
-
-	devPath := DEFAULT_FILE_PATH
-
-	if apiServerUrl == "dev" {
-		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
-			return fmt.Errorf("error while loading dev path: %w", err)
-		}
-	} else {
-		urls = convertUrls(apiServerUrl)
+	if urls, err = apiServerUrlConfiguration(apiServerUrl); err != nil {
+		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
 	firstName := input.TextPrompt("Enter first name:")
