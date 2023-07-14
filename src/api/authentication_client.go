@@ -91,16 +91,16 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 	if challenge, err = GenerateOperatorChallenge(urls, email); err != nil {
 		return err
 	}
-	fmt.Println("aaa")
+
 	hash := sha256.New()
 	hash.Write([]byte(password + challenge.Salt))
 	seed := hash.Sum(nil)
-	fmt.Println("bbb")
+
 	var publicKey ed25519.PublicKey
 	if publicKey, _, err = utils.GenerateKeyPairFromSeed(seed); err != nil {
 		return err
 	}
-	fmt.Println("ccc")
+
 	url := urls.IamUrl + "/v1/operators/signup"
 	requestBody := map[string]interface{}{
 		"first_name":                firstName,
@@ -108,11 +108,11 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 		"email":                     email,
 		"authentication_public_key": base64.StdEncoding.EncodeToString(publicKey),
 	}
-	fmt.Println("ddd")
+
 	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
 		return fmt.Errorf("failed unable to create operator request: %w", err)
 	}
-	fmt.Println("eee")
+
 	return nil
 }
 
