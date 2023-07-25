@@ -60,8 +60,9 @@ func CreateOperatorInteractive(cCtx *cli.Context) error {
 	lastName := input.TextPrompt("Enter last name:")
 	email := input.TextPrompt("Enter email:")
 	password := input.PasswordPrompt("Enter password:")
+	secret := input.PasswordPrompt("Enter secret:")
 
-	if err = api.CreateOperator(*urls, firstName, lastName, email, password); err != nil {
+	if err = api.CreateOperator(*urls, firstName, lastName, email, password, secret); err != nil {
 		return fmt.Errorf("error while creating operator: %w", err)
 	}
 
@@ -83,12 +84,13 @@ func CreateOperator(cCtx *cli.Context) error {
 	firstName = cCtx.String("first-name")
 	lastName = cCtx.String("last-name")
 	apiServerUrl := cCtx.String("api-server-url")
+	secret := cCtx.String("secret")
 
 	if urls, err = apiServerUrlConfiguration(apiServerUrl); err != nil {
 		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
-	if err = api.CreateOperator(*urls, firstName, lastName, email, password); err != nil {
+	if err = api.CreateOperator(*urls, firstName, lastName, email, password, secret); err != nil {
 		return fmt.Errorf("error while creating operator: %w", err)
 	}
 

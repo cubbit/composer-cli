@@ -49,6 +49,11 @@ func Operator() *cli.Command {
 						Aliases: []string{"p"},
 						Usage:   "Password",
 					},
+					&cli.StringFlag{
+						Name:    "secret",
+						Aliases: []string{"s"},
+						Usage:   "Secret",
+					},
 				},
 				Action: actions.CreateOperator,
 			},
