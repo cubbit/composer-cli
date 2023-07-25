@@ -6,7 +6,7 @@
 How to create an operator
 
 ```
-cubbit operator signup --api-server-url https://api.cubbit.eu --email test@cubbit.io --password 123456 --first-name gigi --last-name esposito
+cubbit operator signup --api-server-url https://api.cubbit.eu --email test@cubbit.io --password 123456 --first-name gigi --last-name esposito --secret poduction_secret
 //--api-server-url can either be the backend url or a keyword that identifies the file containing the service endpoint 
 ```
 

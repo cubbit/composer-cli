@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
@@ -84,7 +85,7 @@ func PerformOperatorSignin(urls configuration.Url, email, password string, chall
 	return refreshTokenCookie, nil
 }
 
-func CreateOperator(urls configuration.Url, firstName, lastName, email, password string) error {
+func CreateOperator(urls configuration.Url, firstName, lastName, email, password, secret string) error {
 	var err error
 
 	var challenge *ChallengeResponseModel
@@ -101,7 +102,7 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 		return err
 	}
 
-	url := urls.IamUrl + "/v1/operators/signup"
+	url := urls.IamUrl + "/v1/operators/signup?secret=" + url.QueryEscape(secret)
 	requestBody := map[string]interface{}{
 		"first_name":                firstName,
 		"last_name":                 lastName,
