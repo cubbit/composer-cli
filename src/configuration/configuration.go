@@ -3,11 +3,16 @@ package configuration
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
 
+	"github.com/cubbit/cubbit/client/cli/src/input"
+	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
+
+const DEFAULT_FILE_PATH = "./"
 
 type Url struct {
 	IamUrl  string `yaml:"iam"`
@@ -32,6 +37,18 @@ func NewConfig(name string, urls Url, refreshToken string) Config {
 		RefreshToken: refreshToken,
 		UpdatedAt:    time.Now(),
 	}
+}
+
+func ConvertUrls(apiServerUrl string) *Url {
+	if apiServerUrl == "" {
+		apiServerUrl = "https://api.cubbit.eu"
+	}
+
+	urls := &Url{
+		IamUrl:  apiServerUrl + "/iam",
+		HiveUrl: apiServerUrl + "/hive",
+	}
+	return urls
 }
 
 func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
@@ -148,4 +165,65 @@ func (c *Config) Store(filePath string) error {
 	}
 
 	return nil
+}
+
+func ReadConfiguration(cCtx *cli.Context) (*Config, string, error) {
+	var configPath string
+	var err error
+	var profile string
+
+	if cCtx.Bool("interactive") {
+		profile, configPath = readConfigFile()
+	} else {
+		profile = cCtx.String("profile")
+		if profile == "" {
+			profile = "default"
+		}
+		configPath = cCtx.String("config")
+		if configPath == "" {
+			configPath = DEFAULT_FILE_PATH
+		}
+	}
+
+	var conf = NewConfig(profile, Url{}, "")
+
+	if err = conf.Load(configPath, profile); err != nil {
+		return nil, "", fmt.Errorf("error while loading file path configuration: %w", err)
+	}
+
+	return &conf, configPath, nil
+}
+
+func readConfigFile() (string, string) {
+	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
+	if configPath == "" {
+		configPath = DEFAULT_FILE_PATH
+	}
+
+	name := input.TextPrompt("Enter the configuration name (default: default)")
+	if name == "" {
+		name = "default"
+	}
+
+	return configPath, name
+}
+
+
+func ApiServerUrlConfiguration(apiServerUrl string) (*Url, error) {
+	var urls *Url
+	var conf = NewConfig("", Url{}, "")
+
+	devPath := DEFAULT_FILE_PATH
+
+	if _, err := url.ParseRequestURI(apiServerUrl); err == nil || apiServerUrl == "" {
+		urls = ConvertUrls(apiServerUrl)
+	} else {
+		fmt.Printf("configuring endpoint for %s\n", apiServerUrl)
+
+		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
+			return nil, fmt.Errorf("error while loading dev path: %w", err)
+		}
+	}
+
+	return urls, nil
 }
