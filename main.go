@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cubbit/cubbit/client/cli/src/commands"
+	"github.com/cubbit/cubbit/client/cli/src/command"
 	"github.com/urfave/cli/v2"
 )
 
@@ -15,11 +15,11 @@ func main() {
 		Usage:                  "The CLI for managing operators, tenants and swarms in Cubbit distributed datacenter",
 		UseShortOptionHandling: true,
 		Commands: []*cli.Command{
-			commands.Login(),
-			commands.Logout(),
-			commands.Access(),
-			commands.Operator(),
-			commands.Tenant(),
+			command.Login(),
+			command.Logout(),
+			command.Access(),
+			command.Operator(),
+			command.Tenant(),
 		},
 	}
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 	"github.com/cubbit/cubbit/client/cli/utils"
@@ -17,7 +18,7 @@ import (
 func GenerateOperatorChallenge(urls configuration.Url, email string) (*ChallengeResponseModel, error) {
 	var err error
 	var response ChallengeResponseModel
-	url := urls.IamUrl + "/v1/auth/operators/signin/challenge"
+	url := urls.IamUrl + constants.GenerateOperatorChallenge
 
 	requestBody := map[string]interface{}{
 		"email": email,
@@ -38,7 +39,7 @@ func GenerateOperatorChallenge(urls configuration.Url, email string) (*Challenge
 
 func PerformOperatorSignin(urls configuration.Url, email, password string, challenge *ChallengeResponseModel, code string) (string, error) {
 	var err error
-	url := urls.IamUrl + "/v1/auth/operators/signin"
+	url := urls.IamUrl + constants.OperatorSignIn
 	var privateKey ed25519.PrivateKey
 	var tokenExpirationResponse TokenAndExpirationResponseModel
 	var refreshTokenCookie string
@@ -102,7 +103,7 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 		return err
 	}
 
-	url := urls.IamUrl + "/v1/operators/signup?secret=" + url.QueryEscape(secret)
+	url := urls.IamUrl + constants.CreateOperator + url.QueryEscape(secret)
 	requestBody := map[string]interface{}{
 		"first_name":                firstName,
 		"last_name":                 lastName,
@@ -118,13 +119,13 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 }
 
 func ForgeOperatorAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
-	url := urls.IamUrl + "/v1/auth/operators/forge/access"
+	url := urls.IamUrl + constants.ForgeOperatorAccessToken
 
 	return getOperatorAccessToken(refreshToken, url)
 }
 
-func RefreshAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
-	url := urls.IamUrl + "/v1/auth/operators/refresh/access"
+func RefreshOperatorAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
+	url := urls.IamUrl + constants.RefreshOperatorAccessToken
 
 	return getOperatorAccessToken(refreshToken, url)
 }
@@ -169,7 +170,7 @@ func ForgeOperatorDeleteTenantToken(urls configuration.Url, email, password, ref
 		return "", err
 	}
 
-	url := urls.IamUrl + "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id=" + tenantID
+	url := urls.IamUrl + constants.ForgeOperatorDeleteTenantToken + tenantID
 	signedChallenge := ed25519.Sign(privateKey, []byte(challenge.Challenge))
 
 	body := map[string]interface{}{

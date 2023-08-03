@@ -1,9 +1,9 @@
-package commands
+package command
 
 import (
 	"errors"
 
-	"github.com/cubbit/cubbit/client/cli/src/actions"
+	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/urfave/cli/v2"
 )
 
@@ -18,7 +18,7 @@ func Operator() *cli.Command {
 				Usage:   "The operation should be interactive",
 			},
 		},
-		Action: func(cCtx *cli.Context) error {
+		Action: func(ctx *cli.Context) error {
 			return errors.New("please specify a valid command")
 		},
 		Subcommands: []*cli.Command{
@@ -55,7 +55,7 @@ func Operator() *cli.Command {
 						Usage:   "Secret",
 					},
 				},
-				Action: actions.CreateOperator,
+				Action: action.CreateOperator,
 			},
 		},
 	}

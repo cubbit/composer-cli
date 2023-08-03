@@ -1,4 +1,4 @@
-package actions
+package action
 
 import (
 	"encoding/csv"
@@ -12,32 +12,32 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func CreateTenant(cCtx *cli.Context) error {
+func CreateTenant(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
-	name := cCtx.String("name")
-	description := cCtx.Args().First()
+	name := ctx.String("name")
+	description := ctx.Args().First()
 	if len(description) > 200 {
 		return fmt.Errorf("tenant description is over 200 characters: %w", err)
 	}
 
-	imageUrl := cCtx.String("image-url")
+	imageUrl := ctx.String("image-url")
 	if imageUrl != "" {
 		if _, err := url.ParseRequestURI(imageUrl); err != nil {
 			return fmt.Errorf("image url is not adequate: %w", err)
 		}
 	}
 
-	settingsString := cCtx.String("settings")
+	settingsString := ctx.String("settings")
 	if settingsString == "" {
 		settingsString = "{}"
 	}
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -68,7 +68,7 @@ func ListTenant(cCtx *cli.Context) error {
 
 	fmt.Println("these are your tenants")
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -78,7 +78,7 @@ func ListTenant(cCtx *cli.Context) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("error while retrieving operator id: %w", err)
 	}
-	if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
@@ -116,7 +116,7 @@ func RemoveTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
@@ -131,7 +131,7 @@ func RemoveTenant(cCtx *cli.Context) error {
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("error while retrieving operator id: %w", err)
 		}
-		if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("error while retrieving tenant list: %w", err)
 		}
 		for _, tenant := range tenants.Tenants {
@@ -169,7 +169,7 @@ func DescribeTenant(cCtx *cli.Context) error {
 	var tenants *api.TenantList
 	var operator *api.Operator
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -182,7 +182,7 @@ func DescribeTenant(cCtx *cli.Context) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("error while retrieving operator id: %w", err)
 	}
-	if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 
@@ -293,7 +293,7 @@ func EditTenantDescription(cCtx *cli.Context) error {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -331,7 +331,7 @@ func EditTenantImage(cCtx *cli.Context) error {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -371,7 +371,7 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 
@@ -387,14 +387,14 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 
 	fmt.Printf("those are the swarms connect to the tenant %s\n", id)
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if swarms, err = api.ListAvailableSwarmsTenant(conf.Urls, *accessToken, id); err != nil {
+	if swarms, err = api.ListAvailableTenantSwarms(conf.Urls, *accessToken, id); err != nil {
 		return fmt.Errorf("error while retrieving available swarms list: %w", err)
 	}
 
@@ -416,7 +416,7 @@ func getTenantByName(conf *configuration.Config, accessToken *string, name strin
 	var tenants *api.TenantList
 	var id string
 
-	if tenants, err = api.ListTenant(conf.Urls, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return "", fmt.Errorf("error while retrieving tenant list: %w", err)
 	}
 	for _, tenant := range tenants.Tenants {

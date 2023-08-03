@@ -1,4 +1,4 @@
-package actions
+package action
 
 import (
 	"fmt"
@@ -7,22 +7,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-
-
-func GenerateAccessToken(cCtx *cli.Context) error {
+func GenerateAccessToken(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
 
-	if conf, configPath, err = configuration.ReadConfiguration(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("error while loading file path configuration: %w", err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if err = conf.Store(configPath); err != nil {
+	if err = conf.StoreSession(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
@@ -35,13 +33,13 @@ func rehydrateTokenConfig(configPath string, conf *configuration.Config) (*strin
 	var accessToken, refreshToken string
 	var err error
 
-	if accessToken, refreshToken, err = api.RefreshAccessToken(conf.Urls, conf.RefreshToken); err != nil {
+	if accessToken, refreshToken, err = api.RefreshOperatorAccessToken(conf.Urls, conf.RefreshToken); err != nil {
 		return nil, fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
 	conf.RefreshToken = refreshToken
 
-	if err = conf.Store(configPath); err != nil {
+	if err = conf.StoreSession(configPath); err != nil {
 		return nil, fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 

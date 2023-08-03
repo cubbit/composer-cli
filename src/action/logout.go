@@ -1,8 +1,9 @@
-package actions
+package action
 
 import (
 	"fmt"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
 	"github.com/urfave/cli/v2"
@@ -13,7 +14,7 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 
 	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
 	if configPath == "" {
-		configPath = DEFAULT_FILE_PATH
+		configPath = constants.DefaultFilePath
 	}
 
 	profile := input.TextPrompt("Enter the configuration profile (default: default)")
@@ -23,7 +24,7 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 
 	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
-	if err = conf.Store(configPath); err != nil {
+	if err = conf.StoreSession(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
@@ -32,26 +33,26 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 	return nil
 }
 
-func SignOutOperator(cCtx *cli.Context) error {
+func SignOutOperator(ctx *cli.Context) error {
 	var err error
 
-	if cCtx.Bool("interactive") {
-		return SignOutOperatorInteractive(cCtx)
+	if ctx.Bool("interactive") {
+		return SignOutOperatorInteractive(ctx)
 	}
 
-	profile := cCtx.String("profile")
+	profile := ctx.String("profile")
 	if profile == "" {
 		profile = "default"
 	}
 
-	configPath := cCtx.String("config")
+	configPath := ctx.String("config")
 	if configPath == "" {
-		configPath = DEFAULT_FILE_PATH
+		configPath = constants.DefaultFilePath
 	}
 
 	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
-	if err = conf.Store(configPath); err != nil {
+	if err = conf.StoreSession(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 

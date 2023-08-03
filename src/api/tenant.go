@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
@@ -11,7 +12,7 @@ import (
 func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + "/v1/tenants"
+	url := urls.IamUrl + constants.Tenants
 
 	requestBody := map[string]interface{}{
 		"name":     name,
@@ -40,9 +41,9 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 	return &response, nil
 }
 
-func ListTenant(urls configuration.Url, accessToken, ownerID string) (*TenantList, error) {
+func ListTenants(urls configuration.Url, accessToken, ownerID string) (*TenantList, error) {
 	var err error
-	url := urls.IamUrl + "/v1/tenants?owner=" + ownerID
+	url := urls.IamUrl + constants.ListTenants + ownerID
 	var response TenantList
 
 	if err = request_utils.DoRequest(
@@ -58,7 +59,7 @@ func ListTenant(urls configuration.Url, accessToken, ownerID string) (*TenantLis
 
 func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantToken string) error {
 	var err error
-	url := urls.IamUrl + "/v1/tenants/" + tenantId + "?token=" + deleteTenantToken
+	url := urls.IamUrl + constants.ListTenants + tenantId + "?token=" + deleteTenantToken
 
 	if err = request_utils.DoRequest(
 		url,
@@ -79,7 +80,7 @@ func EditTenantDescription(urls configuration.Url, accessToken, tenantID, descri
 		"description": description,
 	}
 
-	url := urls.IamUrl + "/v1/tenants/" + tenantID
+	url := urls.IamUrl + constants.ListTenants + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -101,7 +102,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 		"image_url": imageUrl,
 	}
 
-	url := urls.IamUrl + "/v1/tenants/" + tenantID
+	url := urls.IamUrl + constants.ListTenants + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -116,9 +117,9 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 	return nil
 }
 
-func ListAvailableSwarmsTenant(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
+func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
 	var err error
-	url := urls.IamUrl + "/v1/tenants/" + tenantID + "/swarms"
+	url := urls.IamUrl + constants.ListTenants + tenantID + "/swarms"
 	var response SwarmList
 
 	if err = request_utils.DoRequest(
