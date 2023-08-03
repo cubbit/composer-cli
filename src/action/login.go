@@ -20,7 +20,7 @@ func SignInOperatorInteractive(ctx *cli.Context) error {
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 
 	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
-		return fmt.Errorf("error while configuri api server url %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
 	email := input.TextPrompt("Enter email:")
@@ -41,11 +41,11 @@ func SignInOperatorInteractive(ctx *cli.Context) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
-		return fmt.Errorf("error while generating operator challenge: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
 	}
 
 	if refreshToken, err = api.PerformOperatorSignin(*urls, email, password, challenge, code); err != nil {
-		return fmt.Errorf("error while performing operator signin: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignIn, err)
 	}
 
 	conf = configuration.NewConfig(profile, *urls, refreshToken)
@@ -74,7 +74,7 @@ func SignInOperator(ctx *cli.Context) error {
 
 	profile := ctx.String("profile")
 	if profile == "" {
-		profile = "default"
+		profile = constants.DefaultProfile
 	}
 
 	email = ctx.String("email")
@@ -83,21 +83,21 @@ func SignInOperator(ctx *cli.Context) error {
 	apiServerUrl = ctx.String("api-server-url")
 
 	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
-		return fmt.Errorf("error while configuri api server url %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
-		return fmt.Errorf("error while generating operator challenge: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
 	}
 
 	if refreshToken, err = api.PerformOperatorSignin(*urls, email, password, challenge, code); err != nil {
-		return fmt.Errorf("error while performing operator singin: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignIn, err)
 	}
 
 	var confs = configuration.NewConfig(profile, *urls, refreshToken)
 
 	if err = confs.StoreSession(configPath); err != nil {
-		return fmt.Errorf("error while storing file path configuration: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
 	fmt.Printf("User %s signed in successfully\n", email)

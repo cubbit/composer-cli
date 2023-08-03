@@ -52,11 +52,11 @@ func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
 	}
 
 	if urls.IamUrl == "" {
-		return nil, fmt.Errorf("iam api server url is not defined in configuration")
+		return nil, fmt.Errorf(constants.ErrorIamConfigNotFound)
 	}
 
 	if urls.HiveUrl == "" {
-		return nil, fmt.Errorf("hive api server url is not defined in configuration")
+		return nil, fmt.Errorf(constants.ErrorHiveConfigNotFound)
 	}
 
 	return &urls, nil
@@ -77,19 +77,19 @@ func (c *Config) LoadAndCheckSession(filePath string, name string) error {
 	}
 
 	if config.Urls.IamUrl == "" {
-		return fmt.Errorf("iam api server url is not defined in configuration")
+		return fmt.Errorf(constants.ErrorIamConfigNotFound)
 	}
 
 	if config.Urls.HiveUrl == "" {
-		return fmt.Errorf("hive api server url is not defined in configuration")
+		return fmt.Errorf(constants.ErrorHiveConfigNotFound)
 	}
 
 	if config.RefreshToken == "" {
-		return fmt.Errorf("refresh token is not defined in configuration")
+		return fmt.Errorf(constants.ErrorTokenNotFound)
 	}
 
 	if config.Name == "" {
-		return fmt.Errorf("name is not defined in configuration")
+		return fmt.Errorf(constants.ErrorNameConfigNotFound)
 	}
 
 	*c = config
@@ -153,7 +153,7 @@ func ReadConfig(ctx *cli.Context) (*Config, string, error) {
 	var conf = NewConfig(profile, Url{}, "")
 
 	if err = conf.LoadAndCheckSession(configPath, profile); err != nil {
-		return nil, "", fmt.Errorf("error while loading file path configuration: %w", err)
+		return nil, "", fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	return &conf, configPath, nil

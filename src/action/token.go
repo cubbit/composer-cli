@@ -2,6 +2,8 @@ package action
 
 import (
 	"fmt"
+
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/urfave/cli/v2"
@@ -14,14 +16,14 @@ func GenerateAccessToken(ctx *cli.Context) error {
 	var conf *configuration.Config
 
 	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
-		return fmt.Errorf("error while loading file path configuration: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
 	if err = conf.StoreSession(configPath); err != nil {
-		return fmt.Errorf("error while storing file path configuration: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
 	fmt.Printf("Access token: %s\n", *accessToken)
@@ -34,13 +36,13 @@ func rehydrateTokenConfig(configPath string, conf *configuration.Config) (*strin
 	var err error
 
 	if accessToken, refreshToken, err = api.RefreshOperatorAccessToken(conf.Urls, conf.RefreshToken); err != nil {
-		return nil, fmt.Errorf("error while generating access and refresh tokens: %w", err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
 	conf.RefreshToken = refreshToken
 
 	if err = conf.StoreSession(configPath); err != nil {
-		return nil, fmt.Errorf("error while storing file path configuration: %w", err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
 	return &accessToken, nil

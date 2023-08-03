@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -31,7 +30,7 @@ func GenerateOperatorChallenge(urls configuration.Url, email string) (*Challenge
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractChallengeResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to create get operator request: %w", err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
 	}
 
 	return &response, nil
@@ -68,19 +67,19 @@ func PerformOperatorSignin(urls configuration.Url, email, password string, chall
 		extractTokenExpirationModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshTokenCookie),
 	); err != nil {
-		return "", fmt.Errorf("failed unable to sign in request: %w", err)
+		return "", fmt.Errorf("%s: %w", constants.ErrorSignRequest, err)
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
-		return "", fmt.Errorf("wrong token expiration returned")
+		return "", fmt.Errorf(constants.ErrorTokenExpiration)
 	}
 
 	if tokenExpirationResponse.Token == "" {
-		return "", errors.New("access token cannot be empty")
+		return "", fmt.Errorf(constants.ErrorEmptyToken)
 	}
 
 	if refreshTokenCookie == "" {
-		return "", errors.New("refresh token cannot be empty")
+		return "", fmt.Errorf(constants.ErrorRefreshToken)
 	}
 
 	return refreshTokenCookie, nil
@@ -112,7 +111,7 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 	}
 
 	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
-		return fmt.Errorf("failed unable to create operator request: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperatorRequest, err)
 	}
 
 	return nil
@@ -141,15 +140,15 @@ func getOperatorAccessToken(refreshToken string, url string) (string, string, er
 		extractTokenExpirationModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshToken),
 	); err != nil {
-		return "", "", fmt.Errorf("failed unable to forge token request: %w", err)
+		return "", "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
-		return "", "", fmt.Errorf("wrong token expiration returned xxx")
+		return "", "", fmt.Errorf(constants.ErrorTokenExpiration)
 	}
 
 	if tokenExpirationResponse.Token == "" {
-		return "", "", errors.New("access token cannot be empty")
+		return "", "", fmt.Errorf(constants.ErrorEmptyToken)
 	}
 
 	return tokenExpirationResponse.Token, refreshToken, nil
@@ -187,15 +186,15 @@ func ForgeOperatorDeleteTenantToken(urls configuration.Url, email, password, ref
 		request_utils.WithRequestBody(body),
 		extractTokenExpirationModel(&tokenExpirationResponse),
 	); err != nil {
-		return "", fmt.Errorf("failed unable to forge token request: %w", err)
+		return "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
-		return "", fmt.Errorf("wrong token expiration returned")
+		return "", fmt.Errorf(constants.ErrorTokenExpiration)
 	}
 
 	if tokenExpirationResponse.Token == "" {
-		return "", errors.New("access token cannot be empty")
+		return "", fmt.Errorf(constants.ErrorEmptyToken)
 	}
 
 	return tokenExpirationResponse.Token, nil
