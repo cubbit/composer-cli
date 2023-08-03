@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -43,11 +42,11 @@ func extractRefreshCookie(response *string) request_utils.RequestModifier {
 			return c.Name == constants.RefreshTokenName
 		})
 		if !found {
-			return fmt.Errorf("refresh token not found in cookies")
+			return fmt.Errorf(constants.ErrorTokenNotFound)
 		}
 
 		if refreshTokenCookie.Value == "" {
-			return errors.New("refresh token cannot be empty")
+			return fmt.Errorf(constants.ErrorEmptyToken)
 		}
 
 		*response = refreshTokenCookie.Value

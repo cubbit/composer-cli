@@ -1,0 +1,48 @@
+package constants
+
+const (
+	ErrorConfiguringAPIURL           = "error while configuring API server URL"
+	ErrorGeneratingOperatorChallenge = "error while generating operator challenge"
+	ErrorOperatorSignIn              = "error while performing operator signin"
+	ErrorCreatingOperator            = "error while creating operator"
+	ErrorStoringSession              = "error while storing file path configuration"
+	ErrorTenantDescriptionSize       = "tenant description is over 200 characters"
+	ErrorRetrievingOperator          = "error while retrieving operator id"
+	ErrorForgingOperatorDeleteToken  = "error while forging operator delete token"
+	ErrorDeletingTenant              = "error while deleting tenant"
+
+	ErrorImageURL            = "image url is not adequate"
+	ErrorLoadingConfig       = "error while loading file path configuration"
+	ErrorGeneratingToken     = "error while generating access and refresh tokens"
+	ErrorParsingJsonSettings = "error while parsing json settings"
+	ErrorOpeningJson         = "error while opening json file"
+	ErrorWritingCvsRecord    = "error writing record to csv"
+	ErrorFlush               = "error occurred during the Flush"
+
+	ErrorCreatingTenant                  = "error while creating tenant"
+	ErrorEditingTenant                   = "error while editing tenant"
+	ErrorRetrievingTenant                = "error while retrieving tenant"
+	ErrorRetrievingTenantList            = "error while retrieving tenant list"
+	ErrorRetrievingTenantDescription     = "error while retrieving tenant description"
+	ErrorTenantNameOrID                  = "error, tenant name or id incorrect"
+	ErrorRetrievingAvailableTenantSwarms = "error while retrieving available tenant swarms list"
+
+	ErrorGeneratingOperatorChallengeRequest = "failed request to generate operator challenge"
+	ErrorGettingOperatorRequest             = "failed request to get operator"
+	ErrorSignRequest                        = "failed request to sign in"
+	ErrorEmptyToken                         = "access token cannot be empty"
+	ErrorRefreshToken                       = "refresh token cannot be empty"
+	ErrorCreatingOperatorRequest            = "failed to create operator request"
+	ErrorForgingRequest                     = "failed to forge token request"
+	ErrorTokenExpiration                    = "wrong token expiration returned"
+	ErrorTokenNotFound                      = "error token not found"
+	ErrorListingTenantsRequest              = "failed request to list tenants request"
+	ErrorDeletingTenantRequest              = "failed request to delete tenant"
+	ErrorEditingTenantRequest               = "failed request to edit tenant "
+	ErrorListingTenantSwarmsRequest         = "failed request to list tenant available swarms"
+
+	ErrorIamConfigNotFound   = "iam api server url is not defined in configuration"
+	ErrorHiveConfigNotFound  = "hive api server url is not defined in configuration"
+	ErrorTokenConfigNotFound = "refresh token is not defined in configuration file"
+	ErrorNameConfigNotFound  = "name is not defined in configuration file"
+)

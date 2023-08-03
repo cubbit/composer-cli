@@ -19,13 +19,13 @@ func SignOutOperatorInteractive(cCtx *cli.Context) error {
 
 	profile := input.TextPrompt("Enter the configuration profile (default: default)")
 	if profile == "" {
-		profile = "default"
+		profile = constants.DefaultProfile
 	}
 
 	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
 	if err = conf.StoreSession(configPath); err != nil {
-		return fmt.Errorf("error while storing file path configuration: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
 	fmt.Printf("Configuration %s signed out successfully\n", profile)
@@ -42,7 +42,7 @@ func SignOutOperator(ctx *cli.Context) error {
 
 	profile := ctx.String("profile")
 	if profile == "" {
-		profile = "default"
+		profile = constants.DefaultProfile
 	}
 
 	configPath := ctx.String("config")
@@ -53,7 +53,7 @@ func SignOutOperator(ctx *cli.Context) error {
 	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
 
 	if err = conf.StoreSession(configPath); err != nil {
-		return fmt.Errorf("error while storing file path configuration: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
 	fmt.Printf("Configuration %s signed out successfully\n", profile)

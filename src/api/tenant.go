@@ -35,7 +35,7 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to create get operator request: %w", err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorGettingOperatorRequest, err)
 	}
 
 	return &response, nil
@@ -52,7 +52,7 @@ func ListTenants(urls configuration.Url, accessToken, ownerID string) (*TenantLi
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractTenantListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to list tenants request: %w", err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 	return &response, nil
 }
@@ -67,7 +67,7 @@ func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantTok
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
-		return fmt.Errorf("failed unable to delete tenant request: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantRequest, err)
 	}
 
 	return nil
@@ -89,7 +89,7 @@ func EditTenantDescription(urls configuration.Url, accessToken, tenantID, descri
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return fmt.Errorf("failed unable to edit tenant description: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return fmt.Errorf("failed unable to edit tenant image: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
 	}
 
 	return nil
@@ -128,7 +128,7 @@ func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID str
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("failed unable to list available swarms request: %w", err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantSwarmsRequest, err)
 	}
 	return &response, nil
 }

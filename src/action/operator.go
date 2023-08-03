@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
@@ -16,7 +17,7 @@ func CreateOperatorInteractive(ctx *cli.Context) error {
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 
 	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
-		return fmt.Errorf("error while configuri api server url %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
 	firstName := input.TextPrompt("Enter first name:")
@@ -26,7 +27,7 @@ func CreateOperatorInteractive(ctx *cli.Context) error {
 	secret := input.PasswordPrompt("Enter secret:")
 
 	if err = api.CreateOperator(*urls, firstName, lastName, email, password, secret); err != nil {
-		return fmt.Errorf("error while creating operator: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperator, err)
 	}
 
 	fmt.Printf("Operator %s created successfully\n", email)
@@ -50,11 +51,11 @@ func CreateOperator(ctx *cli.Context) error {
 	secret := ctx.String("secret")
 
 	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
-		return fmt.Errorf("error while configuri api server url %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
 	if err = api.CreateOperator(*urls, firstName, lastName, email, password, secret); err != nil {
-		return fmt.Errorf("error while creating operator: %w", err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperator, err)
 	}
 
 	fmt.Printf("Operator %s created successfully\n", email)
