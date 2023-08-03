@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
@@ -11,7 +12,7 @@ import (
 func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator, error) {
 	var err error
 
-	url := urls.IamUrl + "/v1/operators/" + meOrID
+	url := urls.IamUrl + constants.Operators + meOrID
 	var operator Operator
 
 	if err = request_utils.DoRequest(

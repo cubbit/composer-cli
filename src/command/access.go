@@ -1,7 +1,7 @@
-package commands
+package command
 
 import (
-	"github.com/cubbit/cubbit/client/cli/src/actions"
+	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,7 +20,7 @@ func Access() *cli.Command {
 				DefaultText: "./",
 			},
 		},
-		Action: actions.GenerateAccessToken,
+		Action: action.GenerateAccessToken,
 	}
 
 	return &command

@@ -5,18 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-)
 
-const (
-	ACCESS_TOKEN_NAME  = "_access"
-	REFRESH_TOKEN_NAME = "_refresh"
-	AUTHORIZATION      = "Authorization"
-	BEARER             = "Bearer"
+	"github.com/cubbit/cubbit/client/cli/constants"
 )
-
-const BASE_URL = "https://api.cubbit.eu/"
-const BASE_KEYVAULT_URL = "keyvault"
-const BASE_IAM_URL = "iam"
 
 type RequestBody = map[string]interface{}
 
@@ -105,7 +96,7 @@ func WithAccessToken(accessToken string) RequestModifier {
 			return nil
 		}
 
-		opt.headers[AUTHORIZATION] = BEARER + " " + accessToken
+		opt.headers[constants.Authorization] = constants.Bearer + " " + accessToken
 
 		return nil
 	}
@@ -117,7 +108,7 @@ func WithRefreshToken(refreshToken string) RequestModifier {
 			return nil
 		}
 
-		opt.headers["Cookie"] = REFRESH_TOKEN_NAME + "=" + refreshToken
+		opt.headers["Cookie"] = constants.RefreshTokenName + "=" + refreshToken
 
 		return nil
 	}

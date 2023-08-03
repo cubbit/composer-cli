@@ -1,7 +1,7 @@
-package commands
+package command
 
 import (
-	"github.com/cubbit/cubbit/client/cli/src/actions"
+	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/urfave/cli/v2"
 )
 
@@ -45,7 +45,7 @@ func Login() *cli.Command {
 				DefaultText: "./",
 			},
 		},
-		Action: actions.SignInOperator,
+		Action: action.SignInOperator,
 	}
 
 	return &command

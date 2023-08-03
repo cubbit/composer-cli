@@ -1,4 +1,4 @@
-package actions
+package action
 
 import (
 	"fmt"
@@ -9,13 +9,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func CreateOperatorInteractive(cCtx *cli.Context) error {
+func CreateOperatorInteractive(ctx *cli.Context) error {
 	var err error
 	var urls *configuration.Url
 
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 
-	if urls, err = configuration.ApiServerUrlConfiguration(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
@@ -33,23 +33,23 @@ func CreateOperatorInteractive(cCtx *cli.Context) error {
 	return nil
 }
 
-func CreateOperator(cCtx *cli.Context) error {
+func CreateOperator(ctx *cli.Context) error {
 	var err error
 	var email, password, firstName, lastName string
 	var urls *configuration.Url
 
-	if cCtx.Bool("interactive") {
-		return CreateOperatorInteractive(cCtx)
+	if ctx.Bool("interactive") {
+		return CreateOperatorInteractive(ctx)
 	}
 
-	email = cCtx.String("email")
-	password = cCtx.String("password")
-	firstName = cCtx.String("first-name")
-	lastName = cCtx.String("last-name")
-	apiServerUrl := cCtx.String("api-server-url")
-	secret := cCtx.String("secret")
+	email = ctx.String("email")
+	password = ctx.String("password")
+	firstName = ctx.String("first-name")
+	lastName = ctx.String("last-name")
+	apiServerUrl := ctx.String("api-server-url")
+	secret := ctx.String("secret")
 
-	if urls, err = configuration.ApiServerUrlConfiguration(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 

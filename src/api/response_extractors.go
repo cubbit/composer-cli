@@ -7,11 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 	"github.com/cubbit/cubbit/client/cli/utils"
 )
-
-const REFRESH_TOKEN_NAME = "_refresh"
 
 func extractChallengeResponseModel(response *ChallengeResponseModel) request_utils.RequestModifier {
 	return func(opt *request_utils.RequestOptions, res *http.Response) error {
@@ -41,7 +40,7 @@ func extractRefreshCookie(response *string) request_utils.RequestModifier {
 		}
 
 		refreshTokenCookie, found := utils.Find(res.Cookies(), func(c *http.Cookie) bool {
-			return c.Name == REFRESH_TOKEN_NAME
+			return c.Name == constants.RefreshTokenName
 		})
 		if !found {
 			return fmt.Errorf("refresh token not found in cookies")

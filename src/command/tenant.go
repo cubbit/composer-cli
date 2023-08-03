@@ -1,9 +1,9 @@
-package commands
+package command
 
 import (
 	"errors"
 
-	"github.com/cubbit/cubbit/client/cli/src/actions"
+	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/urfave/cli/v2"
 )
 
@@ -31,7 +31,7 @@ func Tenant() *cli.Command {
 				Usage: "The id of the tenant",
 			},
 		},
-		Action: func(cCtx *cli.Context) error {
+		Action: func(ctx *cli.Context) error {
 			return errors.New("please specify a valid command")
 		},
 		Subcommands: []*cli.Command{
@@ -60,7 +60,7 @@ func Tenant() *cli.Command {
 						Usage:   "A Json object containing the settings",
 					},
 				},
-				Action: actions.CreateTenant,
+				Action: action.CreateTenant,
 			},
 			{
 				Name:    "list",
@@ -78,7 +78,7 @@ func Tenant() *cli.Command {
 						Usage:   "adds a line between the information about different tentants",
 					},
 				},
-				Action: actions.ListTenant,
+				Action: action.ListTenant,
 			},
 			{
 				Name:    "remove",
@@ -112,7 +112,7 @@ func Tenant() *cli.Command {
 						Usage:   "Two factor authentication code",
 					},
 				},
-				Action: actions.RemoveTenant,
+				Action: action.RemoveTenant,
 			},
 			{
 				Name:    "describe",
@@ -126,24 +126,24 @@ func Tenant() *cli.Command {
 						Value:       "default",
 					},
 				},
-				Action: actions.DescribeTenant,
+				Action: action.DescribeTenant,
 			},
 			{
 				Name:   "edit-description",
 				Usage:  "changes the tenant description",
 				Flags:  []cli.Flag{},
-				Action: actions.EditTenantDescription,
+				Action: action.EditTenantDescription,
 			},
 			{
 				Name:   "edit-image",
 				Usage:  "changes the tenant image",
 				Flags:  []cli.Flag{},
-				Action: actions.EditTenantImage,
+				Action: action.EditTenantImage,
 			},
 			{
 				Name:   "list-available-swarms",
 				Usage:  "lists the swarms that can be connected",
-				Action: actions.ListAvailableSwarmsTenant,
+				Action: action.ListAvailableSwarmsTenant,
 			},
 		},
 	}

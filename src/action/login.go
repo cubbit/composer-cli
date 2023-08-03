@@ -1,17 +1,16 @@
-package actions
+package action
 
 import (
 	"fmt"
 
+	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
 	"github.com/urfave/cli/v2"
 )
 
-const DEFAULT_FILE_PATH = "./"
-
-func SignInOperatorInteractive(cCtx *cli.Context) error {
+func SignInOperatorInteractive(ctx *cli.Context) error {
 	var err error
 	var code, refreshToken string
 	var challenge *api.ChallengeResponseModel
@@ -20,7 +19,7 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 
-	if urls, err = configuration.ApiServerUrlConfiguration(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
@@ -33,12 +32,12 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
 	if configPath == "" {
-		configPath = DEFAULT_FILE_PATH
+		configPath = constants.DefaultFilePath
 	}
 
 	profile := input.TextPrompt("Enter the configuration profile (default: default)")
 	if profile == "" {
-		profile = "default"
+		profile = constants.DefaultProfile
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
@@ -51,39 +50,39 @@ func SignInOperatorInteractive(cCtx *cli.Context) error {
 
 	conf = configuration.NewConfig(profile, *urls, refreshToken)
 
-	conf.Store(configPath)
+	conf.StoreSession(configPath)
 
 	fmt.Printf("User %s signed in successfully\n", email)
 
 	return nil
 }
 
-func SignInOperator(cCtx *cli.Context) error {
+func SignInOperator(ctx *cli.Context) error {
 	var err error
 	var apiServerUrl, email, password, code, refreshToken string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
 
-	if cCtx.Bool("interactive") {
-		return SignInOperatorInteractive(cCtx)
+	if ctx.Bool("interactive") {
+		return SignInOperatorInteractive(ctx)
 	}
 
-	configPath := cCtx.String("config")
+	configPath := ctx.String("config")
 	if configPath == "" {
-		configPath = DEFAULT_FILE_PATH
+		configPath = constants.DefaultFilePath
 	}
 
-	profile := cCtx.String("profile")
+	profile := ctx.String("profile")
 	if profile == "" {
 		profile = "default"
 	}
 
-	email = cCtx.String("email")
-	password = cCtx.String("password")
-	code = cCtx.String("code")
-	apiServerUrl = cCtx.String("api-server-url")
+	email = ctx.String("email")
+	password = ctx.String("password")
+	code = ctx.String("code")
+	apiServerUrl = ctx.String("api-server-url")
 
-	if urls, err = configuration.ApiServerUrlConfiguration(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("error while configuri api server url %w", err)
 	}
 
@@ -97,7 +96,7 @@ func SignInOperator(cCtx *cli.Context) error {
 
 	var confs = configuration.NewConfig(profile, *urls, refreshToken)
 
-	if err = confs.Store(configPath); err != nil {
+	if err = confs.StoreSession(configPath); err != nil {
 		return fmt.Errorf("error while storing file path configuration: %w", err)
 	}
 
