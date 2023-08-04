@@ -140,6 +140,27 @@ func extractOperatorResponseModel(response *Operator) request_utils.RequestModif
 
 func extractSwarmListModel(response *SwarmList) request_utils.RequestModifier {
 	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+
+		var body []byte
+		var err error
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractSwarmResponseModel(response *Swarm) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
 		var err error
 		var body []byte
 
@@ -151,6 +172,27 @@ func extractSwarmListModel(response *SwarmList) request_utils.RequestModifier {
 			return err
 		}
 
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractSwarmListResponseModel(response *[]Swarm) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+
+		var body []byte
+		var err error
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
 		if err = json.Unmarshal(body, &response); err != nil {
 			return err
 		}

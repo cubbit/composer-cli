@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func SignOutOperatorInteractive(cCtx *cli.Context) error {
+func SignOutOperatorInteractive(ctx *cli.Context) error {
 	var err error
 
 	configPath := input.TextPrompt("Enter the config file to load (default: ./)")

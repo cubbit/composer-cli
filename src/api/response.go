@@ -69,13 +69,19 @@ type TenantList struct {
 }
 
 type Swarm struct {
-	SwarmID  string `json:"swarm_id"`
-	TenantID string `json:"tenant_id"`
-	Default  bool   `json:"default"`
+	SwarmID       string                 `json:"id"`
+	TenantID      string                 `json:"tenant_id"`
+	Name          string                 `json:"name" example:"Cubbit"`
+	Description   string                 `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
+	Default       bool                   `json:"default"`
+	OwnerID       string                 `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
+	Configuration map[string]interface{} `json:"configuration" example:"{}"`
+	CreatedAt     time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	DeletedAt     time.Time              `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
 }
 
 type SwarmList struct {
-	Swarms []*Swarm `json:"swarms"`
+	Swarms []Swarm `json:"swarms"`
 }
 
 type Operator struct {

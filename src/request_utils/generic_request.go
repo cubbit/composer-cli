@@ -42,7 +42,6 @@ func DoRequest(url string, opts ...RequestModifier) error {
 	}
 
 	reqBody := bytes.NewBuffer(reqJSONBody)
-
 	if opt.bodyBytes != nil {
 		reqBody = bytes.NewBuffer(opt.bodyBytes)
 	}

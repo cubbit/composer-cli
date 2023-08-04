@@ -29,8 +29,8 @@ type Session struct {
 	Session map[string]Config `yaml:"session"`
 }
 
-func NewConfig(name string, urls Url, refreshToken string) Config {
-	return Config{
+func NewConfig(name string, urls Url, refreshToken string) *Config {
+	return &Config{
 		Name:         name,
 		Urls:         urls,
 		RefreshToken: refreshToken,
@@ -156,7 +156,7 @@ func ReadConfig(ctx *cli.Context) (*Config, string, error) {
 		return nil, "", fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return &conf, configPath, nil
+	return conf, configPath, nil
 }
 
 func ConfigureAPIServerURL(apiServerUrl string) (*Url, error) {
