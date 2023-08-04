@@ -59,7 +59,7 @@ func CreateTenant(ctx *cli.Context) error {
 	return nil
 }
 
-func ListTenant(cCtx *cli.Context) error {
+func ListTenant(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
@@ -69,7 +69,7 @@ func ListTenant(cCtx *cli.Context) error {
 
 	fmt.Println("these are your tenants")
 
-	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -83,8 +83,8 @@ func ListTenant(cCtx *cli.Context) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 
-	verbose := cCtx.Bool("verbose")
-	l := cCtx.Bool("l")
+	verbose := ctx.Bool("verbose")
+	l := ctx.Bool("l")
 
 	for _, tenant := range tenants.Tenants {
 		if verbose {
@@ -100,24 +100,24 @@ func ListTenant(cCtx *cli.Context) error {
 	return nil
 }
 
-func RemoveTenant(cCtx *cli.Context) error {
+func RemoveTenant(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath, deleteTenantToken string
 	var conf *configuration.Config
 	var challenge *api.ChallengeResponseModel
 
-	id := cCtx.String("id")
-	name := cCtx.String("name")
-	email := cCtx.String("email")
-	password := cCtx.String("password")
-	code := cCtx.String("code")
+	id := ctx.String("id")
+	name := ctx.String("name")
+	email := ctx.String("email")
+	password := ctx.String("password")
+	code := ctx.String("code")
 
 	if id == "" && name == "" {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -162,7 +162,7 @@ func RemoveTenant(cCtx *cli.Context) error {
 	return nil
 }
 
-func DescribeTenant(cCtx *cli.Context) error {
+func DescribeTenant(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
@@ -170,16 +170,16 @@ func DescribeTenant(cCtx *cli.Context) error {
 	var tenants *api.TenantList
 	var operator *api.Operator
 
-	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	id := cCtx.String("id")
-	name := cCtx.String("name")
-	format := cCtx.String("format")
+	id := ctx.String("id")
+	name := ctx.String("name")
+	format := ctx.String("format")
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
@@ -358,21 +358,21 @@ func EditTenantImage(ctx *cli.Context) error {
 	return nil
 }
 
-func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
+func ListAvailableSwarmsTenant(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
 	var swarms *api.SwarmList
 
-	id := cCtx.String("id")
-	name := cCtx.String("name")
+	id := ctx.String("id")
+	name := ctx.String("name")
 
 	if id == "" && name == "" {
 		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -388,7 +388,7 @@ func ListAvailableSwarmsTenant(cCtx *cli.Context) error {
 
 	fmt.Printf("those are the swarms connect to the tenant %s\n", id)
 
-	if conf, configPath, err = configuration.ReadConfig(cCtx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {

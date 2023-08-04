@@ -11,8 +11,8 @@ import (
 )
 
 func CreateOperatorInteractive(ctx *cli.Context) error {
-	var err error
 	var urls *configuration.Url
+	var err error
 
 	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
 
@@ -35,26 +35,25 @@ func CreateOperatorInteractive(ctx *cli.Context) error {
 }
 
 func CreateOperator(ctx *cli.Context) error {
+	var url *configuration.Url
 	var err error
-	var email, password, firstName, lastName string
-	var urls *configuration.Url
 
 	if ctx.Bool("interactive") {
 		return CreateOperatorInteractive(ctx)
 	}
 
-	email = ctx.String("email")
-	password = ctx.String("password")
-	firstName = ctx.String("first-name")
-	lastName = ctx.String("last-name")
+	email := ctx.String("email")
+	password := ctx.String("password")
+	firstName := ctx.String("first-name")
+	lastName := ctx.String("last-name")
 	apiServerUrl := ctx.String("api-server-url")
 	secret := ctx.String("secret")
 
-	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
+	if url, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
-	if err = api.CreateOperator(*urls, firstName, lastName, email, password, secret); err != nil {
+	if err = api.CreateOperator(*url, firstName, lastName, email, password, secret); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperator, err)
 	}
 

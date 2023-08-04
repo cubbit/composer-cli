@@ -32,4 +32,6 @@ const (
 
 	Tenants     = "/v1/tenants"
 	ListTenants = "/v1/tenants?owner="
+
+	Swarms = "/v1/swarms"
 )

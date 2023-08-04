@@ -45,4 +45,11 @@ const (
 	ErrorHiveConfigNotFound  = "hive api server url is not defined in configuration"
 	ErrorTokenConfigNotFound = "refresh token is not defined in configuration file"
 	ErrorNameConfigNotFound  = "name is not defined in configuration file"
+
+	ErrorCreatingSwarm           = "error while creating swarm"
+	ErrorRetrievingSwarm         = "error while retrieving swarm"
+	ErrorRetrievingSwarmList     = "error retrieving swarm list"
+	ErrorCreatingSwarmRequest    = "failed request to create the swarm"
+	ErrorListingSwarmsRequest    = "failed request to list swarms"
+	ErrorRetrievingSwarmsRequest = "failed request to get swarm"
 )
