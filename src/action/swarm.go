@@ -56,24 +56,34 @@ func GetSwarm(ctx *cli.Context) error {
 	var swarm *api.Swarm
 
 	format := ctx.String("format")
-	swarmID := func() string {
-		if id := ctx.String("id"); id != "" {
-			return id
-		}
-		return ctx.String("name")
-	}()
+	swarmID := ctx.String("id")
+	swarmName := ctx.String("name")
 
 	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
-
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
-
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
 	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+
+	if swarmName != "" {
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, sw := range swarms {
+			if sw.Name == swarmName {
+				utils.PrintFormattedData(sw, format)
+				return nil
+			}
+		}
+
 	}
 	if swarm, err = api.GetSwarm(config.Urls, *accessToken, operator.ID, swarmID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
