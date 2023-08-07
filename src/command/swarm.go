@@ -53,12 +53,31 @@ func Swarm() *cli.Command {
 				Usage:   "describes a swarm",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "id",
-						Usage:    "id of the swarm",
-						Required: true,
+						Name:  "id",
+						Usage: "id of the swarm",
+					},
+					&cli.StringFlag{
+						Name:  "name",
+						Usage: "name of the swarm",
+					},
+					&cli.StringFlag{
+						Name:        "format",
+						Usage:       "formats the description",
+						DefaultText: "default",
+						Value:       "default",
 					},
 				},
-				Action: action.GetSwarm,
+				Action: func(ctx *cli.Context) error {
+					id := ctx.String("id")
+					name := ctx.String("name")
+
+					// Check if at least one flag is chosen
+					if name == "" && id == "" {
+						return cli.Exit("At least one the id or name must be provided.", 1)
+					}
+
+					return action.GetSwarm(ctx)
+				},
 			},
 			{
 				Name:    "list",
