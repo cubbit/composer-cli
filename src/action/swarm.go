@@ -225,13 +225,13 @@ func ListSwarms(ctx *cli.Context) error {
 	return nil
 }
 
-func ListSwarmProviders(ctx *cli.Context) error {
+func ListSwarmOperators(ctx *cli.Context) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var config *configuration.Config
 	var operator *api.Operator
-	var providers *api.ProviderList
+	var operators *api.OperatorList
 
 	swarmID := ctx.String("id")
 	swarmName := ctx.String("name")
@@ -266,17 +266,17 @@ func ListSwarmProviders(ctx *cli.Context) error {
 	if swarmID == "" {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 	}
-	if providers, err = api.ListSwarmProviders(config.Urls, *accessToken, swarmID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmProviders, err)
+	if operators, err = api.ListSwarmOperators(config.Urls, *accessToken, swarmID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmOperators, err)
 	}
 
 	verbose := ctx.Bool("verbose")
 
-	for _, provider := range providers.Providers {
+	for _, operator := range operators.Operators {
 		if verbose {
-			fmt.Printf("%s %s %s\n", provider.ProviderID, provider.Name, provider.Email)
+			fmt.Printf("%s %s %s\n", operator.ID, operator.FirstName, operator.LastName)
 		} else {
-			fmt.Printf("%s\n", provider.Name)
+			fmt.Printf("%s\n", operator.ID)
 		}
 	}
 

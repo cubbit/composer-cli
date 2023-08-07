@@ -98,6 +98,10 @@ type Operator struct {
 	TwoFactorEnabled   bool            `json:"two_factor_enabled" example:"true"`
 }
 
+type OperatorList struct {
+	Operators []Operator `json:"operators"`
+}
+
 type OperatorEmail struct {
 	ID        string    `json:"id" example:"5ff281ee-75e7-4543-a304-ca861521f2a7"`
 	Email     string    `json:"email" example:"mario.rossi@cubbit.io"`

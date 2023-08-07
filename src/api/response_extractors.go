@@ -201,7 +201,7 @@ func extractSwarmListResponseModel(response *[]Swarm) request_utils.RequestModif
 	}
 }
 
-func extractProviderListResponseModel(response *ProviderList) request_utils.RequestModifier {
+func extractOperatorListResponseModel(response *OperatorList) request_utils.RequestModifier {
 	return func(opt *request_utils.RequestOptions, res *http.Response) error {
 
 		var body []byte

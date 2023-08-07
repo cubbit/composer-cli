@@ -98,16 +98,7 @@ func Swarm() *cli.Command {
 				Flags:  []cli.Flag{},
 				Before: utils.ValidateIDorNameNotEmpty,
 
-				Action: func(ctx *cli.Context) error {
-					id := ctx.String("id")
-					name := ctx.String("name")
-
-					if name == "" && id == "" {
-						return cli.Exit("The name or id of the swarm must be provided.", 1)
-					}
-
-					return action.EditSwarmDescription(ctx)
-				},
+				Action: action.EditSwarmDescription,
 			},
 			{
 				Name:   "edit-name",
@@ -117,8 +108,8 @@ func Swarm() *cli.Command {
 				Action: action.EditSwarmName,
 			},
 			{
-				Name:  "list-providers",
-				Usage: "list of all the available providers in a swarm.",
+				Name:  "list-operators",
+				Usage: "list of all the operators of a swarm.",
 				Flags: []cli.Flag{},
 				Action: func(ctx *cli.Context) error {
 					id := ctx.String("id")
@@ -128,7 +119,7 @@ func Swarm() *cli.Command {
 						return cli.Exit("The name or id of the swarm must be provided.", 1)
 					}
 
-					return action.ListSwarmProviders(ctx)
+					return action.ListSwarmOperators(ctx)
 				},
 			},
 		},

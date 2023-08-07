@@ -108,16 +108,16 @@ func EditSwarmName(urls configuration.Url, accessToken, ownerID string, swarmID 
 	return nil
 }
 
-func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*ProviderList, error) {
+func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*OperatorList, error) {
 	var err error
-	url := fmt.Sprintf("%s%s/%s/providers", urls.HiveUrl, constants.Swarms, swarmID)
-	var response *ProviderList
+	url := fmt.Sprintf("%s%s/%s/operators", urls.HiveUrl, constants.Swarms, swarmID)
+	var response *OperatorList
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractProviderListResponseModel(response),
+		extractOperatorListResponseModel(response),
 	); err != nil {
 		return nil, fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}

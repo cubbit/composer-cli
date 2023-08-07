@@ -49,7 +49,7 @@ const (
 	ErrorCreatingSwarm            = "error while creating swarm"
 	ErrorRetrievingSwarm          = "error while retrieving swarm"
 	ErrorRetrievingSwarmList      = "error retrieving swarm list"
-	ErrorRetrievingSwarmProviders = "error while retrieving available swarm providers list"
+	ErrorRetrievingSwarmOperators = "error while retrieving available swarm operators list"
 
 	ErrorEditingSwarm            = "error while creating swarm"
 	ErrorCreatingSwarmRequest    = "failed request to create the swarm"
