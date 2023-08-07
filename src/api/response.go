@@ -105,3 +105,16 @@ type OperatorEmail struct {
 	Default   bool      `json:"default" example:"true"`
 	CreatedAt time.Time `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
 }
+
+type Provider struct {
+	ProviderID string    `json:"id"`
+	SwarmID    string    `json:"swarm_id"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	CreatedAt  time.Time `json:"created_at"`
+	DeletedAt  time.Time `json:"deleted_at"`
+}
+
+type ProviderList struct {
+	Providers []Provider `json:"providers"`
+}

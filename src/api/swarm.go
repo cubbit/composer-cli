@@ -66,3 +66,60 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 	}
 	return &response, nil
 }
+func EditSwarmDescription(urls configuration.Url, accessToken, ownerID string, swarmID string, description string) error {
+	var err error
+	url := fmt.Sprintf("%s%s/%s", urls.HiveUrl, constants.Swarms, swarmID)
+
+	requestBody := map[string]interface{}{
+		"description": description,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
+	}
+
+	return nil
+}
+
+func EditSwarmName(urls configuration.Url, accessToken, ownerID string, swarmID string, name string) error {
+	var err error
+	url := fmt.Sprintf("%s%s/%s", urls.HiveUrl, constants.Swarms, swarmID)
+
+	requestBody := map[string]interface{}{
+		"name": name,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
+	}
+
+	return nil
+}
+
+func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*ProviderList, error) {
+	var err error
+	url := fmt.Sprintf("%s%s/%s/providers", urls.HiveUrl, constants.Swarms, swarmID)
+	var response *ProviderList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractProviderListResponseModel(response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+	}
+	return response, nil
+}

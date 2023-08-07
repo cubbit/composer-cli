@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,6 +17,14 @@ func Swarm() *cli.Command {
 				Name:    "interactive",
 				Aliases: []string{"i"},
 				Usage:   "The operation should be interactive",
+			},
+			&cli.StringFlag{
+				Name:  "id",
+				Usage: "The id of the swarm",
+			},
+			&cli.StringFlag{
+				Name:  "name",
+				Usage: "The name of the swarm ",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
@@ -67,17 +76,8 @@ func Swarm() *cli.Command {
 						Value:       "default",
 					},
 				},
-				Action: func(ctx *cli.Context) error {
-					id := ctx.String("id")
-					name := ctx.String("name")
-
-					// Check if at least one flag is chosen
-					if name == "" && id == "" {
-						return cli.Exit("At least one the id or name must be provided.", 1)
-					}
-
-					return action.GetSwarm(ctx)
-				},
+				Before: utils.ValidateIDorNameNotEmpty,
+				Action: action.GetSwarm,
 			},
 			{
 				Name:    "list",
@@ -91,6 +91,45 @@ func Swarm() *cli.Command {
 					},
 				},
 				Action: action.ListSwarms,
+			},
+			{
+				Name:   "edit-description",
+				Usage:  "edit the swarm description",
+				Flags:  []cli.Flag{},
+				Before: utils.ValidateIDorNameNotEmpty,
+
+				Action: func(ctx *cli.Context) error {
+					id := ctx.String("id")
+					name := ctx.String("name")
+
+					if name == "" && id == "" {
+						return cli.Exit("The name or id of the swarm must be provided.", 1)
+					}
+
+					return action.EditSwarmDescription(ctx)
+				},
+			},
+			{
+				Name:   "edit-name",
+				Usage:  "edit the swarm name",
+				Flags:  []cli.Flag{},
+				Before: utils.ValidateIDorNameNotEmpty,
+				Action: action.EditSwarmName,
+			},
+			{
+				Name:  "list-providers",
+				Usage: "list of all the available providers in a swarm.",
+				Flags: []cli.Flag{},
+				Action: func(ctx *cli.Context) error {
+					id := ctx.String("id")
+					name := ctx.String("name")
+
+					if name == "" && id == "" {
+						return cli.Exit("The name or id of the swarm must be provided.", 1)
+					}
+
+					return action.ListSwarmProviders(ctx)
+				},
 			},
 		},
 	}

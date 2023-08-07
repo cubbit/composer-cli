@@ -22,9 +22,9 @@ func CreateTenant(ctx *cli.Context) error {
 
 	name := ctx.String("name")
 	description := ctx.Args().First()
-	if len(description) > 200 {
-		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
-	}
+	// if len(description) > 200 {
+	// 	return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
+	// }
 
 	imageUrl := ctx.String("image-url")
 	if imageUrl != "" {
@@ -306,10 +306,6 @@ func EditTenantDescription(ctx *cli.Context) error {
 	}
 
 	description := ctx.Args().First()
-	if len(description) > 200 {
-		fmt.Println(description)
-		return fmt.Errorf("%s: %w", constants.ErrorTenantDescriptionSize, err)
-	}
 
 	if err = api.EditTenantDescription(conf.Urls, *accessToken, id, description); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantDescription, err)

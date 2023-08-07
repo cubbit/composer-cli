@@ -82,6 +82,8 @@ func GetSwarm(ctx *cli.Context) error {
 				utils.PrintFormattedData(sw, format)
 				return nil
 			}
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+
 		}
 
 	}
@@ -93,7 +95,101 @@ func GetSwarm(ctx *cli.Context) error {
 
 	return nil
 }
+func EditSwarmDescription(ctx *cli.Context) error {
 
+	var err error
+	var configPath string
+	var accessToken *string
+	var config *configuration.Config
+	var operator *api.Operator
+
+	swarmID := ctx.String("id")
+	swarmName := ctx.String("name")
+	description := ctx.Args().First()
+
+	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+
+	if swarmName != "" {
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, sw := range swarms {
+			if sw.Name == swarmName {
+				swarmID = sw.SwarmID
+				break
+			}
+		}
+	}
+	if swarmID == "" {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+	}
+	if err = api.EditSwarmDescription(config.Urls, *accessToken, operator.ID, swarmID, description); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarm, err)
+	}
+
+	return nil
+
+}
+func EditSwarmName(ctx *cli.Context) error {
+
+	var err error
+	var configPath string
+	var accessToken *string
+	var config *configuration.Config
+	var operator *api.Operator
+
+	swarmID := ctx.String("id")
+	swarmName := ctx.String("name")
+	newName := ctx.Args().First()
+
+	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+
+	if swarmName != "" {
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, sw := range swarms {
+			if sw.Name == swarmName {
+				swarmID = sw.SwarmID
+				break
+			}
+		}
+	}
+	if swarmID == "" {
+		return fmt.Errorf(constants.ErrorRetrievingSwarm)
+	}
+
+	if err = api.EditSwarmName(config.Urls, *accessToken, operator.ID, swarmID, newName); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarm, err)
+	}
+
+	return nil
+
+}
 func ListSwarms(ctx *cli.Context) error {
 	var err error
 	var configPath string
@@ -123,6 +219,64 @@ func ListSwarms(ctx *cli.Context) error {
 			fmt.Printf("%s %s %s\n", swarm.SwarmID, swarm.Name, swarm.Description)
 		} else {
 			fmt.Printf("%s\n", swarm.Name)
+		}
+	}
+
+	return nil
+}
+
+func ListSwarmProviders(ctx *cli.Context) error {
+	var err error
+	var accessToken *string
+	var configPath string
+	var config *configuration.Config
+	var operator *api.Operator
+	var providers *api.ProviderList
+
+	swarmID := ctx.String("id")
+	swarmName := ctx.String("name")
+
+	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+
+	if swarmName != "" {
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, sw := range swarms {
+			if sw.Name == swarmName {
+				swarmID = sw.SwarmID
+				break
+			}
+
+		}
+
+	}
+	if swarmID == "" {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+	}
+	if providers, err = api.ListSwarmProviders(config.Urls, *accessToken, swarmID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmProviders, err)
+	}
+
+	verbose := ctx.Bool("verbose")
+
+	for _, provider := range providers.Providers {
+		if verbose {
+			fmt.Printf("%s %s %s\n", provider.ProviderID, provider.Name, provider.Email)
+		} else {
+			fmt.Printf("%s\n", provider.Name)
 		}
 	}
 

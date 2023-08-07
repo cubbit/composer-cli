@@ -6,7 +6,7 @@ const (
 	ErrorOperatorSignIn              = "error while performing operator signin"
 	ErrorCreatingOperator            = "error while creating operator"
 	ErrorStoringSession              = "error while storing file path configuration"
-	ErrorTenantDescriptionSize       = "tenant description is over 200 characters"
+	ErrorDescriptionSize             = "description is over 200 characters"
 	ErrorRetrievingOperator          = "error while retrieving operator id"
 	ErrorForgingOperatorDeleteToken  = "error while forging operator delete token"
 	ErrorDeletingTenant              = "error while deleting tenant"
@@ -46,10 +46,16 @@ const (
 	ErrorTokenConfigNotFound = "refresh token is not defined in configuration file"
 	ErrorNameConfigNotFound  = "name is not defined in configuration file"
 
-	ErrorCreatingSwarm           = "error while creating swarm"
-	ErrorRetrievingSwarm         = "error while retrieving swarm"
-	ErrorRetrievingSwarmList     = "error retrieving swarm list"
+	ErrorCreatingSwarm            = "error while creating swarm"
+	ErrorRetrievingSwarm          = "error while retrieving swarm"
+	ErrorRetrievingSwarmList      = "error retrieving swarm list"
+	ErrorRetrievingSwarmProviders = "error while retrieving available swarm providers list"
+
+	ErrorEditingSwarm            = "error while creating swarm"
 	ErrorCreatingSwarmRequest    = "failed request to create the swarm"
 	ErrorListingSwarmsRequest    = "failed request to list swarms"
 	ErrorRetrievingSwarmsRequest = "failed request to get swarm"
+	ErrorEditingSwarmRequest     = "failed request to edit swarm"
+
+	ErrorIdAndNameEmpty = "The name or id of must be provided"
 )

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/urfave/cli/v2"
 )
 
@@ -48,7 +49,7 @@ func Tenant() *cli.Command {
 					&cli.StringFlag{
 						Name:    "description",
 						Aliases: []string{"desc"},
-						Usage:   "A meaningful desciription of the tenant",
+						Usage:   "A meaningful description of the tenant",
 					},
 					&cli.StringFlag{
 						Name:  "image-url",
@@ -75,7 +76,7 @@ func Tenant() *cli.Command {
 					&cli.BoolFlag{
 						Name:    "line",
 						Aliases: []string{"l"},
-						Usage:   "adds a line between the information about different tentants",
+						Usage:   "adds a line between the information about different tenants",
 					},
 				},
 				Action: action.ListTenant,
@@ -131,6 +132,7 @@ func Tenant() *cli.Command {
 			{
 				Name:   "edit-description",
 				Usage:  "changes the tenant description",
+				Before: utils.ValidateDescriptionSize,
 				Flags:  []cli.Flag{},
 				Action: action.EditTenantDescription,
 			},
