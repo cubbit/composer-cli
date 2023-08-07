@@ -12,7 +12,7 @@ import (
 func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name string, description string, swarmConfig map[string]interface{}) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := fmt.Sprintf("%s%s",urls.HiveUrl,constants.Swarms)
+	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
 
 	requestBody := map[string]interface{}{
 		"name":          name,
@@ -37,7 +37,7 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 
 func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]Swarm, error) {
 	var err error
-	url := fmt.Sprintf("%s%s",urls.HiveUrl,constants.Swarms)
+	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
 	var response []Swarm
 
 	if err = request_utils.DoRequest(
@@ -62,7 +62,7 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmsRequest, err)
 	}
 	return &response, nil
 }

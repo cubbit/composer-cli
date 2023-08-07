@@ -76,6 +76,7 @@ type Swarm struct {
 	Default       bool                   `json:"default"`
 	OwnerID       string                 `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
 	Configuration map[string]interface{} `json:"configuration" example:"{}"`
+	Metrics       map[string]interface{} `json:"metrics" example:"{}"`
 	CreatedAt     time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
 	DeletedAt     time.Time              `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
 }

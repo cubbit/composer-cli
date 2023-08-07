@@ -3,10 +3,10 @@ package action
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/urfave/cli/v2"
 )
 
@@ -47,6 +47,7 @@ func CreateSwarm(ctx *cli.Context) error {
 }
 
 func GetSwarm(ctx *cli.Context) error {
+
 	var err error
 	var configPath string
 	var accessToken *string
@@ -54,12 +55,20 @@ func GetSwarm(ctx *cli.Context) error {
 	var operator *api.Operator
 	var swarm *api.Swarm
 
-	swarmID := ctx.String("id")
+	format := ctx.String("format")
+	swarmID := func() string {
+		if id := ctx.String("id"); id != "" {
+			return id
+		}
+		return ctx.String("name")
+	}()
 
 	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
+
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
@@ -70,7 +79,7 @@ func GetSwarm(ctx *cli.Context) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 	}
 
-	fmt.Printf("%v\n", swarm)
+	utils.PrintFormattedData(*swarm, format)
 
 	return nil
 }
@@ -101,39 +110,11 @@ func ListSwarms(ctx *cli.Context) error {
 
 	for _, swarm := range swarms {
 		if verbose {
-			fmt.Printf("%v\n", swarm)
+			fmt.Printf("%s %s %s\n", swarm.SwarmID, swarm.Name, swarm.Description)
 		} else {
 			fmt.Printf("%s\n", swarm.Name)
 		}
 	}
 
 	return nil
-}
-
-func EditSwarm(ctx *cli.Context) {
-	// TODO
-}
-
-func DeleteSwarm(clx *cli.Context) {
-	// TODO
-}
-
-func AddProviderToSwarm(ctx *cli.Context) {
-	// TODO
-}
-
-func ListSwarmProviders(ctx *cli.Context) {
-	// TODO
-}
-
-func AddSecretToSwarm(ctx *cli.Context) {
-	// TODO
-}
-
-func ListSwarmSecrets(ctx *cli.Context) {
-	// TODO
-}
-
-func ListSwarmErrors(ctx *cli.Context) {
-	// TODO
 }
