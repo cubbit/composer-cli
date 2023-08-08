@@ -8,6 +8,7 @@ on:
       - main
 jobs:
   bump_version:
+    if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     name: "Bump version and create changelog with commitizen"
     steps:
