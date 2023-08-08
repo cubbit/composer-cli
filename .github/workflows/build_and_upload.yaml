@@ -1,0 +1,32 @@
+name: Build and Upload
+
+on:
+  push:
+    branches:
+      - feat/automate-build
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20
+
+      - name: Build and package for supported OS
+        run: |
+          mkdir -p artifacts
+          GOOS=linux GOARCH=amd64 go build -o artifacts/cubbit-linux-amd64
+          GOOS=darwin GOARCH=amd64 go build -o artifacts/cubbit-darwin-amd64
+          GOOS=windows GOARCH=386 go build -o artifacts/cubbit_386.exe 
+          GOOS=windows GOARCH=amd64 go build -o artifacts/cubbit_amd64.exe
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: artifacts/
