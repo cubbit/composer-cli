@@ -3,7 +3,9 @@ name: Bump version
 on:
   pull_request:
     types: [ closed ]
-
+  push:
+    branches:
+      - main
 jobs:
   bump_version:
     runs-on: ubuntu-latest
