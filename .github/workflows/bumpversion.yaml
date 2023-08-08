@@ -6,6 +6,7 @@ on:
 
 jobs:
   bump_version:
+    if: github.event.pull_request.base.ref == 'main' 
     runs-on: ubuntu-latest
     name: "Bump version and create changelog with commitizen"
     steps:
