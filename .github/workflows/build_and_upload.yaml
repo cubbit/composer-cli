@@ -8,7 +8,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        platform:
+          - linux_386
+          - linux_amd64
+          - linux_arm
+          - linux_arm64
+          - darwin_amd64
+          - darwin_arm64
+          - windows_amd64
+    defaults:
+      run:
+        working-directory: .
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -18,15 +30,34 @@ jobs:
         with:
           go-version: "1.20"
 
-      - name: Build and package for supported OS
+      - name: Build and package for ${{ matrix.platform }}
+        id: build
         run: |
           mkdir -p artifacts
-          GOOS=linux GOARCH=amd64 go build -o artifacts/cubbit-linux-amd64
-          GOOS=darwin GOARCH=amd64 go build -o artifacts/cubbit-darwin-amd64
-          GOOS=windows GOARCH=386 go build -o artifacts/cubbit_386.exe 
-          GOOS=windows GOARCH=amd64 go build -o artifacts/cubbit_amd64.exe
-      - name: Upload artifacts
+          export GOOS=$(echo "${{ matrix.platform }}" | cut -d'_' -f1)
+          export GOARCH=$(echo "${{ matrix.platform }}" | cut -d'_' -f2)
+          BINARY_NAME="${{ matrix.platform }}"
+          if [ "$GOOS" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
+          echo "binary_name=$BINARY_NAME" >> $GITHUB_OUTPUT
+          echo "op_sys=$GOOS" >> $GITHUB_OUTPUT
+          echo "cpu_arch=$GOARCH" >> $GITHUB_OUTPUT
+
+          go build -o artifacts/${BINARY_NAME}
+      - name: Upload artifact for ${{ matrix.platform }}
         uses: actions/upload-artifact@v2
         with:
-          name: artifacts
-          path: artifacts/
+          name: "${{ matrix.platform }}_artifact"
+          path: artifacts/${{ steps.build.outputs.binary_name }}
+      - name: Upload ${{ matrix.platform }}  to Cubbit S3
+        run: |
+
+
+          AWS_DEFAULT_REGION=eu-west-1 AWS_ACCESS_KEY_ID=${{ secrets.CUBBIT_S3_ACCESS_KEY }} AWS_SECRET_ACCESS_KEY=${{ secrets.CUBBIT_S3_SECRET_KEY }} \
+          aws s3api --no-cli-pager --endpoint-url https://s3.cubbit.eu \
+          put-object \
+          --acl public-read \
+          --bucket cubbit-public \
+          --key operator-cli/${{ steps.build.outputs.op_sys }}/${{ steps.build.outputs.cpu_arch }}/${{ steps.build.outputs.binary_name }} \
+          --body ./artifacts/${{ steps.build.outputs.binary_name }}
