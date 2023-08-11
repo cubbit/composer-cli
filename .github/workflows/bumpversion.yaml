@@ -1,5 +1,3 @@
-name: Bump version
-
 on:
   push:
     branches:
@@ -18,6 +16,37 @@ jobs:
         uses: commitizen-tools/commitizen-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN}}
-          changelog_increment_filename: body.md
-      - name: Print Version
-        run: echo "Bumped to version ${{ env.REVISION }}"
+          push: false
+      - name: Create and Push Tag
+        run: |
+          TAG_NAME=${{env.REVISION }}
+          git push origin "$TAG_NAME"  
+   
+      - name: Create Pull Request
+        id: create_pr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update version"
+          branch: feat/bump-version-action
+          base: main
+     
+          
+      - name: Merge and Close Pull Request
+        run: |
+          echo "Pull request merged. Merging and closing the pull request."
+          PR_NUMBER=${{ steps.create_pr.outputs.pull-request-number }}
+          PR_REPO=${{ github.repository }}
+          AUTH_HEADER="Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          
+          curl -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "$AUTH_HEADER" \
+            "https://api.github.com/repos/$PR_REPO/pulls/$PR_NUMBER/merge"
+          
+          
+          curl -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "$AUTH_HEADER" \
+            "https://api.github.com/repos/$PR_REPO/pulls/$PR_NUMBER" \
+            -d '{"state": "closed"}'
