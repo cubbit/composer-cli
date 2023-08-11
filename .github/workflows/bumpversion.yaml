@@ -20,13 +20,13 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN}}
           push: false
-      - name: Create and Push Tag
+      - name: Push Tag
         run: |
           TAG_NAME=${{env.REVISION }}
           git push origin "$TAG_NAME"  
    
       - name: Create Pull Request
-        id: create_pr
+        id: pr
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -35,21 +35,15 @@ jobs:
           base: main
      
           
-      - name: Merge and Close Pull Request
+      - name: Request Review 
         run: |
-          echo "Pull request merged. Merging and closing the pull request."
-          PR_NUMBER=${{ steps.create_pr.outputs.pull-request-number }}
+          PR_NUMBER=${{ steps.pr.outputs.pull-request-number }}
           PR_REPO=${{ github.repository }}
           AUTH_HEADER="Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
-          
-          curl -X PUT \
+          REVIEWERS="lurenzsgp,DangerBlack,Yasmaa"
+
+          curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "$AUTH_HEADER" \
-            "https://api.github.com/repos/$PR_REPO/pulls/$PR_NUMBER/merge"
-          
-          
-          curl -X PATCH \
-            -H "Accept: application/vnd.github+json" \
-            -H "$AUTH_HEADER" \
-            "https://api.github.com/repos/$PR_REPO/pulls/$PR_NUMBER" \
-            -d '{"state": "closed"}'
+            "https://api.github.com/repos/$PR_REPO/pulls/$PR_NUMBER/requested_reviewers" \
+            -d "{\"reviewers\":[\"$REVIEWERS\"]}"
