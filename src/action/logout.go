@@ -6,10 +6,10 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func SignOutOperatorInteractive(ctx *cli.Context) error {
+func SignOutOperatorInteractive(cmd *cobra.Command) error {
 	var err error
 
 	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
@@ -33,21 +33,16 @@ func SignOutOperatorInteractive(ctx *cli.Context) error {
 	return nil
 }
 
-func SignOutOperator(ctx *cli.Context) error {
+func SignOutOperator(cmd *cobra.Command) error {
 	var err error
+	var profile, configPath string
 
-	if ctx.Bool("interactive") {
-		return SignOutOperatorInteractive(ctx)
+	if profile, err = cmd.Flags().GetString("profile"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	profile := ctx.String("profile")
-	if profile == "" {
-		profile = constants.DefaultProfile
-	}
-
-	configPath := ctx.String("config")
-	if configPath == "" {
-		configPath = constants.DefaultFilePath
+	if configPath, err = cmd.Flags().GetString("config"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
 	var conf = configuration.NewConfig(profile, configuration.Url{}, "")

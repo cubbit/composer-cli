@@ -6,16 +6,16 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func GenerateAccessToken(ctx *cli.Context) error {
+func GenerateAccessToken(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {

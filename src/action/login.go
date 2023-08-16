@@ -7,10 +7,10 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func SignInOperatorInteractive(ctx *cli.Context) error {
+func SignInOperatorInteractive(cmd *cobra.Command) error {
 	var err error
 	var code, refreshToken string
 	var challenge *api.ChallengeResponseModel
@@ -57,30 +57,31 @@ func SignInOperatorInteractive(ctx *cli.Context) error {
 	return nil
 }
 
-func SignInOperator(ctx *cli.Context) error {
+func SignInOperator(cmd *cobra.Command) error {
 	var err error
-	var apiServerUrl, email, password, code, refreshToken string
+	var apiServerUrl, email, password, code, refreshToken, profile, configPath string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
 
-	if ctx.Bool("interactive") {
-		return SignInOperatorInteractive(ctx)
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if password, err = cmd.Flags().GetString("password"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	configPath := ctx.String("config")
-	if configPath == "" {
-		configPath = constants.DefaultFilePath
+	if apiServerUrl, err = cmd.Flags().GetString("api-server-url"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
-
-	profile := ctx.String("profile")
-	if profile == "" {
-		profile = constants.DefaultProfile
+	if code, err = cmd.Flags().GetString("code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
-
-	email = ctx.String("email")
-	password = ctx.String("password")
-	code = ctx.String("code")
-	apiServerUrl = ctx.String("api-server-url")
+	if configPath, err = cmd.Flags().GetString("config"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if profile, err = cmd.Flags().GetString("profile"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)

@@ -3,31 +3,38 @@ package action
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/utils"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func CreateSwarm(ctx *cli.Context) error {
+func CreateSwarm(cmd *cobra.Command) error {
 	var config *configuration.Config
 	var err error
-	var configPath string
+	var name, description, swarmConfig1, configPath string
 	var accessToken *string
 	var operator *api.Operator
 	var response *api.GenericIDResponseModel
 	var swarmConfig map[string]interface{}
 
-	name := ctx.String("name")
-	description := ctx.String("description")
-	swarmConfig1 := ctx.String("configuration")
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if description, err = cmd.Flags().GetString("description"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if swarmConfig1, err = cmd.Flags().GetString("configuration"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if err = json.Unmarshal([]byte(swarmConfig1), &swarmConfig); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
@@ -46,20 +53,26 @@ func CreateSwarm(ctx *cli.Context) error {
 	return nil
 }
 
-func GetSwarm(ctx *cli.Context) error {
+func DescribeSwarm(cmd *cobra.Command) error {
 
 	var err error
-	var configPath string
+	var id, name, format, configPath string
 	var accessToken *string
 	var config *configuration.Config
 	var operator *api.Operator
 	var swarm *api.Swarm
 
-	format := ctx.String("format")
-	swarmID := ctx.String("id")
-	swarmName := ctx.String("name")
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
-	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
@@ -70,7 +83,7 @@ func GetSwarm(ctx *cli.Context) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
 
-	if swarmName != "" {
+	if name != "" {
 		var swarms []api.Swarm
 
 		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
@@ -78,14 +91,14 @@ func GetSwarm(ctx *cli.Context) error {
 		}
 
 		for _, sw := range swarms {
-			if sw.Name == swarmName {
+			if sw.Name == name {
 				utils.PrintFormattedData(sw, format)
 				return nil
 			}
 		}
 
 	}
-	if swarm, err = api.GetSwarm(config.Urls, *accessToken, operator.ID, swarmID); err != nil {
+	if swarm, err = api.GetSwarm(config.Urls, *accessToken, operator.ID, id); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 	}
 
@@ -94,7 +107,7 @@ func GetSwarm(ctx *cli.Context) error {
 	return nil
 }
 
-func ListSwarms(ctx *cli.Context) error {
+func ListSwarms(cmd *cobra.Command) error {
 	var err error
 	var configPath string
 	var accessToken *string
@@ -102,7 +115,7 @@ func ListSwarms(ctx *cli.Context) error {
 	var operator *api.Operator
 	var swarms []api.Swarm
 
-	if config, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
@@ -116,7 +129,10 @@ func ListSwarms(ctx *cli.Context) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
 	}
 
-	verbose := ctx.Bool("verbose")
+	var verbose bool
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	for _, swarm := range swarms {
 		if verbose {

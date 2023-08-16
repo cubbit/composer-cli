@@ -18,6 +18,8 @@ const (
 	ErrorOpeningJson         = "error while opening json file"
 	ErrorWritingCvsRecord    = "error writing record to csv"
 	ErrorFlush               = "error occurred during the Flush"
+	ErrorRetrievingField     = "error while retrieving field"
+	ErrorRequiredField       = "error required flag(s)"
 
 	ErrorCreatingTenant                  = "error while creating tenant"
 	ErrorEditingTenant                   = "error while editing tenant"
