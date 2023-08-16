@@ -1,3 +1,13 @@
+## 0.2.0 (2023-08-16)
+
+### Feat
+
+- **ci**: update the action to be triggered manually and on release
+- **ci**: add upload artifacts to s3 action
+- **ci**: add upload artifacts to s3 action
+- **ci**: update build ci
+- **ci**: add build and upload yaml
+
 ## 0.1.0 (2023-08-09)
 
 ### Feat
