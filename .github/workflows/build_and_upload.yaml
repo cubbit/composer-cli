@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
   release:
     types: [published]
+  push:
+    branches:
+      - main
+    paths:
+      - ".cz.yaml"
 
 jobs:
   build:
