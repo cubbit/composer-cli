@@ -7,10 +7,10 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func CreateOperatorInteractive(ctx *cli.Context) error {
+func CreateOperatorInteractive(cmd *cobra.Command) error {
 	var urls *configuration.Url
 	var err error
 
@@ -34,20 +34,29 @@ func CreateOperatorInteractive(ctx *cli.Context) error {
 	return nil
 }
 
-func CreateOperator(ctx *cli.Context) error {
+func CreateOperator(cmd *cobra.Command) error {
 	var url *configuration.Url
 	var err error
+	var email, password, firstName, lastName, apiServerUrl, secret string
 
-	if ctx.Bool("interactive") {
-		return CreateOperatorInteractive(ctx)
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
-
-	email := ctx.String("email")
-	password := ctx.String("password")
-	firstName := ctx.String("first-name")
-	lastName := ctx.String("last-name")
-	apiServerUrl := ctx.String("api-server-url")
-	secret := ctx.String("secret")
+	if password, err = cmd.Flags().GetString("password"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if firstName, err = cmd.Flags().GetString("first-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if lastName, err = cmd.Flags().GetString("last-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if apiServerUrl, err = cmd.Flags().GetString("api-server-url"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if secret, err = cmd.Flags().GetString("secret"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if url, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)

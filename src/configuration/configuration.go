@@ -9,7 +9,7 @@ import (
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/input"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
 
@@ -132,26 +132,31 @@ func (c *Config) StoreSession(filePath string) error {
 	return nil
 }
 
-func ReadConfig(ctx *cli.Context) (*Config, string, error) {
+func ReadConfig(cmd *cobra.Command) (*Config, string, error) {
 	var configPath string
 	var err error
 	var profile string
+	var interactive bool
 
-	if ctx.Bool("interactive") {
+	if interactive, err = cmd.Flags().GetBool("interactive"); err != nil {
+		return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if interactive {
 		profile, configPath = promptForConfigFile()
 	} else {
-		profile = ctx.String("profile")
-		if profile == "" {
-			profile = "default"
+		if profile, err = cmd.Flags().GetString("profile"); err != nil {
+			return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 		}
-		configPath = ctx.String("config")
-		if configPath == "" {
-			configPath = constants.DefaultFilePath
+
+		if configPath, err = cmd.Flags().GetString("config"); err != nil {
+			return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+
 		}
+
 	}
 
 	var conf = NewConfig(profile, Url{}, "")
-
 	if err = conf.LoadAndCheckSession(configPath, profile); err != nil {
 		return nil, "", fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

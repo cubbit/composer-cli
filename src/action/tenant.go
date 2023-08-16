@@ -10,35 +10,42 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func CreateTenant(ctx *cli.Context) error {
+func CreateTenant(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var configPath string
+	var name, description, imageUrl, settingsString, configPath string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
-	name := ctx.String("name")
-	description := ctx.Args().First()
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if description, err = cmd.Flags().GetString("description"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if len(description) > 200 {
 		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
 	}
 
-	imageUrl := ctx.String("image-url")
+	if imageUrl, err = cmd.Flags().GetString("image-url"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if imageUrl != "" {
 		if _, err := url.ParseRequestURI(imageUrl); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
 		}
 	}
 
-	settingsString := ctx.String("settings")
 	if settingsString == "" {
 		settingsString = "{}"
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -59,7 +66,7 @@ func CreateTenant(ctx *cli.Context) error {
 	return nil
 }
 
-func ListTenant(ctx *cli.Context) error {
+func ListTenant(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
 	var configPath string
@@ -69,7 +76,7 @@ func ListTenant(ctx *cli.Context) error {
 
 	fmt.Println("these are your tenants")
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -83,8 +90,13 @@ func ListTenant(ctx *cli.Context) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 
-	verbose := ctx.Bool("verbose")
-	l := ctx.Bool("l")
+	var verbose, l bool
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if l, err = cmd.Flags().GetBool("line"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	for _, tenant := range tenants.Tenants {
 		if verbose {
@@ -100,24 +112,34 @@ func ListTenant(ctx *cli.Context) error {
 	return nil
 }
 
-func RemoveTenant(ctx *cli.Context) error {
+func RemoveTenant(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var configPath, deleteTenantToken string
+	var id, name, email, password, code, configPath, deleteTenantToken string
 	var conf *configuration.Config
 	var challenge *api.ChallengeResponseModel
 
-	id := ctx.String("id")
-	name := ctx.String("name")
-	email := ctx.String("email")
-	password := ctx.String("password")
-	code := ctx.String("code")
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if id == "" && name == "" {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if password, err = cmd.Flags().GetString("password"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if code, err = cmd.Flags().GetString("code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -162,24 +184,30 @@ func RemoveTenant(ctx *cli.Context) error {
 	return nil
 }
 
-func DescribeTenant(ctx *cli.Context) error {
+func DescribeTenant(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var configPath string
+	var id, name, format, configPath string
 	var conf *configuration.Config
 	var tenants *api.TenantList
 	var operator *api.Operator
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	id := ctx.String("id")
-	name := ctx.String("name")
-	format := ctx.String("format")
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
@@ -281,33 +309,36 @@ func FormatTenant(format string, tenant *api.Tenant) error {
 	return nil
 }
 
-func EditTenantDescription(ctx *cli.Context) error {
+func EditTenantDescription(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var configPath string
+	var id, name, configPath string
 	var conf *configuration.Config
 
-	name := ctx.String("name")
-	id := ctx.String("id")
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if id == "" && name == "" {
 		return fmt.Errorf("invalid tenant id or name: %w", err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if ctx.Args().Len() != 1 {
+	if len(args) != 1 {
 		return fmt.Errorf("invalid image url: %w", err)
 	}
 
-	description := ctx.Args().First()
+	description := args[0]
 	if len(description) > 200 {
-		fmt.Println(description)
 		return fmt.Errorf("%s: %w", constants.ErrorTenantDescriptionSize, err)
 	}
 
@@ -319,31 +350,34 @@ func EditTenantDescription(ctx *cli.Context) error {
 	return nil
 }
 
-func EditTenantImage(ctx *cli.Context) error {
+func EditTenantImage(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var configPath string
+	var id, name, configPath string
 	var conf *configuration.Config
 
-	name := ctx.String("name")
-	id := ctx.String("id")
-
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 	if id == "" && name == "" {
 		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	if ctx.Args().Len() != 1 {
+	if len(args) != 1 {
 		return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
 	}
 
-	image := ctx.Args().First()
+	image := args[0]
 	if image != "" {
 		if _, err := url.ParseRequestURI(image); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
@@ -358,21 +392,25 @@ func EditTenantImage(ctx *cli.Context) error {
 	return nil
 }
 
-func ListAvailableSwarmsTenant(ctx *cli.Context) error {
+func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var configPath string
+	var id, name, configPath string
 	var conf *configuration.Config
 	var swarms *api.SwarmList
 
-	id := ctx.String("id")
-	name := ctx.String("name")
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if id == "" && name == "" {
 		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -388,7 +426,7 @@ func ListAvailableSwarmsTenant(ctx *cli.Context) error {
 
 	fmt.Printf("those are the swarms connect to the tenant %s\n", id)
 
-	if conf, configPath, err = configuration.ReadConfig(ctx); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
