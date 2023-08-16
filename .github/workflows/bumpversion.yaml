@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/**"
 
 jobs:
   bump_version:
@@ -15,16 +17,13 @@ jobs:
         with:
           fetch-depth: 0
           token: "${{ secrets.GITHUB_TOKEN }}"
+          
       - name: Create bump and changelog
         uses: commitizen-tools/commitizen-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN}}
           push: false
-      - name: Push Tag
-        run: |
-          TAG_NAME=${{env.REVISION }}
-          git push origin "$TAG_NAME"  
-   
+
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v5
@@ -33,17 +32,15 @@ jobs:
           commit-message: "chore: update version"
           branch: feat/bump-version-action
           base: main
-     
-          
-      - name: Request Review 
+
+      - name: Request Review
         run: |
           PR_NUMBER=${{ steps.pr.outputs.pull-request-number }}
           PR_REPO=${{ github.repository }}
           AUTH_HEADER="Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
-          REVIEWERS="lurenzsgp,DangerBlack,Yasmaa"
 
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "$AUTH_HEADER" \
             "https://api.github.com/repos/$PR_REPO/pulls/$PR_NUMBER/requested_reviewers" \
-            -d "{\"reviewers\":[\"$REVIEWERS\"]}"
+            -d '{"reviewers":["lurenzsgp","DangerBlack","Yasmaa"]}'
