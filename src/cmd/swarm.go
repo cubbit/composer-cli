@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
+	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,7 @@ var createSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.CreateSwarm(cmd); err != nil {
+			if err = tui.Send(cmd, action.CreateSwarm); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -31,7 +32,7 @@ var listSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.ListSwarms(cmd); err != nil {
+			if err = tui.Send(cmd, action.ListSwarms); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -44,7 +45,7 @@ var describeSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.DescribeSwarm(cmd); err != nil {
+			if err = tui.Send(cmd, action.DescribeSwarm); err != nil {
 				fmt.Println(err)
 			}
 		}
