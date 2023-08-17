@@ -19,8 +19,8 @@ const (
 
 	// API URIS
 	BaseKeyvaultURI = "keyvault"
-	BaseIamURI      = "iam"
-	BaseHiveURI     = "hive"
+	BaseIamURI      = "/iam"
+	BaseHiveURI     = "/hive"
 
 	Operators                      = "/v1/operators/"
 	GenerateOperatorChallenge      = "/v1/auth/operators/signin/challenge"
