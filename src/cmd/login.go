@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
+	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var loginCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.SignInOperator(cmd); err != nil {
+			if err = tui.Send(cmd, action.SignInOperator); err != nil {
 				fmt.Println(err)
 			}
 		} else {

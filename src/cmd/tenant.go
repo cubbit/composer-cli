@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
+	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +21,7 @@ var createTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.CreateTenant(cmd); err != nil {
+			if err = tui.Send(cmd, action.CreateTenant); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -33,7 +34,7 @@ var listTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.ListTenant(cmd); err != nil {
+			if err = tui.Send(cmd, action.ListTenant); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -46,7 +47,7 @@ var removeTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.RemoveTenant(cmd); err != nil {
+			if err = tui.Send(cmd, action.RemoveTenant); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -59,7 +60,7 @@ var describeTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.DescribeTenant(cmd); err != nil {
+			if err = tui.Send(cmd, action.DescribeTenant); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -98,7 +99,7 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.ListAvailableSwarmsTenant(cmd); err != nil {
+			if err = tui.Send(cmd, action.ListAvailableSwarmsTenant); err != nil {
 				fmt.Println(err)
 			}
 		}
