@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/cubbit/cubbit/client/cli/src/tui"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -15,11 +14,11 @@ var loginCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.SignInOperator); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		} else {
 			if err = action.SignInOperatorInteractive(cmd); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},

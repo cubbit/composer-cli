@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/cubbit/cubbit/client/cli/src/tui"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +19,7 @@ var createSwarmSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.CreateSwarm); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -33,7 +32,7 @@ var listSwarmSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.ListSwarms); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -46,7 +45,7 @@ var describeSwarmSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.DescribeSwarm); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},

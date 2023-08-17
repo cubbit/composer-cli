@@ -173,8 +173,6 @@ func ConfigureAPIServerURL(apiServerUrl string) (*Url, error) {
 	if _, err := url.ParseRequestURI(apiServerUrl); err == nil || apiServerUrl == "" {
 		urls = composeURL(apiServerUrl)
 	} else {
-		fmt.Printf("configuring endpoint for %s\n", apiServerUrl)
-
 		if urls, err = conf.LoadUrl(devPath, apiServerUrl); err != nil {
 			return nil, fmt.Errorf("error while loading dev path: %w", err)
 		}

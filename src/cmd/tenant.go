@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/cubbit/cubbit/client/cli/src/tui"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +21,7 @@ var createTenantSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.CreateTenant); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -35,7 +34,7 @@ var listTenantSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.ListTenant); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -48,7 +47,7 @@ var removeTenantSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.RemoveTenant); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -61,7 +60,7 @@ var describeTenantSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.DescribeTenant); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -74,7 +73,7 @@ var editTenantDescriptionSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = action.EditTenantDescription(cmd, args); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -87,7 +86,7 @@ var editTenantImageSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = action.EditTenantImage(cmd, args); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},
@@ -100,7 +99,7 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.ListAvailableSwarmsTenant); err != nil {
-				fmt.Println(err)
+				utils.PrintError(err)
 			}
 		}
 	},

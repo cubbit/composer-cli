@@ -10,6 +10,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -62,7 +63,7 @@ func CreateTenant(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
 	}
 
-	fmt.Printf("Successfully created tenant: %s\n", response.ID)
+	utils.PrintSuccess(fmt.Sprintf("Successfully created tenant: %s\n", response.ID))
 	return nil
 }
 
@@ -346,7 +347,7 @@ func EditTenantDescription(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantDescription, err)
 	}
 
-	fmt.Printf("tenant %s description updated successfully\n", id)
+	utils.PrintSuccess(fmt.Sprintf("tenant %s description updated successfully\n", id))
 	return nil
 }
 
@@ -388,7 +389,7 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingTenant, err)
 	}
 
-	fmt.Printf("tenant %s image updated successfully\n", id)
+	utils.PrintSuccess(fmt.Sprintf("tenant %s image updated successfully\n", id))
 	return nil
 }
 
@@ -442,9 +443,7 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 		if swarm.Default {
 			cross = "x"
 		}
-
 		fmt.Printf("[%s] %s\n", cross, swarm.SwarmID)
-
 	}
 	return nil
 }
