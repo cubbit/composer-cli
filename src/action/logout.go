@@ -6,6 +6,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -51,7 +52,6 @@ func SignOutOperator(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
-	fmt.Printf("Configuration %s signed out successfully\n", profile)
-
+	utils.PrintSuccess(fmt.Sprintf("configuration %s signed out successfully\n", profile))
 	return nil
 }

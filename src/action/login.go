@@ -7,6 +7,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -101,7 +102,6 @@ func SignInOperator(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
-	fmt.Printf("User %s signed in successfully\n", email)
-
+	utils.PrintSuccess(fmt.Sprintf("user %s signed in successfully\n", email))
 	return nil
 }

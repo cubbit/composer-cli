@@ -7,6 +7,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/input"
+	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -66,6 +67,6 @@ func CreateOperator(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperator, err)
 	}
 
-	fmt.Printf("Operator %s created successfully\n", email)
+	utils.PrintSuccess(fmt.Sprintf("operator %s created successfully\n", email))
 	return nil
 }
