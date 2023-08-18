@@ -59,8 +59,7 @@ func ListTenants(urls configuration.Url, accessToken, ownerID string) (*TenantLi
 
 func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantToken string) error {
 	var err error
-	url := urls.IamUrl + constants.ListTenants + tenantId + "?token=" + deleteTenantToken
-
+	url := urls.IamUrl + constants.Tenants + "/" + tenantId + "?token=" + deleteTenantToken
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
