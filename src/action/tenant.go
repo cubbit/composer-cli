@@ -10,6 +10,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
+	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -67,6 +68,51 @@ func CreateTenant(cmd *cobra.Command) error {
 	return nil
 }
 
+func CreateTenantInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var name, description, imageUrl, settingsString, configPath string
+	var response *api.GenericIDResponseModel
+	var conf *configuration.Config
+
+	outs := tui.Inputs("", false, tui.Input{Placeholder: "Name", IsPassword: false}, tui.Input{Placeholder: "Description", IsPassword: false}, tui.Input{Placeholder: "Image URL", IsPassword: false})
+	name = outs[0]
+	description = outs[1]
+	imageUrl = outs[2]
+
+	if len(description) > 200 {
+		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
+	}
+	if imageUrl != "" {
+		if _, err := url.ParseRequestURI(imageUrl); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
+		}
+	}
+	if settingsString == "" {
+		settingsString = "{}"
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	var settings map[string]interface{}
+
+	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
+	}
+
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("Successfully created tenant: %s\n", response.ID))
+	return nil
+}
+
 func ListTenant(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
@@ -75,8 +121,7 @@ func ListTenant(cmd *cobra.Command) error {
 	var operator *api.Operator
 	var tenants *api.TenantList
 
-	fmt.Println("these are your tenants")
-
+    fmt.Print("📋 Your Tenants List  \n")
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -90,7 +135,6 @@ func ListTenant(cmd *cobra.Command) error {
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
-
 	var verbose, l bool
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -101,9 +145,9 @@ func ListTenant(cmd *cobra.Command) error {
 
 	for _, tenant := range tenants.Tenants {
 		if verbose {
-			fmt.Printf("%s %s %s ", tenant.ID, tenant.Name, *tenant.Description)
+			fmt.Printf("• %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
 		} else {
-			fmt.Printf("%s ", tenant.Name)
+			fmt.Printf("• %s\n", tenant.Name)
 		}
 		if l {
 			fmt.Println()
