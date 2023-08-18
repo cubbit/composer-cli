@@ -23,6 +23,10 @@ var createTenantSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, action.CreateTenant); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.CreateTenantInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }

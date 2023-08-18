@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
-	"github.com/cubbit/cubbit/client/cli/src/input"
+	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -71,7 +71,6 @@ func (c *Config) LoadAndCheckSession(filePath string, name string) error {
 	if session, err = c.loadSession(filePath); err != nil {
 		return err
 	}
-
 	if config, ok = session.Session[name]; !ok {
 		return fmt.Errorf("Session for %s not found in configuration file", name)
 	}
@@ -143,7 +142,9 @@ func ReadConfig(cmd *cobra.Command) (*Config, string, error) {
 	}
 
 	if interactive {
-		profile, configPath = promptForConfigFile()
+		if configPath, profile, err = promptForConfigFile(); err != nil {
+			return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+		}
 	} else {
 		if profile, err = cmd.Flags().GetString("profile"); err != nil {
 			return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -215,16 +216,20 @@ func composeURL(apiServerUrl string) *Url {
 	return url
 }
 
-func promptForConfigFile() (string, string) {
-	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
+func promptForConfigFile() (string, string, error) {
+	var configPath, name string
+	var err error
+
+	outs := tui.Inputs("", true, tui.Input{Placeholder: "the config file to load (default: ./)", IsPassword: false}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false})
+	configPath = outs[0]
+	name = outs[1]
+
 	if configPath == "" {
 		configPath = constants.DefaultFilePath
 	}
-
-	name := input.TextPrompt("Enter the configuration name (default: default)")
 	if name == "" {
-		name = "default"
+		name = constants.DefaultProfile
 	}
 
-	return configPath, name
+	return configPath, name, err
 }
