@@ -43,7 +43,7 @@ func TextInput(prompt string, password bool) (string, error) {
 	if m.cancelled {
 		return "", fmt.Errorf("cancelled")
 	}
-	return m.textinput.Value(), nil 
+	return m.textinput.Value(), nil
 }
 
 type inputModel struct {
