@@ -15,7 +15,7 @@ var (
 	noStyle      = lipgloss.NewStyle()
 )
 
-func TextInput(password bool, prompt string) (string, error) {
+func TextInput(prompt string, password bool) (string, error) {
 	i := textinput.New()
 	i.CharLimit = 0
 	i.Placeholder = prompt
@@ -31,7 +31,7 @@ func TextInput(password bool, prompt string) (string, error) {
 	p := tea.NewProgram(inputModel{
 		textinput:   i,
 		cancelled:   false,
-		header:      "",
+		header:      " ",
 		headerStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
 	}, tea.WithOutput(os.Stderr))
 	tm, err := p.Run()

@@ -37,7 +37,6 @@ func initialModel(title string, submit bool, values []Input) inputsModel {
 		t = textinput.New()
 		t.Cursor.Style = cursorStyle
 		t.CharLimit = 32
-
 		switch v.IsPassword {
 		case false:
 			t.Placeholder = v.Placeholder
@@ -52,11 +51,9 @@ func initialModel(title string, submit bool, values []Input) inputsModel {
 			t.EchoMode = textinput.EchoPassword
 			t.EchoCharacter = '•'
 		}
-
 		switch i {
 		case 0:
 			t.Focus()
-
 		}
 		m.inputs[i] = t
 	}
@@ -140,7 +137,7 @@ func (m inputsModel) View() string {
 	return b.String()
 }
 
-func Create(title string, submit bool, values ...Input) []string {
+func Inputs(title string, submit bool, values ...Input) []string {
 	m := initialModel(title, submit, values)
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Printf("could not start program: %s\n", err)
