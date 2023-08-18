@@ -53,6 +53,10 @@ var removeTenantSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, action.RemoveTenant); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.RemoveTenantInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -135,9 +139,7 @@ func init() {
 	removeTenantSubCmd.Flags().String("id", "", "ID of the tenant")
 	removeTenantSubCmd.Flags().String("name", "", "Name of the tenant")
 	removeTenantSubCmd.Flags().String("email", "", "Email address")
-	removeTenantSubCmd.MarkFlagRequired("email")
 	removeTenantSubCmd.Flags().String("password", "", "Password")
-	removeTenantSubCmd.MarkFlagRequired("password")
 	removeTenantSubCmd.Flags().String("code", "", "Two factor authentication code")
 
 	rootCmd.AddCommand(tenantCmd)

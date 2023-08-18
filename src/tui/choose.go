@@ -227,7 +227,7 @@ func (m chooseModel) View() string {
 
 	var s strings.Builder
 
-	s.WriteString(m.cursorStyle.Render(m.title) + "\n")
+	s.WriteString(m.title + "\n")
 
 	start, end := m.paginator.GetSliceBounds(len(m.items))
 	for i, item := range m.items[start:end] {

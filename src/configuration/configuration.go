@@ -220,7 +220,7 @@ func promptForConfigFile() (string, string, error) {
 	var configPath, name string
 	var err error
 
-	outs := tui.Inputs("", true, tui.Input{Placeholder: "the config file to load (default: ./)", IsPassword: false}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false})
+	outs := tui.Inputs("", false, tui.Input{Placeholder: "the config file to load (default: ./)", IsPassword: false}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false})
 	configPath = outs[0]
 	name = outs[1]
 

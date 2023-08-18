@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -121,7 +122,7 @@ func ListTenant(cmd *cobra.Command) error {
 	var operator *api.Operator
 	var tenants *api.TenantList
 
-    fmt.Print("📋 Your Tenants List  \n")
+	fmt.Print("📋 Your Tenants List  \n")
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -208,10 +209,66 @@ func RemoveTenant(cmd *cobra.Command) error {
 			}
 		}
 		if id == "" {
-			fmt.Printf("Tenant %s not found\n", name)
+			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
 			return nil
 		}
 	}
+	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+	}
+
+	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
+	}
+	if err = api.RemoveTenant(conf.Urls, *accessToken, id, deleteTenantToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+	}
+
+	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully\n", id))
+	return nil
+}
+
+func RemoveTenantInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, email, password, code, configPath, deleteTenantToken, choice string
+	var conf *configuration.Config
+	var challenge *api.ChallengeResponseModel
+	var operator *api.Operator
+	var tenants *api.TenantList
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+	}
+	if len(tenants.Tenants) == 0 {
+		utils.PrintNotFound("No tenants found")
+		return nil
+	}
+	var choices []string
+	for _, tenant := range tenants.Tenants {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+	}
+	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+	}
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	id, _, _ = strings.Cut(withoutPrefix, ",")
+
+	outs := tui.Inputs("Confirm your login to delete the tenant", true, tui.Input{Placeholder: "Email", IsPassword: false}, tui.Input{Placeholder: "Password", IsPassword: true}, tui.Input{Placeholder: "Code", IsPassword: false})
+	email = outs[0]
+	password = outs[1]
+	code = outs[2]
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
@@ -225,7 +282,7 @@ func RemoveTenant(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 	}
 
-	fmt.Printf("tenant %s removed successfully\n", id)
+	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully\n", id))
 	return nil
 }
 

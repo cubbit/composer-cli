@@ -16,3 +16,11 @@ func PrintError(err error) {
 	formattedError := fmt.Sprintf("%sERR:%s %s%s", redBold, reset, err, reset)
 	fmt.Fprintf(os.Stderr, formattedError+"\n")
 }
+
+func PrintDelete(s string) {
+	fmt.Printf("🗑️ 🚮 %s", s)
+}
+
+func PrintNotFound(s string) {
+	fmt.Printf("🚫 %s.\n", s)
+}
