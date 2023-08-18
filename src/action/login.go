@@ -6,55 +6,60 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/src/input"
+	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
 func SignInOperatorInteractive(cmd *cobra.Command) error {
 	var err error
-	var code, refreshToken string
+	var email, password, code, refreshToken, apiServerUrl, configPath, twoFa, profile string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
 	var conf = configuration.NewConfig("", configuration.Url{}, "")
+	var outs []string
 
-	apiServerUrl := input.TextPrompt("Enter the api server url: (default https://api.cubbit.eu)")
-
+	if apiServerUrl, err = tui.TextInput("Enter the api server url: (default https://api.cubbit.eu)", false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
 	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
-	email := input.TextPrompt("Enter email:")
-	password := input.PasswordPrompt("Enter password:")
+	outs = tui.Inputs("", false, tui.Input{Placeholder: "Email", IsPassword: false}, tui.Input{Placeholder: "Password", IsPassword: true})
+	email = outs[0]
+	password = outs[1]
 
-	if input.YesNoPrompt("Do you want to add a 2fa code?", false) {
-		code = input.TextPrompt("Please insert the 2fa code:")
+	if twoFa, err = tui.ChooseOne("Do you want to add a 2fa code?", []string{"Yes", "No"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+	if twoFa == "Yes" {
+		if code, err = tui.TextInput("Insert the 2fa code", false); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+		}
 	}
 
-	configPath := input.TextPrompt("Enter the config file to load (default: ./)")
+	outs = tui.Inputs("", true, tui.Input{Placeholder: "Enter the config file to load (default: ./)", IsPassword: false}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", IsPassword: true})
+	configPath = outs[0]
+	profile = outs[1]
+
 	if configPath == "" {
 		configPath = constants.DefaultFilePath
 	}
-
-	profile := input.TextPrompt("Enter the configuration profile (default: default)")
 	if profile == "" {
 		profile = constants.DefaultProfile
 	}
-
 	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
 	}
-
 	if refreshToken, err = api.PerformOperatorSignin(*urls, email, password, challenge, code); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignIn, err)
 	}
 
 	conf = configuration.NewConfig(profile, *urls, refreshToken)
-
 	conf.StoreSession(configPath)
 
-	fmt.Printf("User %s signed in successfully\n", email)
-
+	utils.PrintSuccess(fmt.Sprintf("user %s signed in successfully\n", email))
 	return nil
 }
 
