@@ -1,9 +1,11 @@
-name: ci
+name: Go build test
 on:
   pull_request:
     paths:
       - "src/**"
       - "main.go"
+      - "constants/**"
+      - "utils/**"
 
 jobs:
   build:
