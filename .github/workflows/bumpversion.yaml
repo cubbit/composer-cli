@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "src/**"
+      - "constants/**"
+      - "utils/**"
 
 jobs:
   bump_version:
