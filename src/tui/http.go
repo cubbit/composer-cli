@@ -53,13 +53,17 @@ func (m httpModel) View() (s string) {
 	if m.quit {
 		return ""
 	}
+
 	s += fmt.Sprintf("%s%s%s", m.spinner.View(), " ", textStyle("Sending request..."))
+
 	return
 }
 
 func Send(cmd *cobra.Command, action func(cmd *cobra.Command) error) error {
 	var err error
+
 	p := tea.NewProgram(newModel())
+
 	go func() {
 		for {
 			pause := time.Duration(rand.Int63n(899)+100) * time.Millisecond
@@ -68,9 +72,11 @@ func Send(cmd *cobra.Command, action func(cmd *cobra.Command) error) error {
 			p.Quit()
 		}
 	}()
+
 	if _, err := p.Run(); err != nil {
 		fmt.Println("error running program:", err)
 		os.Exit(1)
 	}
+	
 	return err
 }

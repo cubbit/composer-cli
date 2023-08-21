@@ -64,5 +64,6 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 	conf.StoreSession(configPath)
 
 	utils.PrintSuccess(fmt.Sprintf("user %s signed in successfully", email))
+	
 	return nil
 }

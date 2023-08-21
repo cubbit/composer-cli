@@ -23,9 +23,11 @@ func CreateSwarm(cmd *cobra.Command) error {
 	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if description, err = cmd.Flags().GetString("description"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if swarmConfig1, err = cmd.Flags().GetString("configuration"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -37,6 +39,7 @@ func CreateSwarm(cmd *cobra.Command) error {
 	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -44,11 +47,13 @@ func CreateSwarm(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if response, err = api.CreateSwarm(config.Urls, *accessToken, operator.ID, name, description, swarmConfig); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingSwarm, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("Swarm %s created successfully", response.ID))
+
 	return nil
 }
 
@@ -64,9 +69,11 @@ func DescribeSwarm(cmd *cobra.Command) error {
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if format, err = cmd.Flags().GetString("format"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -74,6 +81,7 @@ func DescribeSwarm(cmd *cobra.Command) error {
 	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -117,6 +125,7 @@ func ListSwarms(cmd *cobra.Command) error {
 	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -129,6 +138,7 @@ func ListSwarms(cmd *cobra.Command) error {
 	}
 
 	var verbose bool
+	
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}

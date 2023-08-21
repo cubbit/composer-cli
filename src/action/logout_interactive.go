@@ -17,9 +17,11 @@ func SignOutOperatorInteractive(cmd *cobra.Command) error {
 	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: "Enter the config file to load (default: ./)", Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
+
 	if configPath == "" {
 		configPath = constants.DefaultFilePath
 	}
+
 	if profile == "" {
 		profile = constants.DefaultProfile
 	}
@@ -30,5 +32,6 @@ func SignOutOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("configuration %s signed out successfully", profile))
+	
 	return nil
 }

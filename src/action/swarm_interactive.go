@@ -111,6 +111,7 @@ func ListSwarmsInteractive(cmd *cobra.Command) error {
 	if config, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, config); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -118,9 +119,11 @@ func ListSwarmsInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
 	}
+	
 	utils.PrintList("Your Swarms List")
 	for _, swarm := range swarms {
 		fmt.Printf("• %s, %s, %s\n", swarm.SwarmID, swarm.Name, swarm.Description)

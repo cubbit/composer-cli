@@ -18,18 +18,23 @@ func CreateOperator(cmd *cobra.Command) error {
 	if email, err = cmd.Flags().GetString("email"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if password, err = cmd.Flags().GetString("password"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if firstName, err = cmd.Flags().GetString("first-name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if lastName, err = cmd.Flags().GetString("last-name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if apiServerUrl, err = cmd.Flags().GetString("api-server-url"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
+
 	if secret, err = cmd.Flags().GetString("secret"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -43,5 +48,6 @@ func CreateOperator(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator %s created successfully", email))
+	
 	return nil
 }
