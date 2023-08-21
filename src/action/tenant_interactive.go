@@ -28,15 +28,18 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	if len(description) > 200 {
 		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
 	}
+
 	if imageUrl != "" {
 		if _, err := url.ParseRequestURI(imageUrl); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
 		}
 	}
+
 	if _, err = tui.TextAreas("Fill in the tenant settings", true, tui.TextArea{Placeholder: "{}", Value: &settingsString}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 
 	}
+
 	if settingsString == "" {
 		settingsString = "{}"
 	}
@@ -44,6 +47,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -59,6 +63,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant  %s created successfully", response.ID))
+
 	return nil
 }
 
@@ -82,17 +87,22 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
+
 	if len(tenants.Tenants) == 0 {
 		utils.PrintNotFound("No tenants found")
 		return nil
 	}
+
 	var choices []string
+
 	for _, tenant := range tenants.Tenants {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
 	}
+
 	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 	}
@@ -101,7 +111,6 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 
 	if _, err = tui.TextInputs("Confirm your login to delete the tenant", true, tui.Input{Placeholder: "Email", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
@@ -117,6 +126,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully\n", id))
+
 	return nil
 }
 
@@ -131,18 +141,23 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
+
 	if _, err = tui.TextInputs("Enter your tenant ID or Name", false, tui.Input{Placeholder: "Tenant ID or Name", Value: &nameOrId}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
+
 	if format, err = tui.ChooseOne("Choose your output format", true, []string{"json", "semantic", "csv"}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
+
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
@@ -169,6 +184,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
@@ -180,6 +196,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
@@ -194,6 +211,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	if !found {
 		return fmt.Errorf(constants.ErrorRetrievingTenant)
 	}
+
 	if _, err = tui.TextInputs("Enter your new tenant description", true, tui.Input{Placeholder: "New Tenant Description", Value: &description}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
@@ -222,6 +240,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -233,6 +252,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
@@ -244,9 +264,11 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 			break
 		}
 	}
+
 	if !found {
 		return fmt.Errorf(constants.ErrorRetrievingTenant)
 	}
+
 	if _, err = tui.TextInputs("Enter your new tenant image URL", true, tui.Input{Placeholder: "New Tenant Image", Value: &image}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
@@ -262,6 +284,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s image updated successfully", nameOrId))
+
 	return nil
 }
 
@@ -276,6 +299,7 @@ func ListTenantInteractive(cmd *cobra.Command) error {
 	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
+
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
@@ -283,13 +307,16 @@ func ListTenantInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
+
 	utils.PrintList("Your Tenants List")
 	for _, tenant := range tenants.Tenants {
 		fmt.Printf("• %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
 	}
+
 	return nil
 }
 
@@ -318,6 +345,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
+
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
@@ -329,6 +357,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 			break
 		}
 	}
+
 	if !found {
 		return fmt.Errorf(constants.ErrorRetrievingTenant)
 	}
@@ -336,11 +365,14 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	if swarms, err = api.ListAvailableTenantSwarms(conf.Urls, *accessToken, nameOrId); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAvailableTenantSwarms, err)
 	}
+
 	utils.PrintList("Your Tenant Connected Swarms")
+	
 	if len(swarms.Swarms) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
+
 	for _, swarm := range swarms.Swarms {
 		cross := " "
 		if swarm.Default {
@@ -348,5 +380,6 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		}
 		fmt.Printf("[%s] %s\n", cross, swarm.SwarmID)
 	}
+
 	return nil
 }

@@ -101,50 +101,63 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		return m, nil
+
 	case time.Time:
 		m.quit = true
 		m.spinnerDone = true
 		return m, tea.Quit
+
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		go m.terminateSpinner()
 		return m, cmd
+
 	case tea.KeyMsg:
 		start, end := m.paginator.GetSliceBounds(len(m.items))
 		switch {
 		case key.Matches(msg, m.keys.Down):
 			m.index++
+
 			if m.index >= len(m.items) {
 				m.index = 0
 				m.paginator.Page = 0
 			}
+
 			if m.index >= end {
 				m.paginator.NextPage()
 			}
+
 		case key.Matches(msg, m.keys.Up):
 			m.index--
+
 			if m.index < 0 {
 				m.index = len(m.items) - 1
 				m.paginator.Page = m.paginator.TotalPages - 1
 			}
+
 			if m.index < start {
 				m.paginator.PrevPage()
 			}
+
 		case key.Matches(msg, m.keys.Right):
 			m.index = clamp(m.index+m.height, 0, len(m.items)-1)
 			m.paginator.NextPage()
+
 		case key.Matches(msg, m.keys.Left):
 			m.index = clamp(m.index-m.height, 0, len(m.items)-1)
 			m.paginator.PrevPage()
+
 		case key.Matches(msg, m.keys.Quit):
 			m.cancelled = true
 			m.quit = true
 			return m, tea.Quit
+
 		case key.Matches(msg, m.keys.Select):
 			if m.limit == 1 {
 				break
 			}
+
 			if m.items[m.index].selected {
 				m.items[m.index].selected = false
 				m.numSelected--
@@ -154,18 +167,23 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.numSelected++
 				m.currentOrder++
 			}
+
 		case key.Matches(msg, m.keys.Enter):
 			m.quit = true
+
 			if m.numSelected < 1 {
 				m.items[m.index].selected = true
 			}
+
 			if m.isLastStep {
 				m.startSpinner()
 				return m, m.spinner.Tick
 			}
+			
 			return m, tea.Quit
 		}
 	}
+
 	var cmd tea.Cmd
 	m.paginator, cmd = m.paginator.Update(msg)
 	return m, cmd
@@ -173,6 +191,7 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m chooseModel) View() string {
 	var s strings.Builder
+
 	if m.quit {
 		if m.isLastStep && !m.spinnerDone {
 			b := fmt.Sprintf("%s%s%s", m.spinner.View(), " ", textStyle("Sending request..."))
@@ -181,15 +200,19 @@ func (m chooseModel) View() string {
 		}
 		return ""
 	}
+
 	s.WriteString(boldStyle.Render(m.title))
 	s.WriteString("\n")
+
 	start, end := m.paginator.GetSliceBounds(len(m.items))
+
 	for i, item := range m.items[start:end] {
 		if i == m.index%m.height {
 			s.WriteString(m.cursorStyle.Render(m.cursor))
 		} else {
 			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.cursor)))
 		}
+
 		if item.selected {
 			s.WriteString(m.selectedItemStyle.Render(m.selectedPrefix + item.text))
 		} else if i == m.index%m.height {
@@ -197,10 +220,12 @@ func (m chooseModel) View() string {
 		} else {
 			s.WriteString(m.itemStyle.Render(m.unselectedPrefix + item.text))
 		}
+
 		if i != m.height {
 			s.WriteRune('\n')
 		}
 	}
+
 	if m.isLastStep {
 		button := &submitBlurredButton
 		if m.numSelected == 1 {
@@ -214,12 +239,14 @@ func (m chooseModel) View() string {
 		}
 		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
 	}
+
 	if m.paginator.TotalPages <= 1 {
 		return s.String()
 	}
 
 	s.WriteString(strings.Repeat("\n", m.height-m.paginator.ItemsOnPage(len(m.items))+1))
 	s.WriteString("  " + m.paginator.View())
+
 	return s.String()
 }
 
@@ -227,30 +254,37 @@ func clamp(x, min, max int) int {
 	if x < min {
 		return min
 	}
+
 	if x > max {
 		return max
 	}
+
 	return x
 }
 
 func ChooseOne(title string, isLastStep bool, options []string) (string, error) {
 	var err error
 	var choice []string
+
 	if choice, err = choose(title, isLastStep, options, 1); err != nil {
 		return "", err
 	}
+
 	if len(choice) == 0 {
 		return "", fmt.Errorf("no option was selected")
 	}
+
 	return choice[0], err
 }
 
 func choose(title string, isLastStep bool, options []string, limit int) ([]string, error) {
 	var err error
 	var tm tea.Model
+
 	if limit == 0 {
 		limit = len(options)
 	}
+
 	items := make([]item, len(options))
 	height := 10
 	pager := paginator.New()
@@ -282,11 +316,13 @@ func choose(title string, isLastStep bool, options []string, limit int) ([]strin
 		numSelected:       0,
 		isLastStep:        isLastStep,
 	})
+
 	if tm, err = p.Run(); err != nil {
 		return []string{}, fmt.Errorf("failed to start tea program: %w", err)
 	}
 
 	m := tm.(chooseModel)
+
 	if m.cancelled {
 		return []string{}, fmt.Errorf("cancelled")
 	}
@@ -298,10 +334,12 @@ func choose(title string, isLastStep bool, options []string, limit int) ([]strin
 	}
 
 	var results []string
+
 	for _, item := range m.items {
 		if item.selected {
 			results = append(results, item.text)
 		}
 	}
+
 	return results, nil
 }
