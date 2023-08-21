@@ -131,7 +131,7 @@ func (c *Config) StoreSession(filePath string) error {
 	return nil
 }
 
-func ReadConfig(cmd *cobra.Command) (*Config, string, error) {
+func ReadConfig(cmd *cobra.Command, isLastStep ...bool) (*Config, string, error) {
 	var configPath string
 	var err error
 	var profile string
@@ -142,7 +142,7 @@ func ReadConfig(cmd *cobra.Command) (*Config, string, error) {
 	}
 
 	if interactive {
-		if configPath, profile, err = promptForConfigFile(); err != nil {
+		if configPath, profile, err = promptForConfigFile(isLastStep[0]); err != nil {
 			return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 		}
 	} else {
@@ -216,13 +216,14 @@ func composeURL(apiServerUrl string) *Url {
 	return url
 }
 
-func promptForConfigFile() (string, string, error) {
+func promptForConfigFile(isLastStep ...bool) (string, string, error) {
 	var configPath, name string
 	var err error
 
-	outs := tui.Inputs("", false, tui.Input{Placeholder: "the config file to load (default: ./)", IsPassword: false}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false})
-	configPath = outs[0]
-	name = outs[1]
+	if _, err := tui.TextInputs("Enter your config file path and name", isLastStep[0], tui.Input{Placeholder: "the config file to load (default: ./)", IsPassword: false, Value: &configPath}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false, Value: &name}); err != nil {
+		return configPath, name, fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+
+	}
 
 	if configPath == "" {
 		configPath = constants.DefaultFilePath

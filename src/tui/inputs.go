@@ -2,35 +2,52 @@ package tui
 
 import (
 	"fmt"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
+var p *tea.Program
+
 var (
-	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+	submitFocusedButton   = focusedStyle.Copy().Render("[ Submit ]")
+	submitBlurredButton   = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+	continueFocusedButton = focusedStyle.Copy().Render("Continue ->")
+	continueBlurredButton = fmt.Sprintf(" %s ", blurredStyle.Render("Continue ->"))
+	focusedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("111"))
+	blurredStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	cursorStyle           = focusedStyle.Copy()
+	noStyle               = lipgloss.NewStyle()
+	boldStyle             = lipgloss.NewStyle().Bold(true)
 )
 
 type Input struct {
 	Placeholder string
 	IsPassword  bool
+	Value       *string
 }
 
 type inputsModel struct {
-	focusIndex int
-	inputs     []textinput.Model
-	quitting   bool
-	submit     bool
-	title      string
+	title       string
+	focusIndex  int
+	isLastStep  bool
+	cancel      bool
+	quit        bool
+	spinnerDone bool
+	inputs      []textinput.Model
+	spinner     spinner.Model
 }
 
-func initialModel(title string, submit bool, values []Input) inputsModel {
+func initialInputsModel(title string, isLastStep bool, values []Input) inputsModel {
 	m := inputsModel{
-		inputs: make([]textinput.Model, len(values)),
-		submit: submit,
-		title:  title,
+		inputs:     make([]textinput.Model, len(values)),
+		isLastStep: isLastStep,
+		title:      title,
 	}
 	var t textinput.Model
 	for i, v := range values {
@@ -43,7 +60,6 @@ func initialModel(title string, submit bool, values []Input) inputsModel {
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
 			t.CharLimit = 0
-
 		case true:
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
@@ -64,18 +80,42 @@ func (m inputsModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+func (m *inputsModel) startSpinner() {
+	m.spinner = spinner.New()
+	m.spinner.Style = spinnerStyle
+	m.spinner.Spinner = spinner.MiniDot
+}
+
+func (m *inputsModel) terminateSpinner() {
+	time.Sleep(time.Millisecond * 500)
+	p.Send(time.Now())
+}
+
 func (m inputsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case time.Time:
+		m.quit = true
+		m.spinnerDone = true
+		return m, tea.Quit
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		go m.terminateSpinner()
+		return m, cmd
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
-			m.quitting = true
+			m.quit = true
+			m.cancel = true
 			return m, tea.Quit
-
 		case "tab", "shift+tab", "enter", "up", "down":
 			s := msg.String()
 			if s == "enter" && m.focusIndex == len(m.inputs) {
-				m.quitting = true
+				m.quit = true
+				if m.isLastStep {
+					m.startSpinner()
+					return m, m.spinner.Tick
+				}
 				return m, tea.Quit
 			}
 			if s == "up" || s == "shift+tab" {
@@ -116,37 +156,55 @@ func (m *inputsModel) updateInputs(msg tea.Msg) tea.Cmd {
 }
 
 func (m inputsModel) View() string {
-	var b strings.Builder
-	b.WriteString((m.title) + "\n")
-	if m.quitting {
+	var s strings.Builder
+	if m.quit {
+		if m.isLastStep && !m.spinnerDone {
+			b := fmt.Sprintf("%s%s%s", m.spinner.View(), " ", textStyle("Sending request..."))
+			s.WriteString(b)
+			return s.String()
+		}
 		return ""
 	}
+
+	s.WriteString(boldStyle.Render(m.title))
+	s.WriteString("\n")
 	for i := range m.inputs {
-		b.WriteString(m.inputs[i].View())
+
+		s.WriteString(m.inputs[i].View())
 		if i < len(m.inputs)-1 {
-			b.WriteRune('\n')
+			s.WriteRune('\n')
 		}
 	}
-	if m.submit {
-		button := &blurredButton
+	if m.isLastStep {
+		button := &submitBlurredButton
 		if m.focusIndex == len(m.inputs) {
-			button = &focusedButton
+			button = &submitFocusedButton
 		}
-		fmt.Fprintf(&b, "\n\n%s\n\n", *button)
+		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
+	} else {
+		button := &continueBlurredButton
+		if m.focusIndex == len(m.inputs) {
+			button = &continueFocusedButton
+		}
+		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
 	}
-	return b.String()
+	return s.String()
 }
 
-func Inputs(title string, submit bool, values ...Input) []string {
-	m := initialModel(title, submit, values)
-	if _, err := tea.NewProgram(m).Run(); err != nil {
+func TextInputs(title string, isLastStep bool, values ...Input) ([]Input, error) {
+	var err error
+	var tm tea.Model
+	p = tea.NewProgram(initialInputsModel(title, isLastStep, values))
+	if tm, err = p.Run(); err != nil {
 		fmt.Printf("could not start program: %s\n", err)
 		os.Exit(0)
 	}
-	outs := make([]string, len(values))
-	for i := range m.inputs {
-
-		outs[i] = m.inputs[i].Value()
+	m := tm.(inputsModel)
+	if m.cancel {
+		return values, fmt.Errorf("cancelled")
 	}
-	return outs
+	for i := range m.inputs {
+		*values[i].Value = m.inputs[i].Value()
+	}
+	return values, err
 }

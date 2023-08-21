@@ -17,41 +17,41 @@ var (
 	spinnerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("69"))
 )
 
-type model struct {
-	spinner  spinner.Model
-	quitting bool
+type httpModel struct {
+	spinner spinner.Model
+	quit    bool
 }
 
-func newModel() model {
+func newModel() httpModel {
 	s := spinner.New()
 	s.Style = spinnerStyle
 	s.Spinner = spinner.MiniDot
-	return model{
+	return httpModel{
 		spinner: s,
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m httpModel) Init() tea.Cmd {
 	return m.spinner.Tick
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m httpModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	case tea.KeyMsg:
-		m.quitting = true
+		m.quit = true
 		return m, tea.Quit
 	default:
 		return m, nil
 	}
 }
 
-func (m model) View() (s string) {
-	if m.quitting {
-		return
+func (m httpModel) View() (s string) {
+	if m.quit {
+		return ""
 	}
 	s += fmt.Sprintf("%s%s%s", m.spinner.View(), " ", textStyle("Sending request..."))
 	return
@@ -68,7 +68,6 @@ func Send(cmd *cobra.Command, action func(cmd *cobra.Command) error) error {
 			p.Quit()
 		}
 	}()
-
 	if _, err := p.Run(); err != nil {
 		fmt.Println("error running program:", err)
 		os.Exit(1)

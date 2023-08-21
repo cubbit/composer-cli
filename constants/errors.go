@@ -20,7 +20,7 @@ const (
 	ErrorFlush               = "error occurred during the Flush"
 	ErrorRetrievingField     = "error while retrieving field"
 	ErrorRequiredField       = "error required flag(s)"
-	ErrorRunningField        = "error while running input"
+	ErrorRunningField        = "error while running input(s)"
 
 	ErrorCreatingTenant                  = "error while creating tenant"
 	ErrorEditingTenant                   = "error while editing tenant"

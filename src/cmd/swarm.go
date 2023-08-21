@@ -21,6 +21,10 @@ var createSwarmSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, action.CreateSwarm); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.CreateSwarmInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -34,6 +38,10 @@ var listSwarmSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, action.ListSwarms); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.ListSwarmsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -45,6 +53,10 @@ var describeSwarmSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.DescribeSwarm); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeSwarmInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}

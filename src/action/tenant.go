@@ -1,19 +1,14 @@
 package action
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"os"
-	"strings"
-
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
+	"net/url"
 )
 
 func CreateTenant(cmd *cobra.Command) error {
@@ -65,52 +60,7 @@ func CreateTenant(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Successfully created tenant: %s\n", response.ID))
-	return nil
-}
-
-func CreateTenantInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var name, description, imageUrl, settingsString, configPath string
-	var response *api.GenericIDResponseModel
-	var conf *configuration.Config
-
-	outs := tui.Inputs("", false, tui.Input{Placeholder: "Name", IsPassword: false}, tui.Input{Placeholder: "Description", IsPassword: false}, tui.Input{Placeholder: "Image URL", IsPassword: false})
-	name = outs[0]
-	description = outs[1]
-	imageUrl = outs[2]
-
-	if len(description) > 200 {
-		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
-	}
-	if imageUrl != "" {
-		if _, err := url.ParseRequestURI(imageUrl); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
-		}
-	}
-	if settingsString == "" {
-		settingsString = "{}"
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	var settings map[string]interface{}
-
-	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
-	}
-
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("Successfully created tenant: %s\n", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("tenant: %s created successfully", response.ID))
 	return nil
 }
 
@@ -122,8 +72,7 @@ func ListTenant(cmd *cobra.Command) error {
 	var operator *api.Operator
 	var tenants *api.TenantList
 
-	fmt.Print("📋 Your Tenants List  \n")
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
@@ -143,12 +92,12 @@ func ListTenant(cmd *cobra.Command) error {
 	if l, err = cmd.Flags().GetBool("line"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
-
+	utils.PrintList("Your Tenants List")
 	for _, tenant := range tenants.Tenants {
 		if verbose {
-			fmt.Printf("• %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
+			fmt.Printf(" • %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
 		} else {
-			fmt.Printf("• %s\n", tenant.Name)
+			fmt.Printf(" • %s\n", tenant.Name)
 		}
 		if l {
 			fmt.Println()
@@ -224,65 +173,7 @@ func RemoveTenant(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully\n", id))
-	return nil
-}
-
-func RemoveTenantInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, email, password, code, configPath, deleteTenantToken, choice string
-	var conf *configuration.Config
-	var challenge *api.ChallengeResponseModel
-	var operator *api.Operator
-	var tenants *api.TenantList
-
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
-	}
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
-	}
-	if len(tenants.Tenants) == 0 {
-		utils.PrintNotFound("No tenants found")
-		return nil
-	}
-	var choices []string
-	for _, tenant := range tenants.Tenants {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
-	}
-	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
-	}
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	id, _, _ = strings.Cut(withoutPrefix, ",")
-
-	outs := tui.Inputs("Confirm your login to delete the tenant", true, tui.Input{Placeholder: "Email", IsPassword: false}, tui.Input{Placeholder: "Password", IsPassword: true}, tui.Input{Placeholder: "Code", IsPassword: false})
-	email = outs[0]
-	password = outs[1]
-	code = outs[2]
-
-	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
-	}
-
-	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
-	}
-
-	if err = api.RemoveTenant(conf.Urls, *accessToken, id, deleteTenantToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
-	}
-
-	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully\n", id))
+	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully", id))
 	return nil
 }
 
@@ -323,13 +214,15 @@ func DescribeTenant(cmd *cobra.Command) error {
 	case name == "":
 		for _, tenant := range tenants.Tenants {
 			if id == tenant.ID {
-				FormatTenant(format, tenant)
+				utils.PrintFormattedData(*tenant, format)
+				break
 			}
 		}
 	case id == "":
 		for _, tenant := range tenants.Tenants {
 			if name == tenant.Name {
-				FormatTenant(format, tenant)
+				utils.PrintFormattedData(*tenant, format)
+				break
 			}
 		}
 	default:
@@ -339,79 +232,7 @@ func DescribeTenant(cmd *cobra.Command) error {
 	return nil
 }
 
-func FormatTenant(format string, tenant *api.Tenant) error {
-	switch {
-	case format == "default":
-		fmt.Printf("ID: %s\n", tenant.ID)
-		fmt.Printf("Name: %s\n", tenant.Name)
-
-		if tenant.Description != nil {
-			fmt.Printf("Description: %s\n", *tenant.Description)
-		}
-
-		fmt.Printf("OwnerID: %s\n", tenant.OwnerID)
-		fmt.Printf("CreatedAt: %s\n", tenant.CreatedAt)
-
-		if tenant.DeletedAt != nil {
-			fmt.Printf("DeletedAt: %s\n", tenant.DeletedAt)
-		}
-
-		if tenant.ImageUrl != nil && *tenant.ImageUrl != "" {
-			fmt.Printf("ImageUrl: %s\n", *tenant.ImageUrl)
-		}
-
-		fmt.Printf("Settings:\n")
-		for key, value := range tenant.Settings {
-			fmt.Printf(" - %s: %s\n", key, value)
-		}
-
-	case format == "json":
-		formatJson, err := json.Marshal(api.Tenant{ID: tenant.ID, Name: tenant.Name, Description: tenant.Description, OwnerID: tenant.OwnerID, CreatedAt: tenant.CreatedAt, DeletedAt: tenant.DeletedAt, ImageUrl: tenant.ImageUrl, Settings: tenant.Settings})
-
-		if err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorOpeningJson, err)
-		}
-
-		fmt.Println(string(formatJson))
-
-	case format == "csv":
-		records := [][]string{
-			{"ID", "Name", "Description", "OwnerID", "CreatedAt", "DeletedAt", "ImageUrl"},
-		}
-		for key := range tenant.Settings {
-			fmt.Printf(",%s", key)
-		}
-		var values []string
-		values = append(values, tenant.ID, tenant.Name, *tenant.Description, tenant.OwnerID, tenant.CreatedAt.String(), *tenant.ImageUrl)
-
-		if tenant.DeletedAt != nil {
-			values = append(values, tenant.DeletedAt.String())
-		} else {
-			values = append(values, "")
-		}
-
-		records = append(records, values)
-
-		w := csv.NewWriter(os.Stdout)
-
-		for _, record := range records {
-			if err := w.Write(record); err != nil {
-				return fmt.Errorf("%s: %w", constants.ErrorWritingCvsRecord, err)
-			}
-		}
-
-		w.Flush()
-
-		if err := w.Error(); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorFlush, err)
-		}
-	}
-
-	fmt.Println()
-	return nil
-}
-
-func EditTenantDescription(cmd *cobra.Command, args []string) error {
+func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 	var err error
 	var accessToken *string
 	var id, name, configPath string
@@ -448,7 +269,7 @@ func EditTenantDescription(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantDescription, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("tenant %s description updated successfully\n", id))
+	utils.PrintSuccess(fmt.Sprintf("tenant %s description updated successfully", id))
 	return nil
 }
 
@@ -490,7 +311,7 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingTenant, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("tenant %s image updated successfully\n", id))
+	utils.PrintSuccess(fmt.Sprintf("tenant %s image updated successfully", id))
 	return nil
 }
 
@@ -521,12 +342,10 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		if id, err = getTenantByName(conf, accessToken, name); err != nil {
+		if id, err = getTenantByName(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 	}
-
-	fmt.Printf("those are the swarms connect to the tenant %s\n", id)
 
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -538,7 +357,11 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 	if swarms, err = api.ListAvailableTenantSwarms(conf.Urls, *accessToken, id); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAvailableTenantSwarms, err)
 	}
-
+	utils.PrintList("Your Tenant Connected Swarms")
+	if len(swarms.Swarms) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
 	for _, swarm := range swarms.Swarms {
 		cross := " "
 		if swarm.Default {
@@ -549,13 +372,15 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 	return nil
 }
 
-func getTenantByName(conf *configuration.Config, accessToken *string, name string) (string, error) {
+func getTenantByName(conf *configuration.Config, accessToken string, name string) (string, error) {
 	var err error
 	var operator *api.Operator
 	var tenants *api.TenantList
 	var id string
-
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
+	if operator, err = api.GetOperatorSelf(conf.Urls, accessToken); err != nil {
+		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+	if tenants, err = api.ListTenants(conf.Urls, accessToken, operator.ID); err != nil {
 		return "", fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 	for _, tenant := range tenants.Tenants {
