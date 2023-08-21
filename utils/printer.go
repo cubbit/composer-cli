@@ -2,19 +2,22 @@ package utils
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	boldStyle = lipgloss.NewStyle().Bold(true)
+	redBg     = lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#FF0000"))
+	greenBg   = lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#00FF80"))
 )
 
 func PrintSuccess(s string) {
-	fmt.Printf("✨🐝 %s", s)
+	fmt.Printf("%s ✨🐝 %s\n", greenBg.Render("SUCCESS"), s)
 }
 
 func PrintError(err error) {
-	redBold := "\033[1;31m"
-	reset := "\033[0m"
-
-	formattedError := fmt.Sprintf("%sERR:%s %s%s", redBold, reset, err, reset)
-	fmt.Fprintf(os.Stderr, formattedError+"\n")
+	fmt.Printf("%s %s\n", redBg.Render("ERROR"), err)
 }
 
 func PrintDelete(s string) {
@@ -23,4 +26,11 @@ func PrintDelete(s string) {
 
 func PrintNotFound(s string) {
 	fmt.Printf("🚫 %s.\n", s)
+}
+
+func PrintEmptyList() {
+	fmt.Print("🪣  [ ]\n")
+}
+func PrintList(s string) {
+	fmt.Printf("📋 %s\n", boldStyle.Render(s))
 }

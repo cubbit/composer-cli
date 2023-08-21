@@ -79,7 +79,7 @@ func EditTenantDescription(urls configuration.Url, accessToken, tenantID, descri
 		"description": description,
 	}
 
-	url := urls.IamUrl + constants.ListTenants + tenantID
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -101,7 +101,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 		"image_url": imageUrl,
 	}
 
-	url := urls.IamUrl + constants.ListTenants + tenantID
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -118,7 +118,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 
 func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
 	var err error
-	url := urls.IamUrl + constants.ListTenants + tenantID + "/swarms"
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/swarms"
 	var response SwarmList
 
 	if err = request_utils.DoRequest(

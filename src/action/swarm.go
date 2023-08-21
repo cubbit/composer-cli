@@ -48,7 +48,7 @@ func CreateSwarm(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingSwarm, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Swarm %s created successfully\n", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("Swarm %s created successfully", response.ID))
 	return nil
 }
 

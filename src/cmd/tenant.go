@@ -40,6 +40,10 @@ var listTenantSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, action.ListTenant); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.ListTenantInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -70,6 +74,10 @@ var describeTenantSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, action.DescribeTenant); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.DescribeTenantInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -80,7 +88,11 @@ var editTenantDescriptionSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = action.EditTenantDescription(cmd, args); err != nil {
+			if err = action.EditTenantDescription(cmd, args...); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditTenantDescriptionInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -96,6 +108,10 @@ var editTenantImageSubCmd = &cobra.Command{
 			if err = action.EditTenantImage(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.EditTenantImageInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -107,6 +123,10 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 		var err error
 		if !interactive {
 			if err = tui.Send(cmd, action.ListAvailableSwarmsTenant); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListAvailableSwarmsTenantInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -134,6 +154,8 @@ func init() {
 	tenantCmd.AddCommand(editTenantImageSubCmd)
 
 	tenantCmd.AddCommand(listTenantAvailableSwarmsSubCmd)
+	listTenantAvailableSwarmsSubCmd.Flags().String("id", "", "ID of the tenant")
+	listTenantAvailableSwarmsSubCmd.Flags().String("name", "", "Name of the tenant")
 
 	tenantCmd.AddCommand(removeTenantSubCmd)
 	removeTenantSubCmd.Flags().String("id", "", "ID of the tenant")
