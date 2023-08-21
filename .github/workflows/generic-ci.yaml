@@ -2,8 +2,10 @@ name: ci
 on:
   pull_request:
     paths-ignore:
-      - "src/**"
       - "main.go"
+      - "src/**"
+      - "constants/**"
+      - "utils/**"
 jobs:
   build:
     runs-on: ubuntu-latest
