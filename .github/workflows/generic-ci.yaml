@@ -1,4 +1,4 @@
-name: ci
+name: Generic ci - noop
 on:
   pull_request:
     paths-ignore:
