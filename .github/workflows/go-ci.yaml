@@ -2,8 +2,8 @@ name: Go build test
 on:
   pull_request:
     paths:
-      - "src/**"
       - "main.go"
+      - "src/**"
       - "constants/**"
       - "utils/**"
 
