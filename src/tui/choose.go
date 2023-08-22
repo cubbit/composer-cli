@@ -186,6 +186,7 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	m.paginator, cmd = m.paginator.Update(msg)
+	
 	return m, cmd
 }
 
