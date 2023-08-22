@@ -1,3 +1,20 @@
+## 0.3.0 (2023-08-22)
+
+### Feat
+
+- **cli**: update ui components and add interactive swarm commands
+- **cli**: add interative tenant deletion
+- **cli**: add interative tenant creation & update tenant list
+- **cli**: update interactive login
+- **cli**: update interactive operator signup
+- **cli**: create customized inputs
+- **cli**: update string prints
+- **cli**: integrate BubblTea & test animation for requests
+
+### Fix
+
+- **urls**: update default uri values for api endpoint
+
 ## 0.2.0 (2023-08-16)
 
 ### Feat
