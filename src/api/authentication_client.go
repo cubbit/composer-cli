@@ -199,3 +199,49 @@ func ForgeOperatorDeleteTenantToken(urls configuration.Url, email, password, ref
 
 	return tokenExpirationResponse.Token, nil
 }
+
+func ForgeOperatorDeleteSwarmToken(urls configuration.Url, email, password, refreshToken string, challenge *ChallengeResponseModel, code, swarmID string) (string, error) {
+
+	var err error
+	var privateKey ed25519.PrivateKey
+	var tokenExpirationResponse TokenAndExpirationResponseModel
+
+	h := sha256.New()
+	h.Write([]byte(password + challenge.Salt))
+
+	seed := h.Sum(nil)
+
+	if _, privateKey, err = utils.GenerateKeyPairFromSeed(seed); err != nil {
+		return "", err
+	}
+
+	url := urls.IamUrl + constants.ForgeOperatorDeleteSwarmToken + swarmID
+	signedChallenge := ed25519.Sign(privateKey, []byte(challenge.Challenge))
+
+	body := map[string]interface{}{
+		"email":            email,
+		"signed_challenge": base64.StdEncoding.EncodeToString(signedChallenge),
+		"tfa_code":         code,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithRefreshToken(refreshToken),
+		request_utils.WithRequestBody(body),
+		extractTokenExpirationModel(&tokenExpirationResponse),
+	); err != nil {
+		return "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
+	}
+
+	if tokenExpirationResponse.Exp == 0 {
+		return "", fmt.Errorf(constants.ErrorTokenExpiration)
+	}
+
+	if tokenExpirationResponse.Token == "" {
+		return "", fmt.Errorf(constants.ErrorEmptyToken)
+	}
+
+	return tokenExpirationResponse.Token, nil
+}

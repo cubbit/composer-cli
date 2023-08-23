@@ -26,7 +26,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(description) > 200 {
-		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
+		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
 	if imageUrl != "" {
@@ -217,7 +217,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(description) > 200 {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantDescriptionSize, err)
+		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
 	if err = api.EditTenantDescription(conf.Urls, *accessToken, nameOrId, description); err != nil {
@@ -367,7 +367,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintList("Your Tenant Connected Swarms")
-	
+
 	if len(swarms.Swarms) == 0 {
 		utils.PrintEmptyList()
 		return nil

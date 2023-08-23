@@ -77,6 +77,6 @@ func Send(cmd *cobra.Command, action func(cmd *cobra.Command) error) error {
 		fmt.Println("error running program:", err)
 		os.Exit(1)
 	}
-	
+
 	return err
 }

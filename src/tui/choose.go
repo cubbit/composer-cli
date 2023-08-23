@@ -179,14 +179,14 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.startSpinner()
 				return m, m.spinner.Tick
 			}
-			
+
 			return m, tea.Quit
 		}
 	}
 
 	var cmd tea.Cmd
 	m.paginator, cmd = m.paginator.Update(msg)
-	
+
 	return m, cmd
 }
 

@@ -27,7 +27,7 @@ func CreateTenant(cmd *cobra.Command) error {
 	}
 
 	if len(description) > 200 {
-		return fmt.Errorf("t%s: %w", constants.ErrorTenantDescriptionSize, err)
+		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
 	if imageUrl, err = cmd.Flags().GetString("image-url"); err != nil {
@@ -290,7 +290,7 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 	description := args[0]
 
 	if len(description) > 200 {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantDescriptionSize, err)
+		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
 	if err = api.EditTenantDescription(conf.Urls, *accessToken, id, description); err != nil {
@@ -434,6 +434,6 @@ func getTenantByName(conf *configuration.Config, accessToken string, name string
 	if id == "" {
 		return "", fmt.Errorf("tenant %s not found", name)
 	}
-	
+
 	return id, nil
 }

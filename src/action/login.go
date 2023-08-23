@@ -58,6 +58,6 @@ func SignInOperator(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("user %s signed in successfully", email))
-	
+
 	return nil
 }

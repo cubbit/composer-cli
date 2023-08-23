@@ -138,18 +138,237 @@ func ListSwarms(cmd *cobra.Command) error {
 	}
 
 	var verbose bool
-	
+
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	utils.PrintList("Your Swarms List")
 	for _, swarm := range swarms {
 		if verbose {
-			fmt.Printf("%s %s %s\n", swarm.SwarmID, swarm.Name, swarm.Description)
+			fmt.Printf(" • %s, %s, %s\n", swarm.SwarmID, swarm.Name, swarm.Description)
 		} else {
-			fmt.Printf("%s\n", swarm.Name)
+			fmt.Printf(" • %s\n", swarm.Name)
 		}
 	}
+
+	return nil
+}
+
+func RemoveSwarm(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, email, password, code, configPath, deleteSwarmToken string
+	var conf *configuration.Config
+	var challenge *api.ChallengeResponseModel
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid swarm id or name: %w", err)
+	}
+
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if password, err = cmd.Flags().GetString("password"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if code, err = cmd.Flags().GetString("code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var operator *api.Operator
+		var swarms []api.Swarm
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, swarm := range swarms {
+			if name == swarm.Name {
+				id = swarm.SwarmID
+			}
+		}
+
+		if id == "" {
+			utils.PrintNotFound(fmt.Sprintf("Swarm %s not found", name))
+			return nil
+		}
+	}
+
+	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+	}
+
+	if deleteSwarmToken, err = api.ForgeOperatorDeleteSwarmToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
+	}
+
+	if err = api.RemoveSwarm(conf.Urls, *accessToken, id, deleteSwarmToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingSwarm, err)
+	}
+
+	utils.PrintDelete(fmt.Sprintf("swarm %s removed successfully", id))
+
+	return nil
+}
+
+func EditSwarmDescription(cmd *cobra.Command, args ...string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid swarm id or name: %w", err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if name != "" {
+		var swarms []api.Swarm
+		var operator *api.Operator
+		var found bool
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, swarm := range swarms {
+			if swarm.Name == name {
+				id = swarm.SwarmID
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return fmt.Errorf(constants.ErrorRetrievingSwarm)
+		}
+	}
+
+	if len(args) != 1 {
+		return fmt.Errorf("invalid description: %w", err)
+	}
+
+	description := args[0]
+
+	if len(description) > 200 {
+		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
+	}
+
+	if err = api.EditSwarmDescription(conf.Urls, *accessToken, id, description); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmDescription, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("swarm %s description updated successfully", id))
+
+	return nil
+}
+
+func EditSwarmName(cmd *cobra.Command, args ...string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid swarm id or name: %w", err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if name != "" {
+		var swarms []api.Swarm
+		var operator *api.Operator
+		var found bool
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, swarm := range swarms {
+			if swarm.Name == name {
+				id = swarm.SwarmID
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return fmt.Errorf(constants.ErrorRetrievingSwarm)
+		}
+	}
+
+	if len(args) != 1 {
+		return fmt.Errorf("invalid name: %w", err)
+	}
+
+	newName := args[0]
+
+	if err = api.EditSwarmName(conf.Urls, *accessToken, id, newName); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmName, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("swarm %s name updated successfully", id))
 
 	return nil
 }

@@ -21,7 +21,7 @@ func PrintError(err error) {
 }
 
 func PrintDelete(s string) {
-	fmt.Printf("🗑️ 🚮 %s", s)
+	fmt.Printf("🗑️ 🚮 %s\n", s)
 }
 
 func PrintNotFound(s string) {

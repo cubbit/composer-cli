@@ -107,7 +107,7 @@ func (m textAreaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.focusIndex < 0 {
 				m.focusIndex = 1
 			}
-			
+
 			cmds := make([]tea.Cmd, 1)
 			return m, tea.Batch(cmds...)
 		}
@@ -142,7 +142,7 @@ func (m textAreaModel) View() string {
 
 	if m.isLastStep {
 		button := &submitBlurredButton
-		
+
 		if m.focusIndex == 1 {
 			button = &submitFocusedButton
 		}

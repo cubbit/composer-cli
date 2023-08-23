@@ -32,6 +32,6 @@ func SignOutOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("configuration %s signed out successfully", profile))
-	
+
 	return nil
 }
