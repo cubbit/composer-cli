@@ -48,6 +48,6 @@ func CreateOperator(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator %s created successfully", email))
-	
+
 	return nil
 }

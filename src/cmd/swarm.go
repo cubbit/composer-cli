@@ -10,6 +10,8 @@ import (
 var swarmCmd = &cobra.Command{
 	Use:   "swarm",
 	Short: "Execute commands in swarm sections",
+	Run: func(cmd *cobra.Command, args []string) {
+	},
 }
 
 var createSwarmSubCmd = &cobra.Command{
@@ -63,6 +65,57 @@ var describeSwarmSubCmd = &cobra.Command{
 	},
 }
 
+var editSwarmDescriptionSubCmd = &cobra.Command{
+	Use:   "edit-description",
+	Short: "edit a swarm description",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = action.EditSwarmDescription(cmd, args...); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditSwarmDescriptionInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var editSwarmNameSubCmd = &cobra.Command{
+	Use:   "edit-name",
+	Short: "edit a swarm name",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = action.EditSwarmName(cmd, args...); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditSwarmNameInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeSwarmSubCmd = &cobra.Command{
+	Use:   "remove",
+	Short: "remove a swarm",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, action.RemoveSwarm); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveSwarmInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -78,5 +131,18 @@ func init() {
 	describeSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
 	describeSwarmSubCmd.Flags().String("format", "default", "Format of the output")
 
+	swarmCmd.AddCommand(editSwarmDescriptionSubCmd)
+
+	swarmCmd.AddCommand(editSwarmNameSubCmd)
+
+	swarmCmd.AddCommand(removeSwarmSubCmd)
+	removeSwarmSubCmd.Flags().String("id", "", "ID of the swarm")
+	removeSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
+	removeSwarmSubCmd.Flags().String("email", "", "Email address")
+	removeSwarmSubCmd.Flags().String("password", "", "Password")
+	removeSwarmSubCmd.Flags().String("code", "", "Two factor authentication code")
+
 	rootCmd.AddCommand(swarmCmd)
+	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")
+	swarmCmd.PersistentFlags().String("id", "", "ID of the swarm")
 }

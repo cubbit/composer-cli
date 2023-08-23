@@ -66,3 +66,64 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 	}
 	return &response, nil
 }
+
+func RemoveSwarm(urls configuration.Url, accessToken, swarmId, deleteSwarmToken string) error {
+	var err error
+
+	url := urls.HiveUrl + constants.Swarms + "/" + swarmId + "?token=" + deleteSwarmToken
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingSwarmRequest, err)
+	}
+
+	return nil
+}
+
+func EditSwarmDescription(urls configuration.Url, accessToken, swarmID, description string) error {
+	var err error
+
+	requestBody := map[string]interface{}{
+		"description": description,
+	}
+
+	url := urls.HiveUrl + constants.Swarms + "/" + swarmID
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
+	}
+
+	return nil
+}
+
+func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) error {
+	var err error
+
+	requestBody := map[string]interface{}{
+		"name": name,
+	}
+
+	url := urls.HiveUrl + constants.Swarms + "/" + swarmID
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
+	}
+
+	return nil
+}

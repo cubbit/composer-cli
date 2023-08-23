@@ -33,5 +33,6 @@ const (
 	Tenants     = "/v1/tenants"
 	ListTenants = "/v1/tenants?owner="
 
-	Swarms = "/v1/swarms"
+	Swarms                        = "/v1/swarms"
+	ForgeOperatorDeleteSwarmToken = "/v1/auth/operators/forge/token?capabilities=delete_swarm&swarm_id="
 )

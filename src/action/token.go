@@ -19,7 +19,7 @@ func GenerateAccessToken(cmd *cobra.Command) error {
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
-	
+
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}

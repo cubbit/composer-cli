@@ -165,6 +165,6 @@ func init() {
 	removeTenantSubCmd.Flags().String("code", "", "Two factor authentication code")
 
 	rootCmd.AddCommand(tenantCmd)
-	tenantCmd.Flags().String("name", "", "Name of the tenant")
-	tenantCmd.Flags().String("id", "", "ID of the tenant")
+	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")
+	tenantCmd.PersistentFlags().String("id", "", "ID of the tenant")
 }
