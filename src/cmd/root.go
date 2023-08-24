@@ -10,7 +10,7 @@ import (
 var interactive bool
 
 var rootCmd = &cobra.Command{
-	Use:   "Cubbit CLI",
+	Use:   "cubbit-operator-cli",
 	Short: "The official Cubbit CLI (Command-Line Interface) for operators",
 	Long:  "The CLI for managing operators, tenants and swarms in Cubbit distributed datacenter",
 }
