@@ -55,10 +55,15 @@ jobs:
           path: artifacts/${{ steps.build.outputs.binary_name }}
       - name: Upload ${{ matrix.platform }}  to Cubbit S3
         run: |
+          GOOS=$(echo "${{ matrix.platform }}" | cut -d'_' -f1)
+          BINARY_NAME="cubbit-operator-cli"
+          if [ "$GOOS" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
           AWS_DEFAULT_REGION=eu-west-1 AWS_ACCESS_KEY_ID=${{ secrets.CUBBIT_S3_ACCESS_KEY }} AWS_SECRET_ACCESS_KEY=${{ secrets.CUBBIT_S3_SECRET_KEY }} \
           aws s3api --no-cli-pager --endpoint-url https://s3.cubbit.eu \
           put-object \
           --acl public-read \
           --bucket cubbit-public \
-          --key operator-cli/${{ steps.build.outputs.op_sys }}/${{ steps.build.outputs.cpu_arch }}/${{ steps.build.outputs.binary_name }} \
+          --key operator-cli/${{ steps.build.outputs.op_sys }}/${{ steps.build.outputs.cpu_arch }}/${BINARY_NAME} \
           --body ./artifacts/${{ steps.build.outputs.binary_name }}
