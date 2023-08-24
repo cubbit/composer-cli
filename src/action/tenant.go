@@ -377,7 +377,7 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		if id, err = getTenantByName(conf, *accessToken, name); err != nil {
+		if id, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 	}
@@ -411,7 +411,82 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command) error {
 	return nil
 }
 
-func getTenantByName(conf *configuration.Config, accessToken string, name string) (string, error) {
+func AddOperator(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, email, role, firstName, lastName, configPath string
+	var conf *configuration.Config
+	var policies *api.PolicyList
+	var found bool
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if firstName, err = cmd.Flags().GetString("first_name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if lastName, err = cmd.Flags().GetString("last-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+	}
+
+	if policies, err = api.ListTenantPolicies(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if role, err = cmd.Flags().GetString("role"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	for _, policy := range policies.Policies {
+		if policy.Name == role {
+			role = policy.ID
+			found = true
+		}
+	}
+
+	if !found {
+		utils.PrintNotFound(fmt.Sprintf("Policy %s not found", role))
+		return nil
+	}
+
+	if err = api.InviteOperator(conf.Urls, *accessToken, id, email, role, firstName, lastName); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperator, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
+
+	return nil
+}
+
+func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenant string) (string, error) {
 	var err error
 	var operator *api.Operator
 	var tenants *api.TenantList
@@ -425,14 +500,14 @@ func getTenantByName(conf *configuration.Config, accessToken string, name string
 		return "", fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 
-	for _, tenant := range tenants.Tenants {
-		if name == tenant.Name {
-			id = tenant.ID
+	for _, tn := range tenants.Tenants {
+		if tenant == tn.Name || tenant == tn.ID {
+			id = tn.ID
 		}
 	}
 
 	if id == "" {
-		return "", fmt.Errorf("tenant %s not found", name)
+		return "", fmt.Errorf("tenant %s not found", tenant)
 	}
 
 	return id, nil

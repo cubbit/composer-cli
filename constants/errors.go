@@ -29,6 +29,7 @@ const (
 	ErrorRetrievingTenantDescription     = "error while retrieving tenant description"
 	ErrorTenantNameOrID                  = "error, tenant name or id incorrect"
 	ErrorRetrievingAvailableTenantSwarms = "error while retrieving available tenant swarms list"
+	ErrorInvitingOperator                = "error while inviting operator to tenant"
 
 	ErrorGeneratingOperatorChallengeRequest = "failed request to generate operator challenge"
 	ErrorGettingOperatorRequest             = "failed request to get operator"
@@ -43,6 +44,7 @@ const (
 	ErrorDeletingTenantRequest              = "failed request to delete tenant"
 	ErrorEditingTenantRequest               = "failed request to edit tenant "
 	ErrorListingTenantSwarmsRequest         = "failed request to list tenant available swarms"
+	ErrorInvitingOperatorRequest            = "failed request to invite operator to tenant"
 
 	ErrorIamConfigNotFound   = "iam api server url is not defined in configuration"
 	ErrorHiveConfigNotFound  = "hive api server url is not defined in configuration"

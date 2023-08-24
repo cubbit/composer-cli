@@ -304,6 +304,6 @@ func EditSwarmNameInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("swarm %s name updated successfully", nameOrId))
-	
+
 	return nil
 }

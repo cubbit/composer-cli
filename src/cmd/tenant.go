@@ -132,6 +132,22 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 		}
 	},
 }
+var addOperatorSubCmd = &cobra.Command{
+	Use:   "add-operator",
+	Short: "invites an operator",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, action.AddOperator); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.AddOperatorInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
 
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
@@ -156,6 +172,10 @@ func init() {
 	tenantCmd.AddCommand(listTenantAvailableSwarmsSubCmd)
 	listTenantAvailableSwarmsSubCmd.Flags().String("id", "", "ID of the tenant")
 	listTenantAvailableSwarmsSubCmd.Flags().String("name", "", "Name of the tenant")
+
+	tenantCmd.AddCommand(addOperatorSubCmd)
+	addOperatorSubCmd.Flags().String("email", "", "Email of the operator")
+	addOperatorSubCmd.Flags().String("role", "", "Role of the operator")
 
 	tenantCmd.AddCommand(removeTenantSubCmd)
 	removeTenantSubCmd.Flags().String("id", "", "ID of the tenant")
