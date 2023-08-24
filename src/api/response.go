@@ -105,3 +105,17 @@ type OperatorEmail struct {
 	Default   bool      `json:"default" example:"true"`
 	CreatedAt time.Time `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
 }
+
+type Policy struct {
+	ID        string `json:"id"`
+	AuthorID  string `json:"author_id"`
+	Name      string `json:"name"`
+	UserCount int    `json:"user_count"`
+	Version   string `json:"version"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+type PolicyList struct {
+	Policies []Policy `json:"policies"`
+}

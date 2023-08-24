@@ -383,3 +383,78 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func AddOperatorInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, tenant, role, email, first_name, last_name, configPath, choice string
+	var conf *configuration.Config
+	var policies *api.PolicyList
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		if _, err = tui.TextInputs("Enter your tenant ID or Name", false, tui.Input{Placeholder: "Tenant ID or Name", Value: &tenant}); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+		}
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if tenant != "" {
+		if id, err = getTenantByNameOrId(conf, *accessToken, tenant); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+	}
+
+	if name != "" {
+		if id, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+	}
+
+	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Operator Email", Value: &email}, tui.Input{Placeholder: "Operator First Name", Value: &first_name}, tui.Input{Placeholder: "Operator Last Name", Value: &last_name}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if policies, err = api.ListTenantPolicies(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+	}
+
+	var choices []string
+
+	for _, policy := range policies.Policies {
+		choices = append(choices, fmt.Sprintf("• %s", policy.Name))
+	}
+
+	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", true, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+	}
+	_, choice, _ = strings.Cut(choice, " ")
+
+	for _, policy := range policies.Policies {
+		if policy.Name == choice {
+			role = policy.ID
+		}
+	}
+
+	if err = api.InviteOperator(conf.Urls, *accessToken, id, email, role, first_name, last_name); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperator, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
+
+	return nil
+}

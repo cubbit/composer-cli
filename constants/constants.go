@@ -21,6 +21,7 @@ const (
 	BaseKeyvaultURI = "keyvault"
 	BaseIamURI      = "/iam"
 	BaseHiveURI     = "/hive"
+	Invites         = "/invites"
 
 	Operators                      = "/v1/operators/"
 	GenerateOperatorChallenge      = "/v1/auth/operators/signin/challenge"
@@ -35,4 +36,6 @@ const (
 
 	Swarms                        = "/v1/swarms"
 	ForgeOperatorDeleteSwarmToken = "/v1/auth/operators/forge/token?capabilities=delete_swarm&swarm_id="
+
+	Policies = "/v1/policies"
 )

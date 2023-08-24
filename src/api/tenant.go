@@ -131,3 +131,43 @@ func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID str
 	}
 	return &response, nil
 }
+
+func ListTenantPolicies(urls configuration.Url, accessToken, tenantID string) (*PolicyList, error) {
+	var err error
+	url := urls.IamUrl + constants.Policies + "?tenant=" + tenantID
+	var response PolicyList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractPolicyListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantSwarmsRequest, err)
+	}
+	return &response, nil
+}
+
+func InviteOperator(urls configuration.Url, accessToken, tenant, email, role, firstName, lastName string) error {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenant + constants.Invites
+
+	requestBody := map[string]interface{}{
+		"email":      email,
+		"policy_id":  role,
+		"first_name": firstName,
+		"last_name":  lastName,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
+	}
+
+	return nil
+}
