@@ -1,3 +1,9 @@
+## 0.4.0 (2023-08-24)
+
+### Feat
+
+- **swarm**: add edit-description, edit-name and remove swarm cmds
+
 ## 0.3.0 (2023-08-22)
 
 ### Feat
