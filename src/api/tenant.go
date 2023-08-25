@@ -148,9 +148,9 @@ func ListTenantPolicies(urls configuration.Url, accessToken, tenantID string) (*
 	return &response, nil
 }
 
-func InviteOperator(urls configuration.Url, accessToken, tenant, email, role, firstName, lastName string) error {
+func InviteOperatorToTenant(urls configuration.Url, accessToken, tenantID, email, role, firstName, lastName string) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenant + constants.Invites
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + constants.Invites
 
 	requestBody := map[string]interface{}{
 		"email":      email,
@@ -170,4 +170,51 @@ func InviteOperator(urls configuration.Url, accessToken, tenant, email, role, fi
 	}
 
 	return nil
+}
+
+func ListTenantOperators(urls configuration.Url, accessToken, tenantID string) (*OperatorList, error) {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/operators"
+	var response OperatorList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractOperatorListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+	}
+	return &response, nil
+}
+
+func RemoveTenantOperator(urls configuration.Url, accessToken, tenantID, operatorID string) error {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/operators/" + operatorID
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantRequest, err)
+	}
+
+	return nil
+}
+
+func GetTenant(urls configuration.Url, accessToken, ownerID string, tenantID string) (*Tenant, error) {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+	var response Tenant
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractTenantResponseModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmsRequest, err)
+	}
+	return &response, nil
 }

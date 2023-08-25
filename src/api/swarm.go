@@ -127,3 +127,74 @@ func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) er
 
 	return nil
 }
+
+func ListSwarmPolicies(urls configuration.Url, accessToken, swarmID string) (*PolicyList, error) {
+	var err error
+	url := urls.IamUrl + constants.Policies + "?swarm=" + swarmID
+	var response PolicyList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractPolicyListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
+	}
+	return &response, nil
+}
+
+func InviteOperatorToSwarm(urls configuration.Url, accessToken, swarmID, email, role, firstName, lastName string) error {
+	var err error
+	url := urls.IamUrl + constants.Swarms + "/" + swarmID + constants.Invites
+
+	requestBody := map[string]interface{}{
+		"email":      email,
+		"policy_id":  role,
+		"first_name": firstName,
+		"last_name":  lastName,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
+	}
+
+	return nil
+}
+
+func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*OperatorList, error) {
+	var err error
+	url := urls.IamUrl + constants.Swarms + "/" + swarmID + "/operators"
+	var response OperatorList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractOperatorListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+	}
+	return &response, nil
+}
+
+func RemoveSwarmOperator(urls configuration.Url, accessToken, swarmID, operatorID string) error {
+	var err error
+	url := urls.IamUrl + constants.Swarms + "/" + swarmID + "/operators/" + operatorID
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorsRequest, err)
+	}
+
+	return nil
+}

@@ -13,7 +13,7 @@ var logoutCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.SignOutOperator); err != nil {
+			if err = tui.Send(cmd, args, action.SignOutOperator); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

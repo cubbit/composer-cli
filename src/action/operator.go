@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateOperator(cmd *cobra.Command) error {
+func CreateOperator(cmd *cobra.Command, args []string) error {
 	var url *configuration.Url
 	var err error
 	var email, password, firstName, lastName, apiServerUrl, secret string

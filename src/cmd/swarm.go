@@ -20,7 +20,7 @@ var createSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.CreateSwarm); err != nil {
+			if err = tui.Send(cmd, args, action.CreateSwarm); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -37,7 +37,7 @@ var listSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.ListSwarms); err != nil {
+			if err = tui.Send(cmd, args, action.ListSwarms); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -54,7 +54,7 @@ var describeSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.DescribeSwarm); err != nil {
+			if err = tui.Send(cmd, args, action.DescribeSwarm); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -105,11 +105,62 @@ var removeSwarmSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.RemoveSwarm); err != nil {
+			if err = tui.Send(cmd, args, action.RemoveSwarm); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
 			if err = action.RemoveSwarmInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var addOperatorToSwarmSubCmd = &cobra.Command{
+	Use:   "add-operator",
+	Short: "invites an operator",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.AddOperatorToSwarm); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.AddOperatorToSwarmInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listSwarmOperatorsSubCmd = &cobra.Command{
+	Use:   "list-operators",
+	Short: "lists swarm operators",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListSwarmOperators); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListSwarmOperatorsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeSwarmOperatorSubCmd = &cobra.Command{
+	Use:   "remove-operator",
+	Short: "removes swarm operator by email or id",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RemoveSwarmOperator); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveSwarmOperatorInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -134,6 +185,16 @@ func init() {
 	swarmCmd.AddCommand(editSwarmDescriptionSubCmd)
 
 	swarmCmd.AddCommand(editSwarmNameSubCmd)
+
+	swarmCmd.AddCommand(addOperatorToSwarmSubCmd)
+	addOperatorToSwarmSubCmd.Flags().String("email", "", "Email of the operator")
+	addOperatorToSwarmSubCmd.Flags().String("role", "", "Role of the operator")
+
+	swarmCmd.AddCommand(listSwarmOperatorsSubCmd)
+	listSwarmOperatorsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for operators")
+	listSwarmOperatorsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different operators")
+
+	swarmCmd.AddCommand(removeSwarmOperatorSubCmd)
 
 	swarmCmd.AddCommand(removeSwarmSubCmd)
 	removeSwarmSubCmd.Flags().String("id", "", "ID of the swarm")
