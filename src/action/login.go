@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func SignInOperator(cmd *cobra.Command) error {
+func SignInOperator(cmd *cobra.Command, args []string) error {
 	var err error
 	var apiServerUrl, email, password, code, refreshToken, profile, configPath string
 	var challenge *api.ChallengeResponseModel

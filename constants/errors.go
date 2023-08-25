@@ -30,6 +30,8 @@ const (
 	ErrorTenantNameOrID                  = "error, tenant name or id incorrect"
 	ErrorRetrievingAvailableTenantSwarms = "error while retrieving available tenant swarms list"
 	ErrorInvitingOperator                = "error while inviting operator to tenant"
+	ErrorListingOperators                = "error while listing tenant operators"
+	ErrorRemovingOperator                = "error while removing tenant operator"
 
 	ErrorGeneratingOperatorChallengeRequest = "failed request to generate operator challenge"
 	ErrorGettingOperatorRequest             = "failed request to get operator"
@@ -44,7 +46,9 @@ const (
 	ErrorDeletingTenantRequest              = "failed request to delete tenant"
 	ErrorEditingTenantRequest               = "failed request to edit tenant "
 	ErrorListingTenantSwarmsRequest         = "failed request to list tenant available swarms"
-	ErrorInvitingOperatorRequest            = "failed request to invite operator to tenant"
+	ErrorInvitingOperatorRequest            = "failed request to invite operator"
+	ErrorListingOperatorsRequest            = "failed request to list operators"
+	ErrorRemovingOperatorsRequest           = "failed request to remove operator"
 
 	ErrorIamConfigNotFound   = "iam api server url is not defined in configuration"
 	ErrorHiveConfigNotFound  = "hive api server url is not defined in configuration"
@@ -57,9 +61,14 @@ const (
 	ErrorDeletingSwarm           = "error while deleing swarm"
 	ErrorEditingSwarmDescription = "error while editing swarm description"
 	ErrorEditingSwarmName        = "error while retrieving swarm name"
+	ErrorSwarmNameOrID           = "error, swarm name or id incorrect"
+
 	ErrorCreatingSwarmRequest    = "failed request to create the swarm"
 	ErrorListingSwarmsRequest    = "failed request to list swarms"
 	ErrorRetrievingSwarmsRequest = "failed request to get swarm"
 	ErrorEditingSwarmRequest     = "failed request to edit swarm"
 	ErrorDeletingSwarmRequest    = "failed request to delete swarm"
+
+	ErrorListingPolicies        = "failed request to list policies"
+	ErrorListingPoliciesRequest = "error while retrieving list policies"
 )

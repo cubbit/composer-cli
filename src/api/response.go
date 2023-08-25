@@ -94,10 +94,14 @@ type Operator struct {
 	CreatedAt          time.Time       `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
 	DeletedAt          *time.Time      `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
 	MaxAllowedProjects int             `json:"max_allowed_projects" example:"3"`
+	Email              string          `json:"email"`
 	Emails             []OperatorEmail `json:"emails"`
 	TwoFactorEnabled   bool            `json:"two_factor_enabled" example:"true"`
 }
 
+type OperatorList struct {
+	Operators []Operator `json:"operators"`
+}
 type OperatorEmail struct {
 	ID        string    `json:"id" example:"5ff281ee-75e7-4543-a304-ca861521f2a7"`
 	Email     string    `json:"email" example:"mario.rossi@cubbit.io"`

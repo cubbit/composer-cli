@@ -18,7 +18,7 @@ var signupSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.CreateOperator); err != nil {
+			if err = tui.Send(cmd, args, action.CreateOperator); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

@@ -59,7 +59,7 @@ func (m httpModel) View() (s string) {
 	return
 }
 
-func Send(cmd *cobra.Command, action func(cmd *cobra.Command) error) error {
+func Send(cmd *cobra.Command, args []string, action func(cmd *cobra.Command, args []string) error) error {
 	var err error
 
 	p := tea.NewProgram(newModel())
@@ -68,7 +68,7 @@ func Send(cmd *cobra.Command, action func(cmd *cobra.Command) error) error {
 		for {
 			pause := time.Duration(rand.Int63n(899)+100) * time.Millisecond
 			time.Sleep(pause)
-			err = action(cmd)
+			err = action(cmd, args)
 			p.Quit()
 		}
 	}()

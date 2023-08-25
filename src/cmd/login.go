@@ -13,7 +13,7 @@ var loginCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.SignInOperator); err != nil {
+			if err = tui.Send(cmd, args, action.SignInOperator); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

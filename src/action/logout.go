@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func SignOutOperator(cmd *cobra.Command) error {
+func SignOutOperator(cmd *cobra.Command, args []string) error {
 	var err error
 	var profile, configPath string
 

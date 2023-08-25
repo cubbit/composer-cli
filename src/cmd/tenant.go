@@ -20,7 +20,7 @@ var createTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.CreateTenant); err != nil {
+			if err = tui.Send(cmd, args, action.CreateTenant); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -37,7 +37,7 @@ var listTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.ListTenant); err != nil {
+			if err = tui.Send(cmd, args, action.ListTenant); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -54,7 +54,7 @@ var removeTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.RemoveTenant); err != nil {
+			if err = tui.Send(cmd, args, action.RemoveTenant); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -71,7 +71,7 @@ var describeTenantSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.DescribeTenant); err != nil {
+			if err = tui.Send(cmd, args, action.DescribeTenant); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -122,7 +122,7 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.ListAvailableSwarmsTenant); err != nil {
+			if err = tui.Send(cmd, args, action.ListAvailableSwarmsTenant); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -132,17 +132,51 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 		}
 	},
 }
-var addOperatorSubCmd = &cobra.Command{
+var addOperatorToTenantSubCmd = &cobra.Command{
 	Use:   "add-operator",
 	Short: "invites an operator",
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, action.AddOperator); err != nil {
+			if err = tui.Send(cmd, args, action.AddOperatorToTenant); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
-			if err = action.AddOperatorInteractive(cmd); err != nil {
+			if err = action.AddOperatorToTenantInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listTenantOperatorsSubCmd = &cobra.Command{
+	Use:   "list-operators",
+	Short: "lists tenant operators",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListTenantOperators); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListTenantOperatorsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeTenantOperatorSubCmd = &cobra.Command{
+	Use:   "remove-operator",
+	Short: "removes tenant operator by email or id",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RemoveTenantOperator); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveTenantOperatorInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -173,9 +207,15 @@ func init() {
 	listTenantAvailableSwarmsSubCmd.Flags().String("id", "", "ID of the tenant")
 	listTenantAvailableSwarmsSubCmd.Flags().String("name", "", "Name of the tenant")
 
-	tenantCmd.AddCommand(addOperatorSubCmd)
-	addOperatorSubCmd.Flags().String("email", "", "Email of the operator")
-	addOperatorSubCmd.Flags().String("role", "", "Role of the operator")
+	tenantCmd.AddCommand(addOperatorToTenantSubCmd)
+	addOperatorToTenantSubCmd.Flags().String("email", "", "Email of the operator")
+	addOperatorToTenantSubCmd.Flags().String("role", "", "Role of the operator")
+
+	tenantCmd.AddCommand(listTenantOperatorsSubCmd)
+	listTenantOperatorsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for operators")
+	listTenantOperatorsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different operators")
+
+	tenantCmd.AddCommand(removeTenantOperatorSubCmd)
 
 	tenantCmd.AddCommand(removeTenantSubCmd)
 	removeTenantSubCmd.Flags().String("id", "", "ID of the tenant")
