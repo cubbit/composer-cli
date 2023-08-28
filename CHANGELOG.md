@@ -1,3 +1,9 @@
+## 0.6.0 (2023-08-28)
+
+### Feat
+
+- **tenant**: connect a swarm to a tenant
+
 ## 0.5.0 (2023-08-28)
 
 ### Feat
