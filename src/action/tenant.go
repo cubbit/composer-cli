@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -472,7 +471,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, policy := range policies.Policies {
-		if strings.EqualFold(policy.Name, role) {
+		if policy.Name == role  {
 			role = policy.ID
 			found = true
 		}
@@ -551,7 +550,7 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 
 	for _, operator := range operators.Operators {
 		if verbose {
-			fmt.Printf(" • %s, %s, %s %s\n", operator.ID, operator.Email, operator.FirstName, operator.LastName)
+			fmt.Printf(" • %s, %s, %s %s, %s\n", operator.ID, operator.Email, operator.FirstName, operator.LastName, operator.Status)
 		} else {
 			fmt.Printf(" • %s\n", operator.Email)
 		}
