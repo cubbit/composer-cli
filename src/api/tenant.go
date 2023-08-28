@@ -218,3 +218,20 @@ func GetTenant(urls configuration.Url, accessToken, ownerID string, tenantID str
 	}
 	return &response, nil
 }
+
+func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string) error {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/swarms/" + swarmID
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarmRequest, err)
+	}
+
+	return nil
+}
