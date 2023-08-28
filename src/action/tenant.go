@@ -3,12 +3,14 @@ package action
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
-	"net/url"
 )
 
 func CreateTenant(cmd *cobra.Command, args []string) error {
@@ -429,11 +431,19 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if firstName, err = cmd.Flags().GetString("first_name"); err != nil {
+	if firstName, err = cmd.Flags().GetString("first-name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
 	if lastName, err = cmd.Flags().GetString("last-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if role, err = cmd.Flags().GetString("role"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -461,16 +471,8 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
-	if email, err = cmd.Flags().GetString("email"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if role, err = cmd.Flags().GetString("role"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
 	for _, policy := range policies.Policies {
-		if policy.Name == role {
+		if strings.EqualFold(policy.Name, role) {
 			role = policy.ID
 			found = true
 		}
@@ -524,14 +526,6 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 		id = tenant.ID
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
 	if operators, err = api.ListTenantOperators(conf.Urls, *accessToken, id); err != nil {
@@ -629,7 +623,6 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 	var operator *api.Operator
 	var tenants *api.TenantList
 	var tenant *api.Tenant
-	var id string
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, accessToken); err != nil {
 		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
@@ -641,13 +634,12 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 
 	for _, tn := range tenants.Tenants {
 		if tenantID == tn.Name || tenantID == tn.ID {
-			id = tn.ID
 			tenant = tn
 
 		}
 	}
 
-	if id == "" {
+	if tenant == nil {
 		return nil, fmt.Errorf("tenant %s not found", tenant.ID)
 	}
 
@@ -659,7 +651,7 @@ func getOperatorByEmailOrId(conf *configuration.Config, accessToken string, tena
 	var operators *api.OperatorList
 	var id string
 
-	if operators, err = api.ListTenantOperators(conf.Urls, accessToken, tenantID); err != nil {
+	if operators, err = api.ListSwarmOperators(conf.Urls, accessToken, tenantID); err != nil {
 		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
 	for _, op := range operators.Operators {
