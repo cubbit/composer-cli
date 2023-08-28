@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
@@ -17,6 +20,13 @@ var tenantCmd = &cobra.Command{
 var createTenantSubCmd = &cobra.Command{
 	Use:   "create",
 	Short: "create a new tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			cmd.MarkFlagRequired("name")
+			cmd.MarkFlagRequired("description")
+			cmd.MarkFlagRequired("settings")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -51,6 +61,20 @@ var listTenantSubCmd = &cobra.Command{
 var removeTenantSubCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -68,6 +92,17 @@ var removeTenantSubCmd = &cobra.Command{
 var describeTenantSubCmd = &cobra.Command{
 	Use:   "describe",
 	Short: "describe a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -85,6 +120,23 @@ var describeTenantSubCmd = &cobra.Command{
 var editTenantDescriptionSubCmd = &cobra.Command{
 	Use:   "edit-description",
 	Short: "edit a tenant description",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no new description argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -102,6 +154,23 @@ var editTenantDescriptionSubCmd = &cobra.Command{
 var editTenantImageSubCmd = &cobra.Command{
 	Use:   "edit-image",
 	Short: "edit a tenant image",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error:a t least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no new image url argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -119,6 +188,17 @@ var editTenantImageSubCmd = &cobra.Command{
 var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 	Use:   "list-available-swarms",
 	Short: "lists the swarms that can be connected",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -135,6 +215,22 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 var addOperatorToTenantSubCmd = &cobra.Command{
 	Use:   "add-operator",
 	Short: "invites an operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("role")
+			cmd.MarkFlagRequired("first-name")
+			cmd.MarkFlagRequired("last-name")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -152,6 +248,17 @@ var addOperatorToTenantSubCmd = &cobra.Command{
 var listTenantOperatorsSubCmd = &cobra.Command{
 	Use:   "list-operators",
 	Short: "lists tenant operators",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -169,6 +276,23 @@ var listTenantOperatorsSubCmd = &cobra.Command{
 var removeTenantOperatorSubCmd = &cobra.Command{
 	Use:   "remove-operator",
 	Short: "removes tenant operator by email or id",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no operator argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -186,6 +310,23 @@ var removeTenantOperatorSubCmd = &cobra.Command{
 var connectSwarmSubCmd = &cobra.Command{
 	Use:   "connect-swarm",
 	Short: "connects a swarm with a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no swarm argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -212,8 +353,6 @@ func init() {
 	listTenantSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different tenants")
 
 	tenantCmd.AddCommand(describeTenantSubCmd)
-	describeTenantSubCmd.Flags().String("id", "", "ID of the tenant")
-	describeTenantSubCmd.Flags().String("name", "", "Name of the tenant")
 	describeTenantSubCmd.Flags().String("format", "default", "Formats the output")
 
 	tenantCmd.AddCommand(editTenantDescriptionSubCmd)
@@ -237,8 +376,6 @@ func init() {
 	tenantCmd.AddCommand(connectSwarmSubCmd)
 
 	tenantCmd.AddCommand(removeTenantSubCmd)
-	removeTenantSubCmd.Flags().String("id", "", "ID of the tenant")
-	removeTenantSubCmd.Flags().String("name", "", "Name of the tenant")
 	removeTenantSubCmd.Flags().String("email", "", "Email address")
 	removeTenantSubCmd.Flags().String("password", "", "Password")
 	removeTenantSubCmd.Flags().String("code", "", "Two factor authentication code")
