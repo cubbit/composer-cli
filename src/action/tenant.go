@@ -370,20 +370,11 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
 	if swarms, err = api.ListAvailableTenantSwarms(conf.Urls, *accessToken, id); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAvailableTenantSwarms, err)
 	}
 
 	utils.PrintList("Your Tenant Connected Swarms")
-
 	if len(swarms.Swarms) == 0 {
 		utils.PrintEmptyList()
 		return nil
@@ -456,7 +447,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, policy := range policies.Policies {
-		if policy.Name == role  {
+		if policy.Name == role {
 			role = policy.ID
 			found = true
 		}
@@ -598,6 +589,60 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operator))
+
+	return nil
+}
+
+func ConnectSwarm(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		return fmt.Errorf("invalid tenant id or name: %w", err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if len(args) != 1 {
+		return fmt.Errorf("invalid swarm id or name: %w", err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	swarm := args[0]
+	if swarm, err = getSwarmByNameOrId(conf, *accessToken, swarm); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+	}
+
+	if err = api.ConnectSwarm(conf.Urls, *accessToken, id, swarm); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarm, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("tenant %s connected to swarm %s successfully", id, swarm))
 
 	return nil
 }

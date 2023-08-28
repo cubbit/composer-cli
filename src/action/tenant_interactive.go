@@ -659,7 +659,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		var choice string
 		var choices []string
 		var tenants *api.TenantList
-	
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
 		}
@@ -734,6 +734,97 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operatorID))
+
+	return nil
+}
+
+func ConnectSwarmInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, choice, swarm string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var swarms []api.Swarm
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.TenantList
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, tenant := range tenants.Tenants {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+		}
+
+		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+	}
+
+	if len(swarms) == 0 {
+		utils.PrintNotFound("No swarms found")
+		return nil
+	}
+
+	var choices []string
+
+	for _, sw := range swarms {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.SwarmID, sw.Name, sw.Description))
+	}
+
+	if choice, err = tui.ChooseOne("Which swarm would you like to connect?", true, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	swarm, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if err = api.ConnectSwarm(conf.Urls, *accessToken, id, swarm); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarm, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("tenant %s connected to swarm %s successfully", id, swarm))
 
 	return nil
 }

@@ -428,7 +428,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, policy := range policies.Policies {
-		if policy.Name == role  {
+		if policy.Name == role {
 			role = policy.ID
 			found = true
 		}

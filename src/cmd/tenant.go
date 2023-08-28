@@ -183,6 +183,23 @@ var removeTenantOperatorSubCmd = &cobra.Command{
 	},
 }
 
+var connectSwarmSubCmd = &cobra.Command{
+	Use:   "connect-swarm",
+	Short: "connects a swarm with a tenant",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ConnectSwarm); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ConnectSwarmInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
@@ -204,8 +221,6 @@ func init() {
 	tenantCmd.AddCommand(editTenantImageSubCmd)
 
 	tenantCmd.AddCommand(listTenantAvailableSwarmsSubCmd)
-	listTenantAvailableSwarmsSubCmd.Flags().String("id", "", "ID of the tenant")
-	listTenantAvailableSwarmsSubCmd.Flags().String("name", "", "Name of the tenant")
 
 	tenantCmd.AddCommand(addOperatorToTenantSubCmd)
 	addOperatorToTenantSubCmd.Flags().String("email", "", "Email of the operator")
@@ -218,6 +233,8 @@ func init() {
 	listTenantOperatorsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different operators")
 
 	tenantCmd.AddCommand(removeTenantOperatorSubCmd)
+
+	tenantCmd.AddCommand(connectSwarmSubCmd)
 
 	tenantCmd.AddCommand(removeTenantSubCmd)
 	removeTenantSubCmd.Flags().String("id", "", "ID of the tenant")

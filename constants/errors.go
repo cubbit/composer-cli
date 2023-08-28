@@ -63,6 +63,7 @@ const (
 	ErrorEditingSwarmName        = "error while retrieving swarm name"
 	ErrorSwarmNameOrID           = "error, swarm name or id incorrect"
 
+	ErrorConnectingSwarm         = "error while connecting swarm "
 	ErrorCreatingSwarmRequest    = "failed request to create the swarm"
 	ErrorListingSwarmsRequest    = "failed request to list swarms"
 	ErrorRetrievingSwarmsRequest = "failed request to get swarm"
@@ -71,4 +72,5 @@ const (
 
 	ErrorListingPolicies        = "failed request to list policies"
 	ErrorListingPoliciesRequest = "error while retrieving list policies"
+	ErrorConnectingSwarmRequest = "failed request to connect swarm"
 )
