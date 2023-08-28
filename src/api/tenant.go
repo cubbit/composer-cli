@@ -41,9 +41,9 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 	return &response, nil
 }
 
-func ListTenants(urls configuration.Url, accessToken, ownerID string) (*TenantList, error) {
+func ListTenants(urls configuration.Url, accessToken string) (*TenantList, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants 
+	url := urls.IamUrl + constants.Tenants
 	var response TenantList
 
 	if err = request_utils.DoRequest(

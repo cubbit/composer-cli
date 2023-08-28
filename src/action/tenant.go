@@ -73,7 +73,6 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
-	var operator *api.Operator
 	var tenants *api.TenantList
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
@@ -84,11 +83,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
-	}
-
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 
@@ -158,14 +153,9 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var operator *api.Operator
 		var tenants *api.TenantList
 
-		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
-		}
-
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 		}
 
@@ -204,7 +194,6 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 	var id, name, format, configPath string
 	var conf *configuration.Config
 	var tenants *api.TenantList
-	var operator *api.Operator
 
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -226,11 +215,7 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
-	}
-
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 
@@ -619,15 +604,10 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 
 func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantID string) (*api.Tenant, error) {
 	var err error
-	var operator *api.Operator
 	var tenants *api.TenantList
 	var tenant *api.Tenant
 
-	if operator, err = api.GetOperatorSelf(conf.Urls, accessToken); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
-	}
-
-	if tenants, err = api.ListTenants(conf.Urls, accessToken, operator.ID); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, accessToken); err != nil {
 		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
 	}
 
