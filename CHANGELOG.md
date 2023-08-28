@@ -1,3 +1,10 @@
+## 0.5.0 (2023-08-28)
+
+### Feat
+
+- **operator**: add, remove and list  operators for a swarm/tenant
+- **tenant**: add the operator invite
+
 ## 0.4.0 (2023-08-24)
 
 ### Feat
