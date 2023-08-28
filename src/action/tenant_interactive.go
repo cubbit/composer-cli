@@ -103,6 +103,11 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
 	}
 
+	if len(choices) == 0 {
+		utils.PrintNotFound("No tenants found")
+		return nil
+	}
+
 	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 	}
@@ -169,6 +174,11 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 
 		for _, tenant := range tenants.Tenants {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
 		}
 
 		if choice, err = tui.ChooseOne("Which tenant would you like to retrieve?", false, choices); err != nil {
@@ -239,6 +249,11 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 
 		for _, tenant := range tenants.Tenants {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
@@ -312,6 +327,11 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 
 		for _, tenant := range tenants.Tenants {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
@@ -423,6 +443,11 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -503,6 +528,11 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -532,6 +562,11 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 
 	for _, policy := range policies.Policies {
 		choices = append(choices, fmt.Sprintf("• %s", policy.Name))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No policies found")
+		return nil
 	}
 
 	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", true, choices); err != nil {
@@ -593,6 +628,11 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 
 		for _, tenant := range tenants.Tenants {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
@@ -673,6 +713,11 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -710,6 +755,11 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		if op.ID != operator.ID {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s %s", op.ID, op.Email, op.FirstName, op.LastName))
 		}
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No operators found")
+		return nil
 	}
 
 	if len(choices) == 0 {

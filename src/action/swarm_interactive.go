@@ -100,6 +100,11 @@ func DescribeSwarmInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Which swarm would you like to retrieve?", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -194,6 +199,11 @@ func RemoveSwarmInteractive(cmd *cobra.Command) error {
 
 	for _, swarm := range swarms {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No swarms found")
+		return nil
 	}
 
 	if choice, err = tui.ChooseOne("Which swarm would you like to delete?", false, choices); err != nil {
@@ -334,6 +344,11 @@ func EditSwarmNameInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Which swarm would you like to retrieve?", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -402,6 +417,11 @@ func AddOperatorToSwarmInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Choose your swarm", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -428,6 +448,11 @@ func AddOperatorToSwarmInteractive(cmd *cobra.Command) error {
 
 	for _, policy := range policies.Policies {
 		choices = append(choices, fmt.Sprintf("• %s", policy.Name))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No policies found")
+		return nil
 	}
 
 	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", true, choices); err != nil {
@@ -489,6 +514,11 @@ func ListSwarmOperatorsInteractive(cmd *cobra.Command) error {
 
 		for _, swarm := range swarms {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
 		}
 
 		if choice, err = tui.ChooseOne("Choose your swarm", false, choices); err != nil {
@@ -562,6 +592,11 @@ func RemoveSwarmOperatorInteractive(cmd *cobra.Command) error {
 
 		for _, swarm := range swarms {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
 		}
 
 		if choice, err = tui.ChooseOne("Choose your swarm", false, choices); err != nil {

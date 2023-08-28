@@ -210,6 +210,8 @@ func init() {
 	tenantCmd.AddCommand(addOperatorToTenantSubCmd)
 	addOperatorToTenantSubCmd.Flags().String("email", "", "Email of the operator")
 	addOperatorToTenantSubCmd.Flags().String("role", "", "Role of the operator")
+	addOperatorToTenantSubCmd.Flags().String("first-name", "", "First name od the operator")
+	addOperatorToTenantSubCmd.Flags().String("last-name", "", "Last name of the operator")
 
 	tenantCmd.AddCommand(listTenantOperatorsSubCmd)
 	listTenantOperatorsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for operators")

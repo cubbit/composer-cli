@@ -3,6 +3,7 @@ package action
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -389,7 +390,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if firstName, err = cmd.Flags().GetString("first_name"); err != nil {
+	if firstName, err = cmd.Flags().GetString("first-name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -428,7 +429,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, policy := range policies.Policies {
-		if policy.Name == role {
+		if strings.EqualFold(policy.Name, role) {
 			role = policy.ID
 			found = true
 		}
@@ -479,14 +480,6 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 		}
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
 	if operators, err = api.ListSwarmOperators(conf.Urls, *accessToken, id); err != nil {

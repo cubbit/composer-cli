@@ -189,6 +189,8 @@ func init() {
 	swarmCmd.AddCommand(addOperatorToSwarmSubCmd)
 	addOperatorToSwarmSubCmd.Flags().String("email", "", "Email of the operator")
 	addOperatorToSwarmSubCmd.Flags().String("role", "", "Role of the operator")
+	addOperatorToSwarmSubCmd.Flags().String("first-name", "", "First name od the operator")
+	addOperatorToSwarmSubCmd.Flags().String("last-name", "", "Last name of the operator")
 
 	swarmCmd.AddCommand(listSwarmOperatorsSubCmd)
 	listSwarmOperatorsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for operators")
