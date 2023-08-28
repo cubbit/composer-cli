@@ -10,6 +10,12 @@ import (
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login the operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {

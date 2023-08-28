@@ -15,6 +15,14 @@ var operatorCmd = &cobra.Command{
 var signupSubCmd = &cobra.Command{
 	Use:   "signup",
 	Short: "Create a new operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+			cmd.MarkFlagRequired("first-name")
+			cmd.MarkFlagRequired("last-name")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {

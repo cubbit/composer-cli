@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/cubbit/cubbit/client/cli/src/action"
 	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
@@ -17,6 +20,13 @@ var swarmCmd = &cobra.Command{
 var createSwarmSubCmd = &cobra.Command{
 	Use:   "create",
 	Short: "create a new swarm",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			cmd.MarkFlagRequired("name")
+			cmd.MarkFlagRequired("description")
+			cmd.MarkFlagRequired("configuration")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -51,6 +61,17 @@ var listSwarmSubCmd = &cobra.Command{
 var describeSwarmSubCmd = &cobra.Command{
 	Use:   "describe",
 	Short: "describe a swarm",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -68,6 +89,23 @@ var describeSwarmSubCmd = &cobra.Command{
 var editSwarmDescriptionSubCmd = &cobra.Command{
 	Use:   "edit-description",
 	Short: "edit a swarm description",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no new description argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -85,6 +123,23 @@ var editSwarmDescriptionSubCmd = &cobra.Command{
 var editSwarmNameSubCmd = &cobra.Command{
 	Use:   "edit-name",
 	Short: "edit a swarm name",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no new name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -102,6 +157,20 @@ var editSwarmNameSubCmd = &cobra.Command{
 var removeSwarmSubCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove a swarm",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -119,6 +188,22 @@ var removeSwarmSubCmd = &cobra.Command{
 var addOperatorToSwarmSubCmd = &cobra.Command{
 	Use:   "add-operator",
 	Short: "invites an operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("role")
+			cmd.MarkFlagRequired("first-name")
+			cmd.MarkFlagRequired("last-name")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -136,6 +221,17 @@ var addOperatorToSwarmSubCmd = &cobra.Command{
 var listSwarmOperatorsSubCmd = &cobra.Command{
 	Use:   "list-operators",
 	Short: "lists swarm operators",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -153,6 +249,23 @@ var listSwarmOperatorsSubCmd = &cobra.Command{
 var removeSwarmOperatorSubCmd = &cobra.Command{
 	Use:   "remove-operator",
 	Short: "removes swarm operator by email or id",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no operator argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -178,8 +291,6 @@ func init() {
 	listSwarmSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different swarms")
 
 	swarmCmd.AddCommand(describeSwarmSubCmd)
-	describeSwarmSubCmd.Flags().String("id", "", "ID of the swarm")
-	describeSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
 	describeSwarmSubCmd.Flags().String("format", "default", "Format of the output")
 
 	swarmCmd.AddCommand(editSwarmDescriptionSubCmd)
@@ -199,8 +310,6 @@ func init() {
 	swarmCmd.AddCommand(removeSwarmOperatorSubCmd)
 
 	swarmCmd.AddCommand(removeSwarmSubCmd)
-	removeSwarmSubCmd.Flags().String("id", "", "ID of the swarm")
-	removeSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
 	removeSwarmSubCmd.Flags().String("email", "", "Email address")
 	removeSwarmSubCmd.Flags().String("password", "", "Password")
 	removeSwarmSubCmd.Flags().String("code", "", "Two factor authentication code")

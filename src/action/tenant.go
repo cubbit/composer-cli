@@ -128,10 +128,6 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if id == "" && name == "" {
-		return fmt.Errorf("invalid tenant id or name: %w", err)
-	}
-
 	if email, err = cmd.Flags().GetString("email"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -220,8 +216,6 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	switch {
-	case id == "" && name == "":
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantDescription, err)
 	case name == "":
 		for _, tenant := range tenants.Tenants {
 			if id == tenant.ID {
@@ -257,10 +251,6 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if id == "" && name == "" {
-		return fmt.Errorf("invalid tenant id or name: %w", err)
-	}
-
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -269,14 +259,18 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
 	}
 
-	if len(args) != 1 {
-		return fmt.Errorf("invalid image url: %w", err)
-	}
-
 	description := args[0]
 
 	if len(description) > 200 {
 		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
 	}
 
 	if err = api.EditTenantDescription(conf.Urls, *accessToken, id, description); err != nil {
@@ -302,10 +296,6 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if id == "" && name == "" {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
-	}
-
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -314,16 +304,20 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	if len(args) != 1 {
-		return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
-	}
-
 	image := args[0]
 
 	if image != "" {
 		if _, err := url.ParseRequestURI(image); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
 		}
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
 	}
 
 	if err = api.EditTenantImage(conf.Urls, *accessToken, id, image); err != nil {
@@ -348,10 +342,6 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 
 	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
 	}
 
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
@@ -422,10 +412,6 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if id == "" && name == "" {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
-	}
-
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -480,10 +466,6 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 
 	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
 	}
 
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
@@ -552,10 +534,6 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if id == "" && name == "" {
-		return fmt.Errorf("%s: %w", constants.ErrorTenantNameOrID, err)
-	}
-
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -572,10 +550,6 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 		}
 
 		id = tenant.ID
-	}
-
-	if len(args) != 1 {
-		return fmt.Errorf("invalid operator name or id: %w", err)
 	}
 
 	operator = args[0]
@@ -607,20 +581,12 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if id == "" && name == "" {
-		return fmt.Errorf("invalid tenant id or name: %w", err)
-	}
-
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
-	}
-
-	if len(args) != 1 {
-		return fmt.Errorf("invalid swarm id or name: %w", err)
 	}
 
 	if id == "" {
