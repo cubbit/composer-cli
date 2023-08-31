@@ -83,14 +83,14 @@ func DescribeSwarmInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+	
 	if id == "" && name == "" {
 		var choice string
 		var choices []string
 		var swarms []api.Swarm
-
-		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
-		}
 
 		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
