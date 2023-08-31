@@ -187,7 +187,7 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 		}
-		utils.PrintFormattedData(tenant, format)
+		utils.PrintFormattedData(*tenant, format)
 		return nil
 
 	}

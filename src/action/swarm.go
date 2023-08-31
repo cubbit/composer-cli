@@ -394,9 +394,9 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 		}
 	}
-
+	
 	if operators, err = api.ListSwarmOperators(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperators, err)
 	}
 
 	utils.PrintList("Your Swarm Operators")
@@ -460,7 +460,7 @@ func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 
 	operator = args[0]
 
-	if operator, err = getOperatorByEmailOrId(conf, *accessToken, id, operator); err != nil {
+	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
 
@@ -495,6 +495,27 @@ func getSwarmByNameOrId(conf *configuration.Config, accessToken string, swarm st
 
 	if id == "" {
 		return "", fmt.Errorf("swarm %s not found", swarm)
+	}
+
+	return id, nil
+}
+
+func getSwarmOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (string, error) {
+	var err error
+	var operators *api.OperatorList
+	var id string
+
+	if operators, err = api.ListSwarmOperators(conf.Urls, accessToken, tenantID); err != nil {
+		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+	}
+	for _, op := range operators.Operators {
+		if operator == op.Email || operator == op.ID {
+			id = op.ID
+		}
+	}
+
+	if id == "" {
+		return "", fmt.Errorf("operator %s not found", operator)
 	}
 
 	return id, nil

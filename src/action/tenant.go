@@ -554,7 +554,7 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 
 	operator = args[0]
 
-	if operator, err = getOperatorByEmailOrId(conf, *accessToken, id, operator); err != nil {
+	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
@@ -636,12 +636,12 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 	return tenant, nil
 }
 
-func getOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (string, error) {
+func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (string, error) {
 	var err error
 	var operators *api.OperatorList
 	var id string
 
-	if operators, err = api.ListSwarmOperators(conf.Urls, accessToken, tenantID); err != nil {
+	if operators, err = api.ListTenantOperators(conf.Urls, accessToken, tenantID); err != nil {
 		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
 	for _, op := range operators.Operators {

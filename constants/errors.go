@@ -29,9 +29,9 @@ const (
 	ErrorRetrievingTenantDescription     = "error while retrieving tenant description"
 	ErrorTenantNameOrID                  = "error, tenant name or id incorrect"
 	ErrorRetrievingAvailableTenantSwarms = "error while retrieving available tenant swarms list"
-	ErrorInvitingOperator                = "error while inviting operator to tenant"
-	ErrorListingOperators                = "error while listing tenant operators"
-	ErrorRemovingOperator                = "error while removing tenant operator"
+	ErrorInvitingOperator                = "error while inviting operator"
+	ErrorListingOperators                = "error while listing operators"
+	ErrorRemovingOperator                = "error while removing operator"
 
 	ErrorGeneratingOperatorChallengeRequest = "failed request to generate operator challenge"
 	ErrorGettingOperatorRequest             = "failed request to get operator"
