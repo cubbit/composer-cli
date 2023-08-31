@@ -1,3 +1,9 @@
+## 0.6.1 (2023-08-31)
+
+### Fix
+
+- **bug**: fix bug in listing swarm operators and description
+
 ## 0.6.0 (2023-08-28)
 
 ### Feat
