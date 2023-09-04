@@ -17,11 +17,11 @@ import (
 func CreateTenantInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var name, description, imageUrl, settingsString, configPath string
+	var name, description, imageUrl, settingsString, couponCode, configPath string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Coupon code", IsPassword: false, Value: &couponCode}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -58,7 +58,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings); err != nil {
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
 	}
 

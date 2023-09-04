@@ -15,7 +15,7 @@ import (
 func CreateTenant(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var name, description, imageUrl, settingsString, configPath string
+	var name, description, imageUrl, settingsString, couponCode, configPath string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
@@ -41,8 +41,16 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if settingsString, err = cmd.Flags().GetString("settings"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if settingsString == "" {
 		settingsString = "{}"
+	}
+
+	if couponCode, err = cmd.Flags().GetString("coupon-code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
@@ -59,7 +67,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings); err != nil {
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
 	}
 

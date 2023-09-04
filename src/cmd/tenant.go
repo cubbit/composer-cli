@@ -25,6 +25,7 @@ var createTenantSubCmd = &cobra.Command{
 			cmd.MarkFlagRequired("name")
 			cmd.MarkFlagRequired("description")
 			cmd.MarkFlagRequired("settings")
+			cmd.MarkFlagRequired("coupon-code")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -347,6 +348,7 @@ func init() {
 	createTenantSubCmd.Flags().String("description", "", "Description of the tenant")
 	createTenantSubCmd.Flags().String("image-url", "", "Image URL of the tenant")
 	createTenantSubCmd.Flags().String("settings", "", "A Json object containing the tenant settings")
+	createTenantSubCmd.Flags().String("coupon-code", "", "A coupon code to create the tenant")
 
 	tenantCmd.AddCommand(listTenantSubCmd)
 	listTenantSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for tenants")
