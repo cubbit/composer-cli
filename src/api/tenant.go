@@ -9,14 +9,15 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}) (*GenericIDResponseModel, error) {
+func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}, couponCode string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
 	url := urls.IamUrl + constants.Tenants
 
 	requestBody := map[string]interface{}{
-		"name":     name,
-		"settings": settings,
+		"name":        name,
+		"settings":    settings,
+		"coupon_code": couponCode,
 	}
 
 	if description != nil {
