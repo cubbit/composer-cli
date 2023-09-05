@@ -73,4 +73,12 @@ const (
 	ErrorListingPolicies        = "failed request to list policies"
 	ErrorListingPoliciesRequest = "error while retrieving list policies"
 	ErrorConnectingSwarmRequest = "failed request to connect swarm"
+
+	ErrorCreatingDistributor       = "error while creating distributor"
+	ErrorRetrievingDistributorList = "error retrieving distributor list"
+	ErrorDeletingDistributor       = "error while deleing distributor"
+
+	ErrorCreatingDistributorRequest = "failed request to create the distributor"
+	ErrorListingDistributorsRequest = "failed request to list distributors"
+	ErrorDeletingDistributorRequest = "failed request to delete distributor"
 )
