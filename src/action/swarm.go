@@ -394,7 +394,7 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 		}
 	}
-	
+
 	if operators, err = api.ListSwarmOperators(conf.Urls, *accessToken, id); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperators, err)
 	}

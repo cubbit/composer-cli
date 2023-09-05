@@ -86,7 +86,7 @@ func DescribeSwarmInteractive(cmd *cobra.Command) error {
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
-	
+
 	if id == "" && name == "" {
 		var choice string
 		var choices []string

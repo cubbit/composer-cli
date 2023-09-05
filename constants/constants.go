@@ -38,4 +38,7 @@ const (
 	ForgeOperatorDeleteSwarmToken = "/v1/auth/operators/forge/token?capabilities=delete_swarm&swarm_id="
 
 	Policies = "/v1/policies"
+
+	Distributors                = "/v1/distributors"
+	ForgeDistributorDeleteToken = "/v1/auth/operators/forge/token?capabilities=delete_distributor&distributor_id="
 )

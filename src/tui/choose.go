@@ -20,13 +20,15 @@ var (
 )
 
 type keyMap struct {
-	Up     key.Binding
-	Down   key.Binding
-	Left   key.Binding
-	Right  key.Binding
-	Enter  key.Binding
-	Select key.Binding
-	Quit   key.Binding
+	Up          key.Binding
+	Down        key.Binding
+	Left        key.Binding
+	Right       key.Binding
+	Enter       key.Binding
+	Select      key.Binding
+	SelectAll   key.Binding
+	DeselectAll key.Binding
+	Quit        key.Binding
 }
 
 var keys = keyMap{
@@ -47,6 +49,12 @@ var keys = keyMap{
 	),
 	Select: key.NewBinding(
 		key.WithKeys(" ", "tab", "x"),
+	),
+	SelectAll: key.NewBinding(
+		key.WithKeys("a"),
+	),
+	DeselectAll: key.NewBinding(
+		key.WithKeys("A"),
 	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "esc", "ctrl+c"),
@@ -167,7 +175,32 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.numSelected++
 				m.currentOrder++
 			}
-
+		case key.Matches(msg, m.keys.SelectAll):
+			if m.limit <= 1 {
+				break
+			}
+			for i := range m.items {
+				if m.numSelected >= m.limit {
+					break // do not exceed given limit
+				}
+				if m.items[i].selected {
+					continue
+				}
+				m.items[i].selected = true
+				m.items[i].order = m.currentOrder
+				m.numSelected++
+				m.currentOrder++
+			}
+		case key.Matches(msg, m.keys.DeselectAll):
+			if m.limit <= 1 {
+				break
+			}
+			for i := range m.items {
+				m.items[i].selected = false
+				m.items[i].order = 0
+			}
+			m.numSelected = 0
+			m.currentOrder = 0
 		case key.Matches(msg, m.keys.Enter):
 			m.quit = true
 
@@ -276,6 +309,17 @@ func ChooseOne(title string, isLastStep bool, options []string) (string, error) 
 	}
 
 	return choice[0], err
+}
+
+func ChooseMany(title string, isLastStep bool, options []string) ([]string, error) {
+	choice, err := choose(title, isLastStep, options, 0)
+	if err != nil {
+		return choice, err
+	}
+	if len(choice) == 0 {
+		return choice, fmt.Errorf("no options were selected")
+	}
+	return choice, err
 }
 
 func choose(title string, isLastStep bool, options []string, limit int) ([]string, error) {
