@@ -348,7 +348,7 @@ func init() {
 	createTenantSubCmd.Flags().String("description", "", "Description of the tenant")
 	createTenantSubCmd.Flags().String("image-url", "", "Image URL of the tenant")
 	createTenantSubCmd.Flags().String("settings", "", "A Json object containing the tenant settings")
-	createTenantSubCmd.Flags().String("coupon-code", "", "A coupon code to create the tenant")
+	createTenantSubCmd.Flags().String("coupon-code", "", "A code provided by the Distributor that authorizes the tenant creation")
 
 	tenantCmd.AddCommand(listTenantSubCmd)
 	listTenantSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for tenants")
