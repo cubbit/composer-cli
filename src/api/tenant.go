@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
@@ -17,7 +18,7 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 	requestBody := map[string]interface{}{
 		"name":        name,
 		"settings":    settings,
-		"coupon_code": couponCode,
+		"coupon_code": strings.ToUpper(couponCode),
 	}
 
 	if description != nil {
