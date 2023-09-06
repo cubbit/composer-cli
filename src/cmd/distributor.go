@@ -18,8 +18,9 @@ var distributorCmd = &cobra.Command{
 }
 
 var createDistributorSubCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a new distributor",
+	Use:     "create",
+	Short:   "create a new distributor",
+	Aliases: []string{"new"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			cmd.MarkFlagRequired("name")
@@ -52,8 +53,9 @@ var createDistributorSubCmd = &cobra.Command{
 }
 
 var listDistributorSubCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list distributors",
+	Use:     "list",
+	Short:   "list distributors",
+	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -69,8 +71,9 @@ var listDistributorSubCmd = &cobra.Command{
 }
 
 var removeDistributorSubCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "remove a distributor",
+	Use:     "remove",
+	Short:   "remove a distributor",
+	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
