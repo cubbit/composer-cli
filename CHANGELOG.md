@@ -1,3 +1,14 @@
+## 0.7.0 (2023-09-06)
+
+### Feat
+
+- **cli**: add aliases for distributor cmds
+- **cli**: create, list and remove distributors
+
+### Fix
+
+- **bug**: fix bug in listing swarm operators and description
+
 ## 0.6.0 (2023-08-28)
 
 ### Feat
