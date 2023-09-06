@@ -138,3 +138,17 @@ type Distributor struct {
 type DistributorList struct {
 	Distributors []*Distributor `json:"distributors"`
 }
+
+type DistributorCoupon struct {
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	Redemptions    int       `json:"redemptions"`
+	MaxRedemptions int64     `json:"max_redemptions"`
+	Code           string    `json:"code"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type DistributorCouponList struct {
+	Coupons []*DistributorCoupon `json:"coupons"`
+}

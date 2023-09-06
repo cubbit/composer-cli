@@ -69,7 +69,7 @@ func CreateDistributor(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributor, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributer: %s created successfully", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("distributor %s created successfully", response.ID))
 
 	return nil
 }
@@ -188,4 +188,215 @@ func RemoveDistributor(cmd *cobra.Command, args []string) error {
 	utils.PrintDelete(fmt.Sprintf("distributor %s removed successfully", id))
 
 	return nil
+}
+
+func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, couponName, description, configPath string
+	var maxRedemptions int
+	var swarmIDs []string
+	var response *api.GenericIDResponseModel
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if couponName, err = cmd.Flags().GetString("coupon-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if description, err = cmd.Flags().GetString("description"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if len(description) > 200 {
+		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
+	}
+
+	if maxRedemptions, err = cmd.Flags().GetInt("redemption-count"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if swarmIDs, err = cmd.Flags().GetStringSlice("swarms"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+
+		}
+		id = distributor.ID
+	}
+
+	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributor, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s created successfully", response.ID))
+
+	return nil
+}
+
+func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+	var distributorCoupons *api.DistributorCouponList
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+
+		}
+		id = distributor.ID
+	}
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+	}
+
+	var verbose, l bool
+
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if l, err = cmd.Flags().GetBool("line"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	utils.PrintList("Your Distributor Coupons List")
+
+	for _, coupon := range distributorCoupons.Coupons {
+		if verbose {
+			fmt.Printf(" • %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description)
+		} else {
+			fmt.Printf(" • %s\n", coupon.Name)
+		}
+		if l {
+			fmt.Println()
+		}
+	}
+
+	return nil
+}
+
+func DescribeDistributorCoupon(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, format, configPath string
+	var conf *configuration.Config
+	var distributorCoupon *api.DistributorCoupon
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+
+		}
+		id = distributor.ID
+	}
+
+	if distributorCoupon, err = getDistributorCouponByNameOrId(conf, *accessToken, id, args[0]); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	utils.PrintFormattedData(*distributorCoupon, format)
+
+	return nil
+}
+
+func getDistributorByNameOrId(conf *configuration.Config, accessToken string, distributor string) (*api.Distributor, error) {
+	var err error
+	var distributors *api.DistributorList
+
+	if distributors, err = api.ListDistributors(conf.Urls, accessToken); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+	}
+
+	for _, ds := range distributors.Distributors {
+		if distributor == ds.Name || distributor == ds.ID {
+			return ds, nil
+
+		}
+	}
+
+	return nil, fmt.Errorf("distributor %s not found", distributor)
+
+}
+
+func getDistributorCouponByNameOrId(conf *configuration.Config, accessToken string, distributorID string, coupon string) (*api.DistributorCoupon, error) {
+	var err error
+	var distributorCoupons *api.DistributorCouponList
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, accessToken, distributorID); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+	}
+
+	for _, dc := range distributorCoupons.Coupons {
+		if coupon == dc.Name || coupon == dc.ID {
+			return dc, nil
+
+		}
+	}
+
+	return nil, fmt.Errorf("distributor coupon %s not found", coupon)
+
 }

@@ -102,6 +102,109 @@ var removeDistributorSubCmd = &cobra.Command{
 	},
 }
 
+var createDistributorCouponSubCmd = &cobra.Command{
+	Use:   "create-coupon",
+	Short: "create a new distributor coupon",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("coupon-name")
+			cmd.MarkFlagRequired("description")
+			cmd.MarkFlagRequired("redemption-count")
+			cmd.MarkFlagRequired("swarms")
+
+			swarms, _ := cmd.Flags().GetStringSlice("swarms")
+			if len(swarms) == 0 {
+				fmt.Println("Error: no swarms provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.CreateDistributorCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.CreateDistributorCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listDistributorCouponsSubCmd = &cobra.Command{
+	Use:   "list-coupons",
+	Short: "list distributor coupons",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListDistributorCoupons); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListDistributorCouponsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeDistributorCouponSubCmd = &cobra.Command{
+	Use:   "describe-coupon",
+	Short: "describe a distributor coupon",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no distributor id/name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeDistributorCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeDistributorCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	distributorCmd.AddCommand(createDistributorSubCmd)
 	createDistributorSubCmd.Flags().String("name", "", "Name of the distributor")
@@ -120,6 +223,19 @@ func init() {
 	removeDistributorSubCmd.Flags().String("email", "", "Email address")
 	removeDistributorSubCmd.Flags().String("password", "", "Password")
 	removeDistributorSubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	distributorCmd.AddCommand(createDistributorCouponSubCmd)
+	createDistributorCouponSubCmd.Flags().String("coupon-name", "", "Name of the distributor coupon")
+	createDistributorCouponSubCmd.Flags().String("description", "", "Description of the distributor coupon")
+	createDistributorCouponSubCmd.Flags().Int("redemption-count", 0, "Max redemptions of the distributor coupon")
+	createDistributorCouponSubCmd.Flags().StringSlice("swarms", []string{}, "List of swarm ids associated to the distributor coupon")
+
+	distributorCmd.AddCommand(listDistributorCouponsSubCmd)
+	listDistributorCouponsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for distributor coupons")
+	listDistributorCouponsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different distributor coupons")
+
+	distributorCmd.AddCommand(describeDistributorCouponSubCmd)
+	describeDistributorCouponSubCmd.Flags().String("format", "default", "Formats the output")
 
 	rootCmd.AddCommand(distributorCmd)
 	distributorCmd.PersistentFlags().String("name", "", "Name of the distributor")
