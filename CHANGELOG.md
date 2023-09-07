@@ -1,3 +1,13 @@
+## 0.8.0 (2023-09-07)
+
+### Feat
+
+- **cli**: create, describe and list distributor coupons
+
+### Fix
+
+- unmark unrequired flags and fix redemption count default value
+
 ## 0.7.0 (2023-09-06)
 
 ### Feat
