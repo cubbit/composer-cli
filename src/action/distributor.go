@@ -246,7 +246,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 	}
 
 	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributor, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCoupon, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s created successfully", response.ID))
@@ -288,7 +288,7 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 	}
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
 	var verbose, l bool
@@ -351,7 +351,7 @@ func DescribeDistributorCoupon(cmd *cobra.Command, args []string) error {
 	}
 
 	if distributorCoupon, err = getDistributorCouponByNameOrId(conf, *accessToken, id, args[0]); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCoupon, err)
 	}
 
 	if format, err = cmd.Flags().GetString("format"); err != nil {
@@ -368,7 +368,7 @@ func getDistributorByNameOrId(conf *configuration.Config, accessToken string, di
 	var distributors *api.DistributorList
 
 	if distributors, err = api.ListDistributors(conf.Urls, accessToken); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 	}
 
 	for _, ds := range distributors.Distributors {
@@ -387,7 +387,7 @@ func getDistributorCouponByNameOrId(conf *configuration.Config, accessToken stri
 	var distributorCoupons *api.DistributorCouponList
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, accessToken, distributorID); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
 	for _, dc := range distributorCoupons.Coupons {

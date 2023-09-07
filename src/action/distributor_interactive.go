@@ -228,7 +228,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -271,7 +271,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if choices, err = tui.ChooseMany("Which swarm would you like to associate to the distributor coupon?", true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
 	}
 
 	for _, swarm := range choices {
@@ -331,7 +331,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -387,7 +387,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -400,7 +400,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -420,7 +420,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 	var distributorCoupons *api.DistributorCouponList
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
 	for _, coupon := range distributorCoupons.Coupons {
@@ -433,7 +433,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if choice, err = tui.ChooseOne("Which distributor coupon would you like to describe?", false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
