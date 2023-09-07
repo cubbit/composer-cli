@@ -116,8 +116,6 @@ var createDistributorCouponSubCmd = &cobra.Command{
 			}
 
 			cmd.MarkFlagRequired("coupon-name")
-			cmd.MarkFlagRequired("description")
-			cmd.MarkFlagRequired("redemption-count")
 			cmd.MarkFlagRequired("swarms")
 
 			swarms, _ := cmd.Flags().GetStringSlice("swarms")
@@ -227,7 +225,7 @@ func init() {
 	distributorCmd.AddCommand(createDistributorCouponSubCmd)
 	createDistributorCouponSubCmd.Flags().String("coupon-name", "", "Name of the distributor coupon")
 	createDistributorCouponSubCmd.Flags().String("description", "", "Description of the distributor coupon")
-	createDistributorCouponSubCmd.Flags().Int("redemption-count", 0, "Max redemptions of the distributor coupon")
+	createDistributorCouponSubCmd.Flags().Int("redemption-count", -1, "Max redemptions of the distributor coupon")
 	createDistributorCouponSubCmd.Flags().StringSlice("swarms", []string{}, "List of swarm ids associated to the distributor coupon")
 
 	distributorCmd.AddCommand(listDistributorCouponsSubCmd)
