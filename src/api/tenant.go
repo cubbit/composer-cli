@@ -237,3 +237,21 @@ func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string)
 
 	return nil
 }
+
+func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/coupons/default/swarms"
+
+	var response SwarmList
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractSwarmListModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantSwarmsRequest, err)
+	}
+	return &response, nil
+}

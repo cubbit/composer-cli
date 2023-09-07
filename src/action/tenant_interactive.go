@@ -745,6 +745,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operator *api.Operator
 	var swarms []api.Swarm
+	var swarms1 *api.SwarmList
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -780,6 +781,11 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
 		}
 
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
@@ -802,14 +808,32 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
 	}
 
-	if len(swarms) == 0 {
+	if swarms1, err = api.GetTenantCouponSwarms(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+	}
+
+	mergedSwarms := make(map[string]api.Swarm)
+
+	for _, swarm := range swarms {
+
+		mergedSwarms[swarm.SwarmID] = swarm
+	}
+
+	for _, swarm := range swarms1.Swarms {
+
+		if _, ok := mergedSwarms[swarm.SwarmID]; !ok {
+			mergedSwarms[swarm.SwarmID] = swarm
+		}
+	}
+
+	if len(mergedSwarms) == 0 {
 		utils.PrintNotFound("No swarms found")
 		return nil
 	}
 
 	var choices []string
 
-	for _, sw := range swarms {
+	for _, sw := range mergedSwarms {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.SwarmID, sw.Name, sw.Description))
 	}
 
