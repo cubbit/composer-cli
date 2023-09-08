@@ -152,3 +152,7 @@ type DistributorCoupon struct {
 type DistributorCouponList struct {
 	Coupons []*DistributorCoupon `json:"coupons"`
 }
+
+type DistributorCouponCodeResponseModel struct {
+	CouponCode string `json:"coupon_code"`
+}

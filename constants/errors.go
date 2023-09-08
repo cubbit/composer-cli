@@ -82,6 +82,9 @@ const (
 	ErrorRetrievingDistributorCouponList = "error retrieving distributor coupon list"
 	ErrorDeletingDistributorCoupon       = "error while deleting distributor coupon"
 	ErrorRetrievingDistributorCoupon     = "error retrieving distributor coupon"
+	ErrorEditingDistributorCoupon        = "error editing distributor coupon"
+	ErrorRevokingDistributorCoupon       = "error revoking distributor coupon code"
+	ErrorRemovingDistributorCoupon       = "error removing distributor coupon code"
 
 	ErrorCreatingDistributorRequest         = "failed request to create the distributor"
 	ErrorListingDistributorsRequest         = "failed request to list distributors"
@@ -89,6 +92,8 @@ const (
 	ErrorCreatingDistributorCouponRequest   = "failed request to create the distributor coupon"
 	ErrorListingDistributorCouponsRequest   = "failed request to list distributor coupons"
 	ErrorRetrievingDistributorCouponRequest = "failed request to retrieve distributor coupon"
+	ErrorEditingDistributorCouponRequest    = "failed request to edit distributor coupon"
+	ErrorRemovingDistributorCouponRequest   = "failed request to remove distributor coupon code"
 
 	ErrorRedemptionValue = "redemption count must be an integer"
 )

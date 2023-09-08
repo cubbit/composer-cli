@@ -137,3 +137,69 @@ func GetDistributorCoupon(urls configuration.Url, accessToken, distributorID, co
 	}
 	return &response, nil
 }
+
+func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string, name, description *string, maxRedemption *int) (*GenericIDResponseModel, error) {
+	var err error
+	var response GenericIDResponseModel
+	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
+
+	requestBody := map[string]interface{}{}
+
+	if name != nil && *name != "" {
+		requestBody["name"] = *name
+	}
+
+	if description != nil && *description != "" {
+		requestBody["description"] = *description
+	}
+
+	if maxRedemption != nil && *maxRedemption != 0 {
+		requestBody["max_redemptions"] = *maxRedemption
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractGenericIDResponseModel(&response),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCoupon, err)
+	}
+	return &response, nil
+}
+
+func RevokeDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string) (*DistributorCouponCodeResponseModel, error) {
+	var err error
+	var response DistributorCouponCodeResponseModel
+	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID + "/revoke"
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractDistributorCouponCodeResponseModel(&response),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCoupon, err)
+	}
+	return &response, nil
+}
+
+func RemoveDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string) error {
+	var err error
+	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRemovingDistributorCoupon, err)
+	}
+	return nil
+}

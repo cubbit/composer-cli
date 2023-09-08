@@ -203,6 +203,111 @@ var describeDistributorCouponSubCmd = &cobra.Command{
 	},
 }
 
+var editDistributorCouponSubCmd = &cobra.Command{
+	Use:   "edit-coupon",
+	Short: "edit a distributor coupon",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no distributor coupon id/name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.EditDistributorCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditDistributorCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var revokeDistributorCouponSubCmd = &cobra.Command{
+	Use:   "revoke-coupon",
+	Short: "revoke distributor coupon code",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no distributor coupon id/name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RevokeDistributorCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RevokeDistributorCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeDistributorCouponSubCmd = &cobra.Command{
+	Use:   "remove-coupon",
+	Short: "remove distributor coupon",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no distributor coupon id/name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RemoveDistributorCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveDistributorCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	distributorCmd.AddCommand(createDistributorSubCmd)
 	createDistributorSubCmd.Flags().String("name", "", "Name of the distributor")
@@ -234,6 +339,15 @@ func init() {
 
 	distributorCmd.AddCommand(describeDistributorCouponSubCmd)
 	describeDistributorCouponSubCmd.Flags().String("format", "default", "Formats the output")
+
+	distributorCmd.AddCommand(editDistributorCouponSubCmd)
+	editDistributorCouponSubCmd.Flags().String("coupon-name", "", "New name of the distributor coupon")
+	editDistributorCouponSubCmd.Flags().String("description", "", "New description of the distributor coupon")
+	editDistributorCouponSubCmd.Flags().String("redemption-count", "", "New max redemptions of the distributor coupon")
+
+	distributorCmd.AddCommand(revokeDistributorCouponSubCmd)
+
+	distributorCmd.AddCommand(removeDistributorCouponSubCmd)
 
 	rootCmd.AddCommand(distributorCmd)
 	distributorCmd.PersistentFlags().String("name", "", "Name of the distributor")
