@@ -251,8 +251,11 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
-	if maxRedemptions, err = strconv.Atoi(redemptionCount); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRedemptionValue, err)
+	if redemptionCount != "" {
+
+		if maxRedemptions, err = strconv.Atoi(redemptionCount); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRedemptionValue, err)
+		}
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
@@ -450,6 +453,291 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 	}
+
+	return nil
+}
+
+func EditDistributorCouponInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, couponName, couponID, description, redemptionCount, configPath string
+	var maxRedemptions int
+	var response *api.GenericIDResponseModel
+	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var distributors *api.DistributorList
+
+		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, distributor := range distributors.Distributors {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No distributor found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+		}
+		id = distributor.ID
+	}
+
+	var choices []string
+	var choice string
+	var distributorCoupons *api.DistributorCouponList
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	for _, coupon := range distributorCoupons.Coupons {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor coupon found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to edit?", false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	couponID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if len(description) > 200 {
+		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
+	}
+
+	if redemptionCount != "" {
+
+		if maxRedemptions, err = strconv.Atoi(redemptionCount); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRedemptionValue, err)
+		}
+	}
+
+	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCoupon, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s updated successfully", response.ID))
+
+	return nil
+}
+
+func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, couponID, configPath string
+	var response *api.DistributorCouponCodeResponseModel
+	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var distributors *api.DistributorList
+
+		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, distributor := range distributors.Distributors {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No distributor found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+		}
+		id = distributor.ID
+	}
+
+	var choices []string
+	var choice string
+	var distributorCoupons *api.DistributorCouponList
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	for _, coupon := range distributorCoupons.Coupons {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor coupon found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to revoke?", false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	couponID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if response, err = api.RevokeDistributorCoupon(conf.Urls, *accessToken, id, couponID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCoupon, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s revoked successfully", response.CouponCode))
+
+	return nil
+}
+
+func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, couponID, configPath string
+	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var distributors *api.DistributorList
+
+		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		}
+
+		for _, distributor := range distributors.Distributors {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No distributor found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+		}
+		id = distributor.ID
+	}
+
+	var choices []string
+	var choice string
+	var distributorCoupons *api.DistributorCouponList
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	for _, coupon := range distributorCoupons.Coupons {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor coupon found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to remove?", false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	couponID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if err = api.RemoveDistributorCoupon(conf.Urls, *accessToken, id, couponID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributorCoupon, err)
+	}
+
+	utils.PrintDelete(fmt.Sprintf("distributor coupon %s removed successfully", couponID))
 
 	return nil
 }
