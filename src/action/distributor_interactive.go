@@ -66,7 +66,7 @@ func CreateDistributorInteractive(cmd *cobra.Command) error {
 	var choices []string
 
 	for _, sw := range swarms {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.SwarmID, sw.Name, sw.Description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.ID, sw.Name, sw.Description))
 	}
 
 	if choices, err = tui.ChooseMany("Which swarm would you like to associate to the distributor?", true, choices); err != nil {
@@ -270,7 +270,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	var choices []string
 
 	for _, sw := range swarms {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.SwarmID, sw.Name, sw.Description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.ID, sw.Name, sw.Description))
 	}
 
 	if choices, err = tui.ChooseMany("Which swarm would you like to associate to the distributor coupon?", true, choices); err != nil {
@@ -539,7 +539,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	couponID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", true, tui.Input{Placeholder: "Name", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -637,7 +637,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to revoke?", false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to revoke?", true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -726,7 +726,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to remove?", false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to remove?", true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 

@@ -97,7 +97,7 @@ func DescribeSwarmInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 		}
 
 		if len(choices) == 0 {
@@ -158,7 +158,7 @@ func ListSwarmsInteractive(cmd *cobra.Command) error {
 
 	utils.PrintList("Your Swarms List")
 	for _, swarm := range swarms {
-		fmt.Printf("• %s, %s, %s\n", swarm.SwarmID, swarm.Name, swarm.Description)
+		fmt.Printf("• %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
 
 	}
 
@@ -198,7 +198,7 @@ func RemoveSwarmInteractive(cmd *cobra.Command) error {
 	var choices []string
 
 	for _, swarm := range swarms {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 	}
 
 	if len(choices) == 0 {
@@ -270,7 +270,7 @@ func EditSwarmDescriptionInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 		}
 
 		if choice, err = tui.ChooseOne("Which swarm would you like to retrieve?", false, choices); err != nil {
@@ -341,7 +341,7 @@ func EditSwarmNameInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 		}
 
 		if len(choices) == 0 {
@@ -414,7 +414,7 @@ func AddOperatorToSwarmInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 		}
 
 		if len(choices) == 0 {
@@ -513,7 +513,7 @@ func ListSwarmOperatorsInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 		}
 
 		if len(choices) == 0 {
@@ -591,7 +591,7 @@ func RemoveSwarmOperatorInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.SwarmID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 		}
 
 		if len(choices) == 0 {

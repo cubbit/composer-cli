@@ -146,7 +146,7 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 	utils.PrintList("Your Swarms List")
 	for _, swarm := range swarms {
 		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", swarm.SwarmID, swarm.Name, swarm.Description)
+			fmt.Printf(" • %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
 		} else {
 			fmt.Printf(" • %s\n", swarm.Name)
 		}
@@ -488,8 +488,8 @@ func getSwarmByNameOrId(conf *configuration.Config, accessToken string, swarm st
 	}
 
 	for _, sw := range swarms {
-		if swarm == sw.Name || swarm == sw.SwarmID {
-			id = sw.SwarmID
+		if swarm == sw.Name || swarm == sw.ID {
+			id = sw.ID
 		}
 	}
 

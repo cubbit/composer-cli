@@ -69,7 +69,9 @@ type TenantList struct {
 }
 
 type Swarm struct {
-	SwarmID       string                 `json:"id"`
+	ID            string                 `json:"id"`
+	SwarmID       string                 `json:"swarm_id"`
+	SwarmName     string                 `json:"swarm_name"`
 	TenantID      string                 `json:"tenant_id"`
 	Name          string                 `json:"name" example:"Cubbit"`
 	Description   string                 `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
