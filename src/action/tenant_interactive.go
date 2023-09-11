@@ -451,7 +451,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		if swarm.Default {
 			cross = "x"
 		}
-		fmt.Printf("[%s] %s\n", cross, swarm.SwarmID)
+		fmt.Printf("[%s] %s, %s\n", cross, swarm.SwarmID, swarm.SwarmName)
 	}
 
 	return nil
@@ -816,13 +816,13 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 
 	for _, swarm := range swarms {
 
-		mergedSwarms[swarm.SwarmID] = swarm
+		mergedSwarms[swarm.ID] = swarm
 	}
 
 	for _, swarm := range swarms1.Swarms {
 
-		if _, ok := mergedSwarms[swarm.SwarmID]; !ok {
-			mergedSwarms[swarm.SwarmID] = swarm
+		if _, ok := mergedSwarms[swarm.ID]; !ok {
+			mergedSwarms[swarm.ID] = swarm
 		}
 	}
 
@@ -834,7 +834,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	var choices []string
 
 	for _, sw := range mergedSwarms {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.SwarmID, sw.Name, sw.Description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.ID, sw.Name, sw.Description))
 	}
 
 	if choice, err = tui.ChooseOne("Which swarm would you like to connect?", true, choices); err != nil {

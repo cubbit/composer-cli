@@ -160,7 +160,7 @@ func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distrib
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),

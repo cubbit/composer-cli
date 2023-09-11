@@ -383,7 +383,7 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 		if swarm.Default {
 			cross = "x"
 		}
-		fmt.Printf("[%s] %s\n", cross, swarm.SwarmID)
+		fmt.Printf("[%s] %s, %s\n", cross, swarm.SwarmID, swarm.SwarmName)
 	}
 	return nil
 }
