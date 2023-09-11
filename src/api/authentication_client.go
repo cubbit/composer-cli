@@ -30,7 +30,7 @@ func GenerateOperatorChallenge(urls configuration.Url, email string) (*Challenge
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractChallengeResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
+		return nil, err
 	}
 
 	return &response, nil
@@ -67,7 +67,7 @@ func PerformOperatorSignin(urls configuration.Url, email, password string, chall
 		extractTokenExpirationModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshTokenCookie),
 	); err != nil {
-		return "", fmt.Errorf("%s: %w", constants.ErrorSignRequest, err)
+		return "", err
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
@@ -111,7 +111,7 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 	}
 
 	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperatorRequest, err)
+		return err
 	}
 
 	return nil
@@ -140,7 +140,7 @@ func getOperatorAccessToken(refreshToken string, url string) (string, string, er
 		extractTokenExpirationModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshToken),
 	); err != nil {
-		return "", "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
+		return "", "", err
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
@@ -186,7 +186,7 @@ func ForgeOperatorDeleteTenantToken(urls configuration.Url, email, password, ref
 		request_utils.WithRequestBody(body),
 		extractTokenExpirationModel(&tokenExpirationResponse),
 	); err != nil {
-		return "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
+		return "", err
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
@@ -232,7 +232,7 @@ func ForgeOperatorDeleteSwarmToken(urls configuration.Url, email, password, refr
 		request_utils.WithRequestBody(body),
 		extractTokenExpirationModel(&tokenExpirationResponse),
 	); err != nil {
-		return "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
+		return "", err
 	}
 
 	if tokenExpirationResponse.Exp == 0 {
@@ -278,7 +278,7 @@ func ForgeDistributorDeleteToken(urls configuration.Url, email, password, refres
 		request_utils.WithRequestBody(body),
 		extractTokenExpirationModel(&tokenExpirationResponse),
 	); err != nil {
-		return "", fmt.Errorf("%s: %w", constants.ErrorForgingRequest, err)
+		return "", err
 	}
 
 	if tokenExpirationResponse.Exp == 0 {

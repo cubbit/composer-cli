@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -21,7 +20,7 @@ func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator,
 		request_utils.WithAccessToken(accessToken),
 		extractOperatorResponseModel(&operator),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorGettingOperatorRequest, err)
+		return nil, err
 	}
 
 	return &operator, nil

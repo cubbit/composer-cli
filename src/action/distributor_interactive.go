@@ -33,7 +33,7 @@ func CreateDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
@@ -55,7 +55,7 @@ func CreateDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	if len(swarms) == 0 {
@@ -80,7 +80,7 @@ func CreateDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	if response, err = api.CreateDistributor(conf.Urls, *accessToken, name, &description, &imageUrl, swarmIDs, email, firstName, lastName); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributor, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("distributor %s created successfully", response.ID))
@@ -105,7 +105,7 @@ func RemoveDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 	}
 
 	if len(distributors.Distributors) == 0 {
@@ -135,15 +135,15 @@ func RemoveDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
 	}
 
 	if deleteDistributorToken, err = api.ForgeDistributorDeleteToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
+		return fmt.Errorf("%s: %w", constants.ErrorForgingDistributorDeleteTokenRequest, err)
 	}
 
 	if err = api.RemoveDistributor(conf.Urls, *accessToken, id, deleteDistributorToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributor, err)
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributorRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("distributor %s removed successfully", id))
@@ -167,7 +167,7 @@ func ListDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 	}
 
 	utils.PrintList("Your Distributors List")
@@ -198,7 +198,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
@@ -215,7 +215,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -238,7 +238,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	if id == "" {
 		var distributor *api.Distributor
 		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponRequest, err)
 		}
 		id = distributor.ID
 	}
@@ -259,7 +259,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	if len(swarms) == 0 {
@@ -284,7 +284,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCoupon, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s created successfully", response.ID))
@@ -321,7 +321,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -350,7 +350,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 	}
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
 	utils.PrintList("Your Distributor coupon List")
@@ -390,7 +390,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -423,7 +423,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 	var distributorCoupons *api.DistributorCouponList
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
 	for _, coupon := range distributorCoupons.Coupons {
@@ -520,7 +520,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 	var distributorCoupons *api.DistributorCouponList
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
 	for _, coupon := range distributorCoupons.Coupons {
@@ -555,7 +555,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCoupon, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCouponRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s updated successfully", response.ID))
@@ -592,7 +592,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -625,7 +625,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 	var distributorCoupons *api.DistributorCouponList
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
 	for _, coupon := range distributorCoupons.Coupons {
@@ -645,7 +645,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 	couponID, _, _ = strings.Cut(withoutPrefix, ",")
 
 	if response, err = api.RevokeDistributorCoupon(conf.Urls, *accessToken, id, couponID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCoupon, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCouponRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s revoked successfully", response.CouponCode))
@@ -681,7 +681,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -714,7 +714,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 	var distributorCoupons *api.DistributorCouponList
 
 	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
 	for _, coupon := range distributorCoupons.Coupons {
@@ -734,7 +734,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 	couponID, _, _ = strings.Cut(withoutPrefix, ",")
 
 	if err = api.RemoveDistributorCoupon(conf.Urls, *accessToken, id, couponID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributorCoupon, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRemovingDistributorCouponRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("distributor coupon %s removed successfully", couponID))

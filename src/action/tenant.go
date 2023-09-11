@@ -68,7 +68,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant: %s created successfully", response.ID))
@@ -92,7 +92,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
 	var verbose, l bool
@@ -160,7 +160,7 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -176,15 +176,15 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
 	}
 
 	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
+		return fmt.Errorf("%s: %w", constants.ErrorForgingTenantDeleteTokenRequest, err)
 	}
 
 	if err = api.RemoveTenant(conf.Urls, *accessToken, id, deleteTenantToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully", id))
@@ -220,7 +220,7 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
 	switch {
@@ -282,7 +282,7 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 	}
 
 	if err = api.EditTenantDescription(conf.Urls, *accessToken, id, description); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantDescription, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s description updated successfully", id))
@@ -329,7 +329,7 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 	}
 
 	if err = api.EditTenantImage(conf.Urls, *accessToken, id, image); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s image updated successfully", id))
@@ -369,7 +369,7 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if swarms, err = api.ListAvailableTenantSwarms(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAvailableTenantSwarms, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	utils.PrintList("Your Tenant Connected Swarms")
@@ -437,7 +437,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if policies, err = api.ListTenantPolicies(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
 	}
 
 	for _, policy := range policies.Policies {
@@ -453,7 +453,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if err = api.InviteOperatorToTenant(conf.Urls, *accessToken, id, email, role, firstName, lastName); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
@@ -494,7 +494,7 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 	}
 
 	if operators, err = api.ListTenantOperators(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingOperators, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
 	utils.PrintList("Your Tenant Operators")
@@ -567,7 +567,7 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	if err = api.RemoveTenantOperator(conf.Urls, *accessToken, id, operator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operator))
@@ -613,7 +613,7 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if err = api.ConnectSwarm(conf.Urls, *accessToken, id, swarm); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarmRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s connected to swarm %s successfully", id, swarm))
@@ -627,7 +627,7 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 	var tenant *api.Tenant
 
 	if tenants, err = api.ListTenants(conf.Urls, accessToken); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
 	for _, tn := range tenants.Tenants {
@@ -650,7 +650,7 @@ func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string
 	var id string
 
 	if operators, err = api.ListTenantOperators(conf.Urls, accessToken, tenantID); err != nil {
-		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return id, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {

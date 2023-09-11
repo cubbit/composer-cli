@@ -59,7 +59,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant  %s created successfully", response.ID))
@@ -84,7 +84,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
 	if len(tenants.Tenants) == 0 {
@@ -114,15 +114,15 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
 	}
 
 	if deleteTenantToken, err = api.ForgeOperatorDeleteTenantToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
+		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteTokenRequest, err)
 	}
 
 	if err = api.RemoveTenant(conf.Urls, *accessToken, id, deleteTenantToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("tenant %s removed successfully", id))
@@ -159,7 +159,7 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -193,7 +193,7 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if tenant, err = getTenantByNameOrId(conf, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmRequest, err)
 	}
 
 	utils.PrintFormattedData(*tenant, format)
@@ -229,7 +229,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -242,7 +242,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -267,7 +267,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	}
 
 	if err = api.EditTenantDescription(conf.Urls, *accessToken, id, description); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantDescription, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s description updated successfully", id))
@@ -302,7 +302,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -315,7 +315,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -342,7 +342,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 	}
 
 	if err = api.EditTenantImage(conf.Urls, *accessToken, id, image); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s image updated successfully", id))
@@ -366,7 +366,7 @@ func ListTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
 	utils.PrintList("Your Tenants List")
@@ -406,7 +406,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -419,7 +419,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -436,7 +436,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if swarms, err = api.ListAvailableTenantSwarms(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAvailableTenantSwarms, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	utils.PrintList("Your Tenant Connected Swarms")
@@ -486,7 +486,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -499,7 +499,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -520,7 +520,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if policies, err = api.ListTenantPolicies(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
 	}
 
 	var choices []string
@@ -535,7 +535,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingPolicies, err)
 	}
 	_, choice, _ = strings.Cut(choice, " ")
 
@@ -546,7 +546,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if err = api.InviteOperatorToTenant(conf.Urls, *accessToken, id, email, role, first_name, last_name); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
@@ -583,7 +583,7 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -596,7 +596,7 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -614,7 +614,7 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 	}
 
 	if operators, err = api.ListTenantOperators(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAvailableTenantSwarms, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
 	utils.PrintList("Your Tenant Operators")
@@ -661,7 +661,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		var tenants *api.TenantList
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -674,7 +674,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -692,11 +692,11 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if operators, err = api.ListTenantOperators(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if len(operators.Operators) == 0 {
@@ -723,14 +723,14 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if choice, err = tui.ChooseOne("Which operator would you like to remove?", true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	operatorID, _, _ = strings.Cut(withoutPrefix, ",")
 
 	if err = api.RemoveTenantOperator(conf.Urls, *accessToken, id, operatorID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operatorID))
@@ -756,7 +756,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	}
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
@@ -774,7 +774,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
 
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
 		for _, tenant := range tenants.Tenants {
@@ -787,7 +787,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 		}
 
 		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -805,11 +805,11 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	if swarms1, err = api.GetTenantCouponSwarms(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	mergedSwarms := make(map[string]api.Swarm)
@@ -838,14 +838,14 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	}
 
 	if choice, err = tui.ChooseOne("Which swarm would you like to connect?", true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	swarm, _, _ = strings.Cut(withoutPrefix, ",")
 
 	if err = api.ConnectSwarm(conf.Urls, *accessToken, id, swarm); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarmRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("tenant %s connected to swarm %s successfully", id, swarm))

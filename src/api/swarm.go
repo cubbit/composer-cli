@@ -29,7 +29,7 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorCreatingSwarmRequest, err)
+		return nil, err
 	}
 
 	return &response, nil
@@ -46,7 +46,7 @@ func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]Swarm, e
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmListResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		return nil, err
 	}
 	return response, nil
 }
@@ -62,7 +62,7 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -78,7 +78,7 @@ func RemoveSwarm(urls configuration.Url, accessToken, swarmId, deleteSwarmToken 
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingSwarmRequest, err)
+		return err
 	}
 
 	return nil
@@ -100,7 +100,7 @@ func EditSwarmDescription(urls configuration.Url, accessToken, swarmID, descript
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
+		return err
 	}
 
 	return nil
@@ -122,7 +122,7 @@ func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) er
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
+		return err
 	}
 
 	return nil
@@ -139,7 +139,7 @@ func ListSwarmPolicies(urls configuration.Url, accessToken, swarmID string) (*Po
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractPolicyListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -162,7 +162,7 @@ func InviteOperatorToSwarm(urls configuration.Url, accessToken, swarmID, email, 
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
+		return err
 	}
 
 	return nil
@@ -179,7 +179,7 @@ func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*O
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractOperatorListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -193,7 +193,7 @@ func RemoveSwarmOperator(urls configuration.Url, accessToken, swarmID, operatorI
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorsRequest, err)
+		return err
 	}
 
 	return nil

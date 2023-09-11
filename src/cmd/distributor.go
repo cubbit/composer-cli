@@ -13,8 +13,6 @@ import (
 var distributorCmd = &cobra.Command{
 	Use:   "distributor",
 	Short: "Execute commands in distributor sections",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 var createDistributorSubCmd = &cobra.Command{
@@ -103,8 +101,9 @@ var removeDistributorSubCmd = &cobra.Command{
 }
 
 var createDistributorCouponSubCmd = &cobra.Command{
-	Use:   "create-coupon",
-	Short: "create a new distributor coupon",
+	Use:     "create-coupon",
+	Short:   "create a new distributor coupon",
+	Aliases: []string{"new-coupon"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")

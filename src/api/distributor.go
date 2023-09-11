@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -40,7 +39,7 @@ func CreateDistributor(urls configuration.Url, accessToken, name string, descrip
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorCreatingDistributor, err)
+		return nil, err
 	}
 
 	return &response, nil
@@ -57,7 +56,7 @@ func ListDistributors(urls configuration.Url, accessToken string) (*DistributorL
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractDistributorListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -71,7 +70,7 @@ func RemoveDistributor(urls configuration.Url, accessToken, distributorId, delet
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributor, err)
+		return err
 	}
 
 	return nil
@@ -100,7 +99,7 @@ func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID,
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorCreatingDistributor, err)
+		return nil, err
 	}
 
 	return &response, nil
@@ -117,7 +116,7 @@ func ListDistributorCoupons(urls configuration.Url, accessToken, distributorID s
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractDistributorCouponListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -133,7 +132,7 @@ func GetDistributorCoupon(urls configuration.Url, accessToken, distributorID, co
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractDistributorCouponResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCoupon, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -165,7 +164,7 @@ func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distrib
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCoupon, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -183,7 +182,7 @@ func RevokeDistributorCoupon(urls configuration.Url, accessToken string, distrib
 		extractDistributorCouponCodeResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCoupon, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -199,7 +198,7 @@ func RemoveDistributorCoupon(urls configuration.Url, accessToken string, distrib
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRemovingDistributorCoupon, err)
+		return err
 	}
 	return nil
 }

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -37,7 +36,7 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorGettingOperatorRequest, err)
+		return nil, err
 	}
 
 	return &response, nil
@@ -54,7 +53,7 @@ func ListTenants(urls configuration.Url, accessToken string) (*TenantList, error
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractTenantListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -68,7 +67,7 @@ func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantTok
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantRequest, err)
+		return err
 	}
 
 	return nil
@@ -90,7 +89,7 @@ func EditTenantDescription(urls configuration.Url, accessToken, tenantID, descri
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
+		return err
 	}
 
 	return nil
@@ -112,7 +111,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
+		return err
 	}
 
 	return nil
@@ -129,7 +128,7 @@ func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID str
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantSwarmsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -145,7 +144,7 @@ func ListTenantPolicies(urls configuration.Url, accessToken, tenantID string) (*
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractPolicyListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantSwarmsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -168,7 +167,7 @@ func InviteOperatorToTenant(urls configuration.Url, accessToken, tenantID, email
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
+		return err
 	}
 
 	return nil
@@ -185,7 +184,7 @@ func ListTenantOperators(urls configuration.Url, accessToken, tenantID string) (
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractOperatorListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -199,7 +198,7 @@ func RemoveTenantOperator(urls configuration.Url, accessToken, tenantID, operato
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantRequest, err)
+		return err
 	}
 
 	return nil
@@ -216,7 +215,7 @@ func GetTenant(urls configuration.Url, accessToken, ownerID string, tenantID str
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractTenantResponseModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
@@ -232,7 +231,7 @@ func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string)
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorConnectingSwarmRequest, err)
+		return err
 	}
 
 	return nil
@@ -251,7 +250,7 @@ func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string)
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmListModel(&response),
 	); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantSwarmsRequest, err)
+		return nil, err
 	}
 	return &response, nil
 }
