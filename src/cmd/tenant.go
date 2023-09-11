@@ -13,13 +13,12 @@ import (
 var tenantCmd = &cobra.Command{
 	Use:   "tenant",
 	Short: "Execute commands in tenant sections",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 var createTenantSubCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a new tenant",
+	Use:     "create",
+	Short:   "create a new tenant",
+	Aliases: []string{"new"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			cmd.MarkFlagRequired("name")
@@ -43,8 +42,9 @@ var createTenantSubCmd = &cobra.Command{
 }
 
 var listTenantSubCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list tenants",
+	Use:     "list",
+	Short:   "list tenants",
+	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -60,8 +60,9 @@ var listTenantSubCmd = &cobra.Command{
 }
 
 var removeTenantSubCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "remove a tenant",
+	Use:     "remove",
+	Short:   "remove a tenant",
+	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")

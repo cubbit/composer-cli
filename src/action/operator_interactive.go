@@ -30,7 +30,7 @@ func CreateOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if err = api.CreateOperator(*urls, firstName, lastName, email, password, secret); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperatorRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator %s created successfully", email))

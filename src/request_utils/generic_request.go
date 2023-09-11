@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/cubbit/cubbit/client/cli/constants"
 )
 
@@ -19,6 +22,12 @@ type RequestOptions struct {
 	status    int
 }
 type RequestModifier = func(*RequestOptions, *http.Response) error
+
+type Error struct {
+	Message         string   `json:"message"`
+	ActionsRequired []string `json:"actions_required"`
+	Reason          string   `json:"reason"`
+}
 
 func DoRequest(url string, opts ...RequestModifier) error {
 	var err error
@@ -65,7 +74,37 @@ func DoRequest(url string, opts ...RequestModifier) error {
 
 	defer res.Body.Close()
 	if opt.status != -1 && res.StatusCode != opt.status {
-		return fmt.Errorf("error while performing the request status code expected %d but received %d instead", opt.status, res.StatusCode)
+		body, _ := ioutil.ReadAll(res.Body)
+		var err Error
+		if err := json.Unmarshal(body, &err); err != nil {
+			return fmt.Errorf("error while unmarshaling the request response : %w", err)
+		}
+
+		keyStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("12"))
+
+		valueStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("15"))
+		redStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("9"))
+		yellowStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("11"))
+
+		var formattedError string
+
+		formattedError += keyStyle.Render("INF ") + "code status expected " + yellowStyle.Render(fmt.Sprint(opt.status)) + ", but recieved " + redStyle.Render(fmt.Sprint(res.StatusCode)) + " instead\n"
+
+		if err.Message != "" {
+			formattedError += keyStyle.Render("INF ") + valueStyle.Render(err.Message) + "\n"
+		}
+
+		if len(err.ActionsRequired) > 0 {
+			formattedError += keyStyle.Render("INF") + " actions required [" + valueStyle.Render(strings.Join(err.ActionsRequired, ", ")) + "]\n"
+		}
+
+		if err.Reason != "" {
+			formattedError += keyStyle.Render("INF") + "reason" + valueStyle.Render(err.Reason) + "\n"
+		}
+		return fmt.Errorf(fmt.Sprintf("\n%s", formattedError))
 	}
 
 	for _, modifier := range opts {

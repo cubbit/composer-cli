@@ -53,11 +53,11 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(*urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
 	}
 
 	if refreshToken, err = api.PerformOperatorSignin(*urls, email, password, challenge, code); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignIn, err)
+		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignInRequest, err)
 	}
 
 	conf = configuration.NewConfig(profile, *urls, refreshToken)

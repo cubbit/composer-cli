@@ -13,13 +13,12 @@ import (
 var swarmCmd = &cobra.Command{
 	Use:   "swarm",
 	Short: "Execute commands in swarm sections",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 var createSwarmSubCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a new swarm",
+	Use:     "create",
+	Short:   "create a new swarm",
+	Aliases: []string{"new"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			cmd.MarkFlagRequired("name")
@@ -42,8 +41,9 @@ var createSwarmSubCmd = &cobra.Command{
 }
 
 var listSwarmSubCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list swarms",
+	Use:     "list",
+	Short:   "list swarms",
+	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -155,8 +155,9 @@ var editSwarmNameSubCmd = &cobra.Command{
 }
 
 var removeSwarmSubCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "remove a swarm",
+	Use:     "remove",
+	Short:   "remove a swarm",
+	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")

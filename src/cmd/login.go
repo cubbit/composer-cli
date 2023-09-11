@@ -8,8 +8,9 @@ import (
 )
 
 var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login the operator",
+	Use:     "login",
+	Short:   "Login the operator",
+	Aliases: []string{"signin"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			cmd.MarkFlagRequired("email")

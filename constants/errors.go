@@ -48,7 +48,7 @@ const (
 	ErrorListingTenantSwarmsRequest         = "failed request to list tenant available swarms"
 	ErrorInvitingOperatorRequest            = "failed request to invite operator"
 	ErrorListingOperatorsRequest            = "failed request to list operators"
-	ErrorRemovingOperatorsRequest           = "failed request to remove operator"
+	ErrorRemovingOperatorRequest            = "failed request to remove operator"
 
 	ErrorIamConfigNotFound   = "iam api server url is not defined in configuration"
 	ErrorHiveConfigNotFound  = "hive api server url is not defined in configuration"
@@ -63,15 +63,16 @@ const (
 	ErrorEditingSwarmName        = "error while retrieving swarm name"
 	ErrorSwarmNameOrID           = "error, swarm name or id incorrect"
 
-	ErrorConnectingSwarm         = "error while connecting swarm "
-	ErrorCreatingSwarmRequest    = "failed request to create the swarm"
-	ErrorListingSwarmsRequest    = "failed request to list swarms"
-	ErrorRetrievingSwarmsRequest = "failed request to get swarm"
-	ErrorEditingSwarmRequest     = "failed request to edit swarm"
-	ErrorDeletingSwarmRequest    = "failed request to delete swarm"
+	ErrorConnectingSwarm        = "error while connecting swarm "
+	ErrorCreatingSwarmRequest   = "failed request to create the swarm"
+	ErrorListingSwarmsRequest   = "failed request to list swarms"
+	ErrorRetrievingSwarmRequest = "failed request to get swarm"
+	ErrorEditingSwarmRequest    = "failed request to edit swarm"
+	ErrorDeletingSwarmRequest   = "failed request to delete swarm"
 
-	ErrorListingPolicies        = "failed request to list policies"
-	ErrorListingPoliciesRequest = "error while retrieving list policies"
+	ErrorListingPolicies        = "error while retrieving list policies"
+	ErrorListingPoliciesRequest = "failed request to list policies"
+
 	ErrorConnectingSwarmRequest = "failed request to connect swarm"
 
 	ErrorCreatingDistributor             = "error while creating distributor"
@@ -94,6 +95,16 @@ const (
 	ErrorRetrievingDistributorCouponRequest = "failed request to retrieve distributor coupon"
 	ErrorEditingDistributorCouponRequest    = "failed request to edit distributor coupon"
 	ErrorRemovingDistributorCouponRequest   = "failed request to remove distributor coupon code"
+	ErrorRetrievingDistributorRequest       = "failed request to retrieve distributor"
+	ErrorRevokingDistributorCouponRequest   = "failed request to revoke distributor coupon code"
 
 	ErrorRedemptionValue = "redemption count must be an integer"
+
+	ErrorRetrievingOperatorRequest            = "failed request to retrieve operator"
+	ErrorForgingDistributorDeleteTokenRequest = "failed request to forge distributor delete token"
+	ErrorOperatorSignInRequest                = "failed request to signin operator"
+	ErrorForgingOperatorDeleteTokenRequest    = "failed request to forge operator delete token"
+	ErrorForgingTenantDeleteTokenRequest      = "failed request to forge tenant delete token"
+
+	ErrorCreatingTenantRequest = "failed request to create the tenant"
 )

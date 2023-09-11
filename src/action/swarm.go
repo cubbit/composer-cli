@@ -45,11 +45,11 @@ func CreateSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if response, err = api.CreateSwarm(config.Urls, *accessToken, operator.ID, name, description, swarmConfig); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingSwarmRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("Swarm %s created successfully", response.ID))
@@ -87,14 +87,14 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if name != "" {
 		var swarms []api.Swarm
 
 		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
 
 		for _, sw := range swarms {
@@ -106,7 +106,7 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 
 	}
 	if swarm, err = api.GetSwarm(config.Urls, *accessToken, operator.ID, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmRequest, err)
 	}
 
 	utils.PrintFormattedData(*swarm, format)
@@ -131,10 +131,10 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 	}
 
 	if operator, err = api.GetOperatorSelf(config.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 	if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	var verbose bool
@@ -197,15 +197,15 @@ func RemoveSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallenge, err)
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
 	}
 
 	if deleteSwarmToken, err = api.ForgeOperatorDeleteSwarmToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteToken, err)
+		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteTokenRequest, err)
 	}
 
 	if err = api.RemoveSwarm(conf.Urls, *accessToken, id, deleteSwarmToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingSwarmRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("swarm %s removed successfully", id))
@@ -248,7 +248,7 @@ func EditSwarmDescription(cmd *cobra.Command, args ...string) error {
 	}
 
 	if err = api.EditSwarmDescription(conf.Urls, *accessToken, id, description); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmDescription, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("swarm %s description updated successfully", id))
@@ -287,7 +287,7 @@ func EditSwarmName(cmd *cobra.Command, args ...string) error {
 	newName := args[0]
 
 	if err = api.EditSwarmName(conf.Urls, *accessToken, id, newName); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmName, err)
+		return fmt.Errorf("%s: %w", constants.ErrorEditingSwarmRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("swarm %s name updated successfully", id))
@@ -334,7 +334,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if policies, err = api.ListSwarmPolicies(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
 	}
 
 	if email, err = cmd.Flags().GetString("email"); err != nil {
@@ -358,7 +358,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if err = api.InviteOperatorToSwarm(conf.Urls, *accessToken, id, email, role, firstName, lastName); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
@@ -396,7 +396,7 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 	}
 
 	if operators, err = api.ListSwarmOperators(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingOperators, err)
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
 	utils.PrintList("Your Swarm Operators")
@@ -465,7 +465,7 @@ func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	if err = api.RemoveSwarmOperator(conf.Urls, *accessToken, id, operator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperator, err)
+		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorRequest, err)
 	}
 
 	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operator))
@@ -480,11 +480,11 @@ func getSwarmByNameOrId(conf *configuration.Config, accessToken string, swarm st
 	var id string
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, accessToken); err != nil {
-		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, accessToken, operator.ID); err != nil {
-		return "", fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		return "", fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
 	for _, sw := range swarms {
@@ -506,7 +506,7 @@ func getSwarmOperatorByEmailOrId(conf *configuration.Config, accessToken string,
 	var id string
 
 	if operators, err = api.ListSwarmOperators(conf.Urls, accessToken, tenantID); err != nil {
-		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
+		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {
