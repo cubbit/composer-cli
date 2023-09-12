@@ -21,7 +21,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Coupon code", IsPassword: false, Value: &couponCode}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Coupon code*", IsPassword: false, Value: &couponCode}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -109,7 +109,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	id, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Confirm your login to delete the tenant", true, tui.Input{Placeholder: "Email", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+	if _, err = tui.TextInputs("Confirm your login to delete the tenant", true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -370,6 +370,12 @@ func ListTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintList("Your Tenants List")
+
+	if len(tenants.Tenants) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, tenant := range tenants.Tenants {
 		fmt.Printf("• %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
 	}
@@ -439,7 +445,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Connected Swarms")
+	utils.PrintList("Your Tenant Connected Swarms List")
 
 	if len(swarms.Swarms) == 0 {
 		utils.PrintEmptyList()
@@ -515,7 +521,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Operator Email", Value: &email}, tui.Input{Placeholder: "Operator First Name", Value: &first_name}, tui.Input{Placeholder: "Operator Last Name", Value: &last_name}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Email*", Value: &email}, tui.Input{Placeholder: "First Name*", Value: &first_name}, tui.Input{Placeholder: "Last Name*", Value: &last_name}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -549,7 +555,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
+	utils.PrintSuccess(fmt.Sprintf("operator %s invited successfully", email))
 
 	return nil
 }
@@ -617,7 +623,7 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Operators")
+	utils.PrintList("Your Tenant Operators List")
 
 	if len(operators.Operators) == 0 {
 		utils.PrintEmptyList()

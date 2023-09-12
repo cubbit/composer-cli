@@ -107,6 +107,11 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 
 	utils.PrintList("Your Tenants List")
 
+	if len(tenants.Tenants) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, tenant := range tenants.Tenants {
 		if verbose {
 			fmt.Printf(" • %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
@@ -372,7 +377,8 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Connected Swarms")
+	utils.PrintList("Your Tenant Connected Swarms List")
+
 	if len(swarms.Swarms) == 0 {
 		utils.PrintEmptyList()
 		return nil
@@ -456,7 +462,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
+	utils.PrintSuccess(fmt.Sprintf("operator %s invited successfully", email))
 
 	return nil
 }
@@ -497,7 +503,7 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Operators")
+	utils.PrintList("Your Tenant Operators List")
 
 	if len(operators.Operators) == 0 {
 		utils.PrintEmptyList()

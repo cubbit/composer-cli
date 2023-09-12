@@ -30,7 +30,7 @@ func CreateSwarmInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description*", IsPassword: false, Value: &description}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -157,6 +157,12 @@ func ListSwarmsInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintList("Your Swarms List")
+
+	if len(swarms) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, swarm := range swarms {
 		fmt.Printf("• %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
 
@@ -212,7 +218,7 @@ func RemoveSwarmInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	id, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Confirm your login to delete the swarm", true, tui.Input{Placeholder: "Email", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+	if _, err = tui.TextInputs("Confirm your login to delete the swarm", true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -436,7 +442,7 @@ func AddOperatorToSwarmInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Operator Email", Value: &email}, tui.Input{Placeholder: "Operator First Name", Value: &first_name}, tui.Input{Placeholder: "Operator Last Name", Value: &last_name}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Email*", Value: &email}, tui.Input{Placeholder: "First Name*", Value: &first_name}, tui.Input{Placeholder: "Last Name*", Value: &last_name}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -539,7 +545,7 @@ func ListSwarmOperatorsInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
-	utils.PrintList("Your Swarm Operators")
+	utils.PrintList("Your Swarm Operators List")
 
 	if len(operators.Operators) == 0 {
 		utils.PrintEmptyList()

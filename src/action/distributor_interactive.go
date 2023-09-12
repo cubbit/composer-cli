@@ -36,11 +36,11 @@ func CreateDistributorInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if _, err = tui.TextInputs("Fill in the form to invite the associate operator", false, tui.Input{Placeholder: "First Name", IsPassword: false, Value: &firstName}, tui.Input{Placeholder: "Last Name", IsPassword: false, Value: &lastName}, tui.Input{Placeholder: "email", IsPassword: false, Value: &email}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form to invite the associate operator", false, tui.Input{Placeholder: "First Name*", IsPassword: false, Value: &firstName}, tui.Input{Placeholder: "Last Name*", IsPassword: false, Value: &lastName}, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -116,7 +116,7 @@ func RemoveDistributorInteractive(cmd *cobra.Command) error {
 	var choices []string
 
 	for _, distributor := range distributors.Distributors {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 	}
 
 	if len(choices) == 0 {
@@ -130,7 +130,7 @@ func RemoveDistributorInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	id, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Confirm your login to delete the distributor", true, tui.Input{Placeholder: "Email", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+	if _, err = tui.TextInputs("Confirm your login to delete the distributor", true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -171,8 +171,14 @@ func ListDistributorInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintList("Your Distributors List")
+
+	if len(distributors.Distributors) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, distributor := range distributors.Distributors {
-		fmt.Printf("• %s, %s, %s\n", distributor.ID, distributor.Name, *distributor.Description)
+		fmt.Printf("• %s, %s, %s\n", distributor.ID, distributor.Name, distributor.Description)
 	}
 
 	return nil
@@ -219,7 +225,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, distributor := range distributors.Distributors {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 		}
 
 		if len(choices) == 0 {
@@ -243,7 +249,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		id = distributor.ID
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -256,6 +262,8 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		if maxRedemptions, err = strconv.Atoi(redemptionCount); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRedemptionValue, err)
 		}
+	} else {
+		maxRedemptions = -1
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
@@ -325,7 +333,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, distributor := range distributors.Distributors {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 		}
 
 		if len(choices) == 0 {
@@ -353,7 +361,12 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
-	utils.PrintList("Your Distributor coupon List")
+	utils.PrintList("Your Distributor Coupons List")
+
+	if len(distributorCoupons.Coupons) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
 
 	for _, coupon := range distributorCoupons.Coupons {
 		fmt.Printf("• %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description)
@@ -394,7 +407,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, distributor := range distributors.Distributors {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 		}
 
 		if len(choices) == 0 {
@@ -491,7 +504,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, distributor := range distributors.Distributors {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 		}
 
 		if len(choices) == 0 {
@@ -596,7 +609,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, distributor := range distributors.Distributors {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 		}
 
 		if len(choices) == 0 {
@@ -648,7 +661,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s revoked successfully", response.CouponCode))
+	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s has been revoked successfully", response.CouponCode))
 
 	return nil
 }
@@ -685,7 +698,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, distributor := range distributors.Distributors {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, *distributor.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 		}
 
 		if len(choices) == 0 {

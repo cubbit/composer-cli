@@ -28,7 +28,6 @@ func PrintError(err error) {
 		} else {
 			fmt.Println(line)
 		}
-
 	}
 }
 
