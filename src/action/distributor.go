@@ -3,7 +3,6 @@ package action
 import (
 	"fmt"
 	"net/url"
-	"strconv"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -377,7 +376,8 @@ func DescribeDistributorCoupon(cmd *cobra.Command, args []string) error {
 func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, description, maxRedemptions, configPath string
+	var id, name, couponName, description, configPath string
+	var maxRedemptions int
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
@@ -401,7 +401,7 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
-	if maxRedemptions, err = cmd.Flags().GetString("redemption-count"); err != nil {
+	if maxRedemptions, err = cmd.Flags().GetInt("redemption-count"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -430,15 +430,7 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 	}
 	couponID := distributorCoupon.ID
 
-	var count int
-	if maxRedemptions != "" {
-
-		if count, err = strconv.Atoi(maxRedemptions); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRedemptionValue, err)
-		}
-	}
-
-	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &count); err != nil {
+	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCouponRequest, err)
 	}
 
