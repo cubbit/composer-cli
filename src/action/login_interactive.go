@@ -26,7 +26,7 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
-	if _, err = tui.TextInputs("Fill in the form bellow", false, tui.Input{Placeholder: "Email", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password", IsPassword: true, Value: &password}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form bellow", false, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -35,7 +35,7 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if twoFa == "Yes" {
-		if _, err = tui.TextInputs("Insert the two factor authentication", false, tui.Input{Placeholder: "Insert the 2fa code", IsPassword: false, Value: &code}); err != nil {
+		if _, err = tui.TextInputs("Insert the two factor authentication", false, tui.Input{Placeholder: "Insert the 2fa code*", IsPassword: false, Value: &code}); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 		}
 	}

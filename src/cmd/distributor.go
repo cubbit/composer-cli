@@ -22,7 +22,6 @@ var createDistributorSubCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			cmd.MarkFlagRequired("name")
-			cmd.MarkFlagRequired("description")
 			cmd.MarkFlagRequired("owner")
 			cmd.MarkFlagRequired("first-name")
 			cmd.MarkFlagRequired("last-name")

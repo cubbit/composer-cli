@@ -52,7 +52,7 @@ func CreateSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingSwarmRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Swarm %s created successfully", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("swarm %s created successfully", response.ID))
 
 	return nil
 }
@@ -144,6 +144,12 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 	}
 
 	utils.PrintList("Your Swarms List")
+
+	if len(swarms) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, swarm := range swarms {
 		if verbose {
 			fmt.Printf(" • %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
@@ -361,7 +367,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("operator: %s invited successfully", email))
+	utils.PrintSuccess(fmt.Sprintf("operator %s invited successfully", email))
 
 	return nil
 }
@@ -399,7 +405,7 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
-	utils.PrintList("Your Swarm Operators")
+	utils.PrintList("Your Swarm Operators List")
 
 	if len(operators.Operators) == 0 {
 		utils.PrintEmptyList()

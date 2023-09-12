@@ -106,9 +106,14 @@ func ListDistributor(cmd *cobra.Command, args []string) error {
 
 	utils.PrintList("Your Distributors List")
 
+	if len(distributors.Distributors) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, distributor := range distributors.Distributors {
 		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", distributor.ID, distributor.Name, *distributor.Description)
+			fmt.Printf(" • %s, %s, %s\n", distributor.ID, distributor.Name, distributor.Description)
 		} else {
 			fmt.Printf(" • %s\n", distributor.Name)
 		}
@@ -304,6 +309,11 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 
 	utils.PrintList("Your Distributor Coupons List")
 
+	if len(distributorCoupons.Coupons) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
 	for _, coupon := range distributorCoupons.Coupons {
 		if verbose {
 			fmt.Printf(" • %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description)
@@ -482,7 +492,7 @@ func RevokeDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s revoked successfully", response.CouponCode))
+	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s has been revoked successfully", response.CouponCode))
 
 	return nil
 }
