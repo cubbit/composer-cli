@@ -341,7 +341,7 @@ func init() {
 	distributorCmd.AddCommand(editDistributorCouponSubCmd)
 	editDistributorCouponSubCmd.Flags().String("coupon-name", "", "New name of the distributor coupon")
 	editDistributorCouponSubCmd.Flags().String("description", "", "New description of the distributor coupon")
-	editDistributorCouponSubCmd.Flags().String("redemption-count", "", "New max redemptions of the distributor coupon")
+	editDistributorCouponSubCmd.Flags().Int("redemption-count", 0, "New max redemptions of the distributor coupon")
 
 	distributorCmd.AddCommand(revokeDistributorCouponSubCmd)
 

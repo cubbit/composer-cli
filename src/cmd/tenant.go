@@ -22,7 +22,6 @@ var createTenantSubCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			cmd.MarkFlagRequired("name")
-			cmd.MarkFlagRequired("description")
 			cmd.MarkFlagRequired("settings")
 			cmd.MarkFlagRequired("coupon-code")
 		}
