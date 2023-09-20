@@ -306,6 +306,48 @@ var removeDistributorCouponSubCmd = &cobra.Command{
 	},
 }
 
+var reportDistributSubCmd = &cobra.Command{
+	Use:   "report",
+	Short: "downloads/prints a full report for the distributor",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("from")
+			cmd.MarkFlagRequired("to")
+
+			isChanged := cmd.Flags().Changed("output")
+			if isChanged {
+				output, _ := cmd.Flags().GetString("output")
+
+				if output == "" {
+					fmt.Println("Error: output cannot be empty.Use a dot (.) to indicate the current directory.")
+					cmd.Usage()
+					os.Exit(1)
+				}
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.GetDistributorReport); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.GetDistributorReportInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	distributorCmd.AddCommand(createDistributorSubCmd)
 	createDistributorSubCmd.Flags().String("name", "", "Name of the distributor")
@@ -324,6 +366,13 @@ func init() {
 	removeDistributorSubCmd.Flags().String("email", "", "Email address")
 	removeDistributorSubCmd.Flags().String("password", "", "Password")
 	removeDistributorSubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	distributorCmd.AddCommand(reportDistributSubCmd)
+	reportDistributSubCmd.Flags().String("from", "", "Start date and time in DD/MM/YYYY+HH:mm:ss format")
+	reportDistributSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
+	reportDistributSubCmd.Flags().String("coupon", "", "The distributor coupon id or name")
+	reportDistributSubCmd.Flags().String("format", "json", "Formats the result")
+	reportDistributSubCmd.Flags().StringP("output", "o", "", "Specify the output file ")
 
 	distributorCmd.AddCommand(createDistributorCouponSubCmd)
 	createDistributorCouponSubCmd.Flags().String("coupon-name", "", "Name of the distributor coupon")

@@ -538,6 +538,93 @@ func RemoveDistributorCoupon(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func GetDistributorReport(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, coupon, format, from, to, output string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if from, err = cmd.Flags().GetString("from"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if to, err = cmd.Flags().GetString("to"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if output, err = cmd.Flags().GetString("output"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if coupon, err = cmd.Flags().GetString("coupon"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorRequest, err)
+
+		}
+		id = distributor.ID
+	}
+
+	if coupon != "" {
+		var distributorCoupon *api.DistributorCoupon
+		if distributorCoupon, err = getDistributorCouponByNameOrId(conf, *accessToken, id, args[0]); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponRequest, err)
+		}
+		coupon = distributorCoupon.ID
+	}
+
+	if output != "" {
+		var fileName *string
+		if fileName, err = api.DownloadDistributorReport(conf.Urls, *accessToken, id, coupon, from, to, output); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDownloadingDistributorReportRequest, err)
+		}
+
+		utils.PrintSuccess(fmt.Sprintf("report downloaded successfully to : %s", *fileName))
+		return nil
+	}
+
+	var distributorReport *api.DistributorReportResponseModel
+	if distributorReport, err = api.GetDistributorReport(conf.Urls, *accessToken, id, coupon, from, to); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorReportRequest, err)
+	}
+
+	utils.PrintList("Your Distributor Report")
+
+	if len(distributorReport.Report) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	utils.PrintFormattedData(distributorReport.Report, format)
+
+	return nil
+}
+
 func getDistributorByNameOrId(conf *configuration.Config, accessToken string, distributor string) (*api.Distributor, error) {
 	var err error
 	var distributors *api.DistributorList

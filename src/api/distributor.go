@@ -76,6 +76,57 @@ func RemoveDistributor(urls configuration.Url, accessToken, distributorId, delet
 	return nil
 }
 
+func GetDistributorReport(urls configuration.Url, accessToken, distributorId, couponId, from, to string) (*DistributorReportResponseModel, error) {
+	var err error
+	var url string
+	var response DistributorReportResponseModel
+
+	if couponId != "" {
+		url = urls.DashUrl + constants.BaseDashURI + constants.Distributors + "/" + distributorId + "/coupons/" + couponId + "/report" + "?from_date=" + from + "&to_date=" + to
+
+	} else {
+		url = urls.DashUrl + constants.BaseDashURI + constants.Distributors + "/" + distributorId + "/report" + "?from_date=" + from + "&to_date=" + to
+
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractReport(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, err
+}
+
+func DownloadDistributorReport(urls configuration.Url, accessToken, distributorId, couponId, from, to, output string) (*string, error) {
+	var err error
+	var url string
+	var response string
+	if couponId != "" {
+		url = urls.DashUrl + constants.BaseDashURI + constants.Distributors + "/" + distributorId + "/coupons/" + couponId + "/report" + "?from_date=" + from + "&to_date=" + to
+
+	} else {
+		url = urls.DashUrl + constants.BaseDashURI + constants.Distributors + "/" + distributorId + "/report" + "?from_date=" + from + "&to_date=" + to
+
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAttachement(),
+		DownloadReport(output, &response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
 func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID, name string, description *string, swarmIDs []string, maxRedemptions int) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel

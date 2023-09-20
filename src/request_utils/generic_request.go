@@ -98,11 +98,11 @@ func DoRequest(url string, opts ...RequestModifier) error {
 		}
 
 		if len(err.ActionsRequired) > 0 {
-			formattedError += keyStyle.Render("INF") + " actions required [" + valueStyle.Render(strings.Join(err.ActionsRequired, ", ")) + "]\n"
+			formattedError += keyStyle.Render("INF ") + "actions required [" + valueStyle.Render(strings.Join(err.ActionsRequired, ", ")) + "]\n"
 		}
 
 		if err.Reason != "" {
-			formattedError += keyStyle.Render("INF") + "reason" + valueStyle.Render(err.Reason) + "\n"
+			formattedError += keyStyle.Render("INF ") + "reason" + valueStyle.Render(err.Reason) + "\n"
 		}
 		return fmt.Errorf(fmt.Sprintf("\n%s", formattedError))
 	}
@@ -199,6 +199,17 @@ func WithExpectedStatusCode(status int) RequestModifier {
 		}
 
 		opt.status = status
+		return nil
+	}
+}
+
+func WithAttachement() RequestModifier {
+	return func(opt *RequestOptions, res *http.Response) error {
+		if opt == nil {
+			return nil
+		}
+
+		opt.headers["accept"] = "text/csv"
 		return nil
 	}
 }
