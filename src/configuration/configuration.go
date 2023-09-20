@@ -16,6 +16,7 @@ import (
 type Url struct {
 	IamUrl  string `yaml:"iam"`
 	HiveUrl string `yaml:"hive"`
+	DashUrl string `yaml:"dash"`
 }
 
 type Config struct {
@@ -59,6 +60,9 @@ func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
 		return nil, fmt.Errorf(constants.ErrorHiveConfigNotFound)
 	}
 
+	if urls.DashUrl == "" {
+		return nil, fmt.Errorf(constants.ErrorDashConfigNotFound)
+	}
 	return &urls, nil
 }
 
@@ -80,6 +84,10 @@ func (c *Config) LoadAndCheckSession(filePath string, name string) error {
 	}
 
 	if config.Urls.HiveUrl == "" {
+		return fmt.Errorf(constants.ErrorHiveConfigNotFound)
+	}
+
+	if config.Urls.DashUrl == "" {
 		return fmt.Errorf(constants.ErrorHiveConfigNotFound)
 	}
 
@@ -154,7 +162,6 @@ func ReadConfig(cmd *cobra.Command, isLastStep ...bool) (*Config, string, error)
 			return nil, configPath, fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 
 		}
-
 	}
 
 	var conf = NewConfig(profile, Url{}, "")
@@ -212,6 +219,7 @@ func composeURL(apiServerUrl string) *Url {
 	url := &Url{
 		IamUrl:  apiServerUrl + constants.BaseIamURI,
 		HiveUrl: apiServerUrl + constants.BaseHiveURI,
+		DashUrl: apiServerUrl,
 	}
 	return url
 }

@@ -158,3 +158,21 @@ type DistributorCouponList struct {
 type DistributorCouponCodeResponseModel struct {
 	CouponCode string `json:"coupon_code"`
 }
+
+type TenantReport struct {
+	ID         string        `json:"id"`
+	ExternalID string        `json:"external_id"`
+	TenantName string        `json:"tenant_name"`
+	Code       int           `json:"string"`
+	StorageBH  int64         `json:"storage_bh"`
+	StorageGB  int64         `json:"storage_gb"`
+	EngressGB  int64         `json:"engress_gb"`
+	FromTime   string        `json:"from_time"`
+	ToTime     string        `json:"to_time"`
+	Status     string        `json:"status"`
+	Timestamp  time.Duration `json:"timestamp"`
+}
+
+type DistributorReportResponseModel struct {
+	Report []TenantReport `json:"report"`
+}

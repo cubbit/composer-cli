@@ -21,7 +21,9 @@ const (
 	BaseKeyvaultURI = "keyvault"
 	BaseIamURI      = "/iam"
 	BaseHiveURI     = "/hive"
-	Invites         = "/invites"
+	BaseDashURI     = "/api"
+
+	Invites = "/invites"
 
 	Operators                      = "/v1/operators/"
 	GenerateOperatorChallenge      = "/v1/auth/operators/signin/challenge"

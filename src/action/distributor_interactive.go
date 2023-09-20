@@ -754,3 +754,131 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func GetDistributorReportInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, coupon, from, to, output string
+	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var distributors *api.DistributorList
+
+		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+		}
+
+		for _, distributor := range distributors.Distributors {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No distributor found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+		}
+		id = distributor.ID
+	}
+
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "From* (DD/MM/YYY+HH:mm:ss)", IsPassword: false, Value: &from}, tui.Input{Placeholder: "To* (DD/MM/YYY+HH:mm:ss)", IsPassword: false, Value: &to}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	var choices []string
+	var choice string
+	var distributorCoupons *api.DistributorCouponList
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
+	}
+
+	for _, coupon := range distributorCoupons.Coupons {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor coupon found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Choose your distributor coupon", false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	coupon, _, _ = strings.Cut(withoutPrefix, ",")
+
+	var download string
+	if download, err = tui.ChooseOne("Do you want to download the report?", false, []string{"Yes", "No"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if download == "Yes" {
+		if _, err = tui.TextInputs("File name or directory to download the report", true, tui.Input{Placeholder: "File Name or Dir*", IsPassword: false, Value: &output}); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+		}
+		if output == "" {
+			output = "."
+		}
+
+		var downloadedFile *string
+		if downloadedFile, err = api.DownloadDistributorReport(conf.Urls, *accessToken, id, coupon, from, to, output); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDownloadingDistributorReportRequest, err)
+		}
+
+		utils.PrintSuccess(fmt.Sprintf("report downloaded successfully to : %s", *downloadedFile))
+		return nil
+	}
+
+	var distributorReport *api.DistributorReportResponseModel
+	if distributorReport, err = api.GetDistributorReport(conf.Urls, *accessToken, id, coupon, from, to); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorReportRequest, err)
+	}
+
+	var format string
+	if format, err = tui.ChooseOne("Choose your output format", true, []string{"json", "semantic", "csv"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	utils.PrintList("Your Distributor Report")
+
+	if len(distributorReport.Report) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	utils.PrintFormattedData(distributorReport.Report, format)
+
+	return nil
+}
