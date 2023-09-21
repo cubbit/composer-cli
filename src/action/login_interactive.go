@@ -30,7 +30,7 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if twoFa, err = tui.ChooseOne("Do you want to add a 2fa code?", false, []string{"Yes", "No"}); err != nil {
+	if twoFa, err = tui.ChooseOne("Do you want to add a 2fa code?", false, false, []string{"Yes", "No"}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 

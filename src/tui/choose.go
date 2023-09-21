@@ -122,31 +122,12 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case tea.KeyMsg:
-		start, end := m.paginator.GetSliceBounds(len(m.items))
 		switch {
 		case key.Matches(msg, m.keys.Down):
 			m.index++
 
-			if m.index >= len(m.items) {
-				m.index = 0
-				m.paginator.Page = 0
-			}
-
-			if m.index >= end {
-				m.paginator.NextPage()
-			}
-
 		case key.Matches(msg, m.keys.Up):
 			m.index--
-
-			if m.index < 0 {
-				m.index = len(m.items) - 1
-				m.paginator.Page = m.paginator.TotalPages - 1
-			}
-
-			if m.index < start {
-				m.paginator.PrevPage()
-			}
 
 		case key.Matches(msg, m.keys.Right):
 			m.index = clamp(m.index+m.height, 0, len(m.items)-1)
@@ -202,18 +183,31 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.numSelected = 0
 			m.currentOrder = 0
 		case key.Matches(msg, m.keys.Enter):
-			m.quit = true
+			if m.index < len(m.items) {
+				if m.items[m.index].selected {
+					m.items[m.index].selected = false
+					m.numSelected--
+				} else if m.numSelected < m.limit {
+					m.items[m.index].selected = true
+					m.items[m.index].order = m.currentOrder
+					m.numSelected++
+					m.currentOrder++
+				}
+			} else {
+				m.quit = true
+				if m.isLastStep {
+					m.startSpinner()
+					return m, m.spinner.Tick
+				}
 
-			if m.numSelected < 1 {
-				m.items[m.index].selected = true
+				return m, tea.Quit
 			}
+		}
 
-			if m.isLastStep {
-				m.startSpinner()
-				return m, m.spinner.Tick
-			}
-
-			return m, tea.Quit
+		if m.index > len(m.items) {
+			m.index = 0
+		} else if m.index < 0 {
+			m.index = len(m.items)
 		}
 	}
 
@@ -262,13 +256,13 @@ func (m chooseModel) View() string {
 
 	if m.isLastStep {
 		button := &submitBlurredButton
-		if m.numSelected == 1 {
+		if m.index == len(m.items) {
 			button = &submitFocusedButton
 		}
 		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
 	} else {
 		button := &continueBlurredButton
-		if m.numSelected == 1 {
+		if m.index == len(m.items) {
 			button = &continueFocusedButton
 		}
 		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
@@ -296,7 +290,7 @@ func clamp(x, min, max int) int {
 	return x
 }
 
-func ChooseOne(title string, isLastStep bool, options []string) (string, error) {
+func ChooseOne(title string, isOptionalStep bool, isLastStep bool, options []string) (string, error) {
 	var err error
 	var choice []string
 
@@ -304,6 +298,9 @@ func ChooseOne(title string, isLastStep bool, options []string) (string, error) 
 		return "", err
 	}
 
+	if isOptionalStep {
+		return "", nil
+	}
 	if len(choice) == 0 {
 		return "", fmt.Errorf("no option was selected")
 	}
