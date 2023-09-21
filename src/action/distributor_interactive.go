@@ -124,7 +124,7 @@ func RemoveDistributorInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor would you like to delete?", false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor would you like to delete?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributor, err)
 	}
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -233,7 +233,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -341,7 +341,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -415,7 +415,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -448,7 +448,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to describe?", false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to describe?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -456,7 +456,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 	id, _, _ = strings.Cut(withoutPrefix, ",")
 
 	var format string
-	if format, err = tui.ChooseOne("Choose your output format", true, []string{"json", "semantic", "csv"}); err != nil {
+	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -512,7 +512,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -545,7 +545,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to edit?", false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to edit?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -617,7 +617,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -650,7 +650,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to revoke?", true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to revoke?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -706,7 +706,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -739,7 +739,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to remove?", true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to remove?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -795,7 +795,7 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
 		}
 
@@ -832,15 +832,15 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Choose your distributor coupon", false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+	if choice, err = tui.ChooseOne("Choose your distributor coupon", true, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	coupon, _, _ = strings.Cut(withoutPrefix, ",")
 
 	var download string
-	if download, err = tui.ChooseOne("Do you want to download the report?", false, []string{"Yes", "No"}); err != nil {
+	if download, err = tui.ChooseOne("Do you want to download the report?", false, false, []string{"Yes", "No"}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -867,7 +867,7 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 	}
 
 	var format string
-	if format, err = tui.ChooseOne("Choose your output format", true, []string{"json", "semantic", "csv"}); err != nil {
+	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 

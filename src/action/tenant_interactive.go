@@ -103,7 +103,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 	}
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -171,7 +171,7 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Which tenant would you like to retrieve?", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which tenant would you like to retrieve?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 		}
 
@@ -179,7 +179,7 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 		id, _, _ = strings.Cut(withoutPrefix, ",")
 	}
 
-	if format, err = tui.ChooseOne("Choose your output format", true, []string{"json", "semantic", "csv"}); err != nil {
+	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -241,7 +241,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -314,7 +314,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -424,7 +424,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -504,7 +504,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -540,7 +540,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingPolicies, err)
 	}
 	_, choice, _ = strings.Cut(choice, " ")
@@ -601,7 +601,7 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -679,7 +679,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -728,7 +728,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which operator would you like to remove?", true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which operator would you like to remove?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
@@ -792,7 +792,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 			return nil
 		}
 
-		if choice, err = tui.ChooseOne("Choose your tenant", false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -843,7 +843,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.ID, sw.Name, sw.Description))
 	}
 
-	if choice, err = tui.ChooseOne("Which swarm would you like to connect?", true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which swarm would you like to connect?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
