@@ -783,7 +783,7 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 		var distributors *api.DistributorList
 
 		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
 		}
 
 		for _, distributor := range distributors.Distributors {
@@ -806,7 +806,7 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 	if id == "" {
 		var distributor *api.Distributor
 		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorRequest, err)
 		}
 		id = distributor.ID
 	}
