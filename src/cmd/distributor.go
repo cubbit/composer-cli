@@ -372,7 +372,7 @@ func init() {
 	reportDistributSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
 	reportDistributSubCmd.Flags().String("coupon", "", "The distributor coupon id or name")
 	reportDistributSubCmd.Flags().String("format", "json", "Formats the result")
-	reportDistributSubCmd.Flags().StringP("output", "o", "", "Specify the output file ")
+	reportDistributSubCmd.Flags().StringP("output", "o", "", "Specify the output file or directory.Use a dot (.) to indicate the current directory.")
 
 	distributorCmd.AddCommand(createDistributorCouponSubCmd)
 	createDistributorCouponSubCmd.Flags().String("coupon-name", "", "Name of the distributor coupon")

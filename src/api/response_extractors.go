@@ -387,7 +387,6 @@ func DownloadReport(output string, downloadedFile *string) request_utils.Request
 		if fileInfo, err = os.Stat(output); err == nil {
 
 			if fileInfo.IsDir() {
-
 				contentDisposition := res.Header.Get("Content-Disposition")
 				if contentDisposition != "" {
 					_, params, _ := mime.ParseMediaType(contentDisposition)

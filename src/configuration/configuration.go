@@ -88,7 +88,7 @@ func (c *Config) LoadAndCheckSession(filePath string, name string) error {
 	}
 
 	if config.Urls.DashUrl == "" {
-		return fmt.Errorf(constants.ErrorHiveConfigNotFound)
+		return fmt.Errorf(constants.ErrorDashConfigNotFound)
 	}
 
 	if config.RefreshToken == "" {
