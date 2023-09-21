@@ -299,8 +299,12 @@ func ChooseOne(title string, isOptionalStep bool, isLastStep bool, options []str
 	}
 
 	if isOptionalStep {
+		if len(choice) != 0 {
+			return choice[0], nil
+		}
 		return "", nil
 	}
+
 	if len(choice) == 0 {
 		return "", fmt.Errorf("no option was selected")
 	}
