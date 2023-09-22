@@ -1,3 +1,15 @@
+## 0.10.0 (2023-09-22)
+
+### Feat
+
+- **cli**: add distributor report cmd
+
+### Fix
+
+- fix returned value when seletion is optional
+- fix returned errors
+- fix the cursor in multiple choice display
+
 ## 0.9.0 (2023-09-12)
 
 ### Feat
