@@ -40,7 +40,7 @@ func CreateDistributorInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if _, err = tui.TextInputs("Fill in the form to invite the associate operator", false, tui.Input{Placeholder: "First Name*", IsPassword: false, Value: &firstName}, tui.Input{Placeholder: "Last Name*", IsPassword: false, Value: &lastName}, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form to invite the associate operator", false, tui.Input{Placeholder: "First Name", IsPassword: false, Value: &firstName}, tui.Input{Placeholder: "Last Name", IsPassword: false, Value: &lastName}, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -187,7 +187,7 @@ func ListDistributorInteractive(cmd *cobra.Command) error {
 func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, description, redemptionCount, configPath string
+	var id, name, couponName, description, redemptionCount, configPath, zone string
 	var maxRedemptions int
 	var swarmIDs []string
 	var response *api.GenericIDResponseModel
@@ -249,7 +249,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		id = distributor.ID
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}, tui.Input{Placeholder: "Zone: Enter fr for the French zone", IsPassword: false, Value: &zone}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -264,6 +264,10 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 	} else {
 		maxRedemptions = -1
+	}
+
+	if zone != "" && zone != "fr" {
+		return fmt.Errorf(constants.ErrorInvalidZone)
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
@@ -291,7 +295,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		swarmIDs = append(swarmIDs, delId)
 	}
 
-	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions); err != nil {
+	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
@@ -369,7 +373,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 	}
 
 	for _, coupon := range distributorCoupons.Coupons {
-		fmt.Printf("• %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description)
+		fmt.Printf("• %s, %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description, coupon.Zone)
 	}
 
 	return nil
@@ -827,17 +831,15 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Description))
 	}
 
-	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor coupon found")
-		return nil
-	}
+	if len(choices) != 0 {
+		if choice, err = tui.ChooseOne("Choose your distributor coupon", true, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+		}
 
-	if choice, err = tui.ChooseOne("Choose your distributor coupon", true, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
-	}
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		coupon, _, _ = strings.Cut(withoutPrefix, ",")
 
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	coupon, _, _ = strings.Cut(withoutPrefix, ",")
+	}
 
 	var download string
 	if download, err = tui.ChooseOne("Do you want to download the report?", false, false, []string{"Yes", "No"}); err != nil {

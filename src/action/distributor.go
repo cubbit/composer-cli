@@ -198,7 +198,7 @@ func RemoveDistributor(cmd *cobra.Command, args []string) error {
 func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, description, configPath string
+	var id, name, couponName, description, configPath, zone string
 	var maxRedemptions int
 	var swarmIDs []string
 	var response *api.GenericIDResponseModel
@@ -232,6 +232,10 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if zone, err = cmd.Flags().GetString("zone"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -250,7 +254,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		id = distributor.ID
 	}
 
-	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions); err != nil {
+	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
@@ -315,7 +319,7 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 
 	for _, coupon := range distributorCoupons.Coupons {
 		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description)
+			fmt.Printf("• %s, %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description, coupon.Zone)
 		} else {
 			fmt.Printf(" • %s\n", coupon.Name)
 		}

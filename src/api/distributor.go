@@ -127,7 +127,7 @@ func DownloadDistributorReport(urls configuration.Url, accessToken, distributorI
 	return &response, nil
 }
 
-func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID, name string, description *string, swarmIDs []string, maxRedemptions int) (*GenericIDResponseModel, error) {
+func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID, name string, description *string, swarmIDs []string, maxRedemptions int, zone string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
 	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons"
@@ -140,6 +140,10 @@ func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID,
 
 	if description != nil {
 		requestBody["description"] = description
+	}
+
+	if zone != "" {
+		requestBody["zone"] = zone
 	}
 
 	if err = request_utils.DoRequest(

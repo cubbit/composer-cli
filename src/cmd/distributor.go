@@ -23,8 +23,6 @@ var createDistributorSubCmd = &cobra.Command{
 		if !interactive {
 			cmd.MarkFlagRequired("name")
 			cmd.MarkFlagRequired("owner")
-			cmd.MarkFlagRequired("first-name")
-			cmd.MarkFlagRequired("last-name")
 			cmd.MarkFlagRequired("swarms")
 
 			swarms, _ := cmd.Flags().GetStringSlice("swarms")
@@ -122,6 +120,14 @@ var createDistributorCouponSubCmd = &cobra.Command{
 				cmd.Usage()
 				os.Exit(1)
 			}
+
+			zone, _ := cmd.Flags().GetString("zone")
+			if zone != "" && zone != "fr" {
+				fmt.Println("Error: the provided zone is invalid, please enter 'fr' for the French zone or leave it empty.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -379,6 +385,7 @@ func init() {
 	createDistributorCouponSubCmd.Flags().String("description", "", "Description of the distributor coupon")
 	createDistributorCouponSubCmd.Flags().Int("redemption-count", -1, "Max redemptions of the distributor coupon")
 	createDistributorCouponSubCmd.Flags().StringSlice("swarms", []string{}, "List of swarm ids associated to the distributor coupon")
+	createDistributorCouponSubCmd.Flags().String("zone", "", "Zone of the distributor coupon creation")
 
 	distributorCmd.AddCommand(listDistributorCouponsSubCmd)
 	listDistributorCouponsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for distributor coupons")
