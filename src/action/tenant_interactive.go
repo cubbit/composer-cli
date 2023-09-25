@@ -521,7 +521,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Email*", Value: &email}, tui.Input{Placeholder: "First Name*", Value: &first_name}, tui.Input{Placeholder: "Last Name*", Value: &last_name}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form for the operator to invite", false, tui.Input{Placeholder: "Email*", Value: &email}, tui.Input{Placeholder: "First Name", Value: &first_name}, tui.Input{Placeholder: "Last Name", Value: &last_name}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 

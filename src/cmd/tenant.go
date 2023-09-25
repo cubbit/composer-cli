@@ -228,8 +228,6 @@ var addOperatorToTenantSubCmd = &cobra.Command{
 
 			cmd.MarkFlagRequired("email")
 			cmd.MarkFlagRequired("role")
-			cmd.MarkFlagRequired("first-name")
-			cmd.MarkFlagRequired("last-name")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {

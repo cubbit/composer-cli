@@ -148,6 +148,7 @@ type DistributorCoupon struct {
 	Redemptions    int       `json:"redemptions"`
 	MaxRedemptions int64     `json:"max_redemptions"`
 	Code           string    `json:"code"`
+	Zone           string    `json:"zone"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 

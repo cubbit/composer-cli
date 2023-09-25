@@ -110,4 +110,6 @@ const (
 	ErrorForgingTenantDeleteTokenRequest      = "failed request to forge tenant delete token"
 
 	ErrorCreatingTenantRequest = "failed request to create the tenant"
+
+	ErrorInvalidZone = "invalid zone, enter fr for the French zone or leave it empty"
 )
