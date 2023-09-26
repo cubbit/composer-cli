@@ -249,7 +249,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		id = distributor.ID
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}, tui.Input{Placeholder: "Zone: Enter fr for the French zone", IsPassword: false, Value: &zone}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}, tui.Input{Placeholder: "Zone: Enter <fr|de|''> ", IsPassword: false, Value: &zone}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -266,8 +266,20 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		maxRedemptions = -1
 	}
 
-	if zone != "" && zone != "fr" {
-		return fmt.Errorf(constants.ErrorInvalidZone)
+	if zone != "" {
+		var zones = []string{"de", "fr"}
+		var found bool
+
+		for _, z := range zones {
+			if zone == z {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return fmt.Errorf(constants.ErrorInvalidZone)
+		}
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
