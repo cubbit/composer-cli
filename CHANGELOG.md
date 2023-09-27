@@ -1,3 +1,9 @@
+## 0.11.0 (2023-09-27)
+
+### Feat
+
+- **cli**: add access token generation cmd
+
 ## 0.10.0 (2023-09-22)
 
 ### Feat
