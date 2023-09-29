@@ -24,6 +24,14 @@ var createTenantSubCmd = &cobra.Command{
 			cmd.MarkFlagRequired("name")
 			cmd.MarkFlagRequired("settings")
 			cmd.MarkFlagRequired("coupon-code")
+			cmd.MarkFlagRequired("zone")
+
+			zone, _ := cmd.Flags().GetString("zone")
+			if zone == "" {
+				fmt.Println("Error: invalid zone.")
+				cmd.Usage()
+				os.Exit(1)
+			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -347,6 +355,7 @@ func init() {
 	createTenantSubCmd.Flags().String("image-url", "", "Image URL of the tenant")
 	createTenantSubCmd.Flags().String("settings", "", "A Json object containing the tenant settings")
 	createTenantSubCmd.Flags().String("coupon-code", "", "A code provided by the Distributor that authorizes the tenant creation")
+	createTenantSubCmd.Flags().String("zone", "", "Zone of the tenant creation")
 
 	tenantCmd.AddCommand(listTenantSubCmd)
 	listTenantSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for tenants")

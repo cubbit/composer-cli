@@ -15,9 +15,17 @@ import (
 func CreateTenant(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var name, description, imageUrl, settingsString, couponCode, configPath string
+	var name, description, imageUrl, settingsString, couponCode, configPath, zone string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
 
 	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -53,12 +61,25 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	if zone, err = cmd.Flags().GetString("zone"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	var zones *api.ZoneMap
+	var found bool
+	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+	}
+
+	for _, zn := range zones.Zones {
+		if zn.Key == zone {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf(constants.ErrorInvalidZone)
+
 	}
 
 	var settings map[string]interface{}
@@ -67,7 +88,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode); err != nil {
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 

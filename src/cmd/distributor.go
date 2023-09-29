@@ -10,8 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var zones = []string{"de", "fr"}
-
 var distributorCmd = &cobra.Command{
 	Use:   "distributor",
 	Short: "Execute commands in distributor sections",
@@ -122,20 +120,6 @@ var createDistributorCouponSubCmd = &cobra.Command{
 				cmd.Usage()
 				os.Exit(1)
 			}
-
-			zone, _ := cmd.Flags().GetString("zone")
-			if zone != "" {
-				for _, z := range zones {
-					if zone == z {
-						return
-					}
-				}
-
-				fmt.Println("Error: the provided zone is invalid, please enter <'fr'|'de'> for the French zone or leave it empty.")
-				cmd.Usage()
-				os.Exit(1)
-			}
-
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {

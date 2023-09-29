@@ -17,9 +17,17 @@ import (
 func CreateTenantInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var name, description, imageUrl, settingsString, couponCode, configPath string
+	var name, description, imageUrl, settingsString, couponCode, configPath, zone string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
 
 	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Coupon code*", IsPassword: false, Value: &couponCode}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
@@ -35,7 +43,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextAreas("Fill in the tenant settings", true, tui.TextArea{Placeholder: "{}", Value: &settingsString}); err != nil {
+	if _, err = tui.TextAreas("Fill in the tenant settings", false, tui.TextArea{Placeholder: "{}", Value: &settingsString}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 
 	}
@@ -44,21 +52,36 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		settingsString = "{}"
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
 	var settings map[string]interface{}
 
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode); err != nil {
+	var zones *api.ZoneMap
+	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+	}
+
+	if len(zones.Zones) == 0 {
+		utils.PrintNotFound("No zones found")
+		return nil
+	}
+
+	var choices []string
+	var choice string
+	for _, zn := range zones.Zones {
+		choices = append(choices, fmt.Sprintf("• %s, %s", zn.Key, zn.Name))
+	}
+
+	if choice, err = tui.ChooseOne("Which zone would you like to create your tenant?", false, true, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	zone, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 

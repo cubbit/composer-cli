@@ -177,3 +177,13 @@ type TenantReport struct {
 type DistributorReportResponseModel struct {
 	Report []TenantReport `json:"report"`
 }
+
+type ZoneResponse struct {
+	Name        string `json:"name" binding:"required" example:"France"`
+	Key         string `json:"key" binding:"required" example:"fr"`
+	Description string `json:"description"`
+}
+
+type ZoneMap struct {
+	Zones map[string]ZoneResponse `json:"zones"`
+}
