@@ -66,20 +66,12 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	var zones *api.ZoneMap
-	var found bool
+
 	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 	}
-
-	for _, zn := range zones.Zones {
-		if zn.Key == zone {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if _, ok := zones.Zones[zone]; !ok {
 		return fmt.Errorf(constants.ErrorInvalidZone)
-
 	}
 
 	var settings map[string]interface{}
