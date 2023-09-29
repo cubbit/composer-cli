@@ -211,7 +211,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
-	
+
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -246,19 +246,12 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 
 	if zone != "" {
 		var zones *api.ZoneMap
-		var found bool
 		if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 		}
 
-		for _, zn := range zones.Zones {
-			if zn.Key == zone {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return fmt.Errorf("%s: %w", constants.ErrorInvalidZone, err)
+		if _, ok := zones.Zones[zone]; !ok {
+			return fmt.Errorf(constants.ErrorInvalidZone)
 		}
 	}
 
