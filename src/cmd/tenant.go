@@ -24,14 +24,6 @@ var createTenantSubCmd = &cobra.Command{
 			cmd.MarkFlagRequired("name")
 			cmd.MarkFlagRequired("settings")
 			cmd.MarkFlagRequired("coupon-code")
-			cmd.MarkFlagRequired("zone")
-
-			zone, _ := cmd.Flags().GetString("zone")
-			if zone == "" {
-				fmt.Println("Error: invalid zone.")
-				cmd.Usage()
-				os.Exit(1)
-			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {

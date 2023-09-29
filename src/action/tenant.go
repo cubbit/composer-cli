@@ -65,13 +65,15 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	var zones *api.ZoneMap
+	if zone != "" {
+		var zones *api.ZoneMap
 
-	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
-	}
-	if _, ok := zones.Zones[zone]; !ok {
-		return fmt.Errorf(constants.ErrorInvalidZone)
+		if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+		}
+		if _, ok := zones.Zones[zone]; !ok {
+			return fmt.Errorf(constants.ErrorInvalidZone)
+		}
 	}
 
 	var settings map[string]interface{}

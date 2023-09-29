@@ -194,7 +194,6 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operator *api.Operator
 	var swarms []api.Swarm
-	var zones *api.ZoneMap
 	var choices []string
 	var choice string
 
@@ -268,26 +267,33 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		maxRedemptions = -1
 	}
 
+	var zones *api.ZoneMap
 	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 	}
 
-	if len(zones.Zones) == 0 {
-		utils.PrintNotFound("No zones found")
-		return nil
-	}
+	if len(zones.Zones) != 0 {
+		choices = append(choices, fmt.Sprintf("• %s", "Default"))
+		for _, zn := range zones.Zones {
+			choices = append(choices, fmt.Sprintf("• %s", zn.Name))
+		}
 
-	for _, zn := range zones.Zones {
-		choices = append(choices, fmt.Sprintf("• %s, %s", zn.Key, zn.Name))
-	}
+		if choice, err = tui.ChooseOne("Which zone would you like to create your coupon?", true, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+		}
 
-	if choice, err = tui.ChooseOne("Which zone would you like to create your coupon?", true, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
-	}
+		if choice != "" {
+			_, value, _ := strings.Cut(choice, " ")
+			if value != "Default" {
+				for _, zn := range zones.Zones {
 
-	if choice != "" {
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		zone, _, _ = strings.Cut(withoutPrefix, ",")
+					if value == zn.Name {
+						zone = zn.Key
+						break
+					}
+				}
+			}
+		}
 	}
 
 	if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
