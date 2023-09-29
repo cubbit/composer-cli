@@ -111,5 +111,6 @@ const (
 
 	ErrorCreatingTenantRequest = "failed request to create the tenant"
 
-	ErrorInvalidZone = "invalid zone, enter <fr|de> or leave it empty"
+	ErrorInvalidZone            = "invalid zone"
+	ErrorRetrievingZonesRequest = "failed request to retrieve zones"
 )

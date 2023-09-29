@@ -9,7 +9,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}, couponCode string) (*GenericIDResponseModel, error) {
+func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}, couponCode, zone string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
 	url := urls.IamUrl + constants.Tenants
@@ -18,6 +18,7 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 		"name":        name,
 		"settings":    settings,
 		"coupon_code": strings.ToUpper(couponCode),
+		"zone":        zone,
 	}
 
 	if description != nil {
@@ -249,6 +250,23 @@ func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string)
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractSwarmListModel(&response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func GetGatwayZones(urls configuration.Url) (*ZoneMap, error) {
+	var err error
+
+	url := urls.IamUrl + constants.Zones
+
+	var response ZoneMap
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractZoneMapModel(&response),
 	); err != nil {
 		return nil, err
 	}

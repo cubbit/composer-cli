@@ -43,4 +43,6 @@ const (
 
 	Distributors                = "/v1/distributors"
 	ForgeDistributorDeleteToken = "/v1/auth/operators/forge/token?capabilities=delete_distributor&distributor_id="
+
+	Zones = "/v1/gateways/zones"
 )
