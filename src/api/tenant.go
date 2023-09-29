@@ -18,7 +18,6 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 		"name":        name,
 		"settings":    settings,
 		"coupon_code": strings.ToUpper(couponCode),
-		"zone":        zone,
 	}
 
 	if description != nil {
@@ -27,6 +26,10 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 
 	if imageUrl != nil {
 		requestBody["image_url"] = *imageUrl
+	}
+
+	if zone != "" {
+		requestBody["zone"] = zone
 	}
 
 	if err = request_utils.DoRequest(

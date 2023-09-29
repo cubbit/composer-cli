@@ -20,6 +20,8 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	var name, description, imageUrl, settingsString, couponCode, configPath, zone string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
+	var choices []string
+	var choice string
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -63,23 +65,28 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 	}
 
-	if len(zones.Zones) == 0 {
-		utils.PrintNotFound("No zones found")
-		return nil
-	}
+	if len(zones.Zones) != 0 {
+		choices = append(choices, fmt.Sprintf("• %s", "Default"))
+		for _, zn := range zones.Zones {
+			choices = append(choices, fmt.Sprintf("• %s", zn.Name))
+		}
 
-	var choices []string
-	var choice string
-	for _, zn := range zones.Zones {
-		choices = append(choices, fmt.Sprintf("• %s, %s", zn.Key, zn.Name))
-	}
+		if choice, err = tui.ChooseOne("Which zone would you like to create your tenant?", true, true, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+		}
 
-	if choice, err = tui.ChooseOne("Which zone would you like to create your tenant?", false, true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
+		if choice != "" {
+			_, value, _ := strings.Cut(choice, " ")
+			if value != "Default" {
+				for _, zn := range zones.Zones {
+					if value == zn.Name {
+						zone = zn.Key
+						break
+					}
+				}
+			}
+		}
 	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	zone, _, _ = strings.Cut(withoutPrefix, ",")
 
 	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
