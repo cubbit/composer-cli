@@ -1,3 +1,10 @@
+## 0.11.1 (2023-10-02)
+
+### Fix
+
+- **cli**: fix zone selection logic
+- fix zone checking values
+
 ## 0.11.0 (2023-09-27)
 
 ### Feat
