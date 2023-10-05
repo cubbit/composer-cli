@@ -56,12 +56,13 @@ type GenericIDResponseModel struct {
 type Tenant struct {
 	ID          string                 `json:"id" example:"784da023-cc6c-4a46-8e31-bc0a521d19e0"`
 	Name        string                 `json:"name" example:"Cubbit"`
-	Description *string                `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
+	Description string                 `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
 	OwnerID     string                 `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
 	CreatedAt   time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
-	DeletedAt   *time.Time             `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
-	ImageUrl    *string                `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
+	DeletedAt   time.Time              `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	ImageUrl    string                 `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 	Settings    map[string]interface{} `json:"settings" example:"{}"`
+	CouponID    string                 `json:"coupon_id"`
 }
 
 type TenantList struct {

@@ -346,6 +346,36 @@ var reportDistributSubCmd = &cobra.Command{
 	},
 }
 
+var assignTenantSubCmd = &cobra.Command{
+	Use:   "assign-tenant",
+	Short: "assigns a tenant to a distributor coupon",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			tenantID, _ := cmd.Flags().GetString("tenant-id")
+			tenantName, _ := cmd.Flags().GetString("tenant-name")
+			if tenantID == "" && tenantName == "" {
+				fmt.Println("Error: at least one of the two required flags --tenant-id or --tenant-name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("coupon-code")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.AssignTenantToCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.AssignTenantToCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	distributorCmd.AddCommand(createDistributorSubCmd)
 	createDistributorSubCmd.Flags().String("name", "", "Name of the distributor")
@@ -394,6 +424,11 @@ func init() {
 	distributorCmd.AddCommand(revokeDistributorCouponSubCmd)
 
 	distributorCmd.AddCommand(removeDistributorCouponSubCmd)
+
+	distributorCmd.AddCommand(assignTenantSubCmd)
+	assignTenantSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
+	assignTenantSubCmd.Flags().String("tenant-name", "", "Name of the tenant")
+	assignTenantSubCmd.Flags().String("coupon-code", "", "Coupon code to assign to the tenant")
 
 	rootCmd.AddCommand(distributorCmd)
 	distributorCmd.PersistentFlags().String("name", "", "Name of the distributor")

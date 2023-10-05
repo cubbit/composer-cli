@@ -909,3 +909,95 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var tenantID, couponCode, configPath string
+	var conf *configuration.Config
+	var choice string
+	var choices []string
+	var distributors *api.DistributorList
+	var distributorCoupons *api.DistributorCouponList
+	var tenants *api.TenantList
+	var response *api.GenericIDResponseModel
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+	}
+
+	for _, tenant := range tenants.Tenants {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No tenants found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which tenant would you like to select?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	tenantID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	choices = []string{}
+	if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
+	}
+
+	for _, distributor := range distributors.Distributors {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+	}
+
+	_, withoutPrefix, _ = strings.Cut(choice, " ")
+	id, _, _ := strings.Cut(withoutPrefix, ",")
+
+	choices = []string{}
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
+	}
+
+	for _, coupon := range distributorCoupons.Coupons {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Code))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor coupon found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to assign?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	parts := strings.Split(choice, ",")
+
+	couponCode = strings.TrimSpace(parts[2])
+
+	if response, err = api.AssignTenantToCoupon(conf.Urls, *accessToken, tenantID, couponCode); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("tenant %s assigned successfully to %s", response.ID, couponCode))
+
+	return nil
+}

@@ -125,7 +125,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	var choices []string
 
 	for _, tenant := range tenants.Tenants {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 	}
 
 	if len(choices) == 0 {
@@ -193,7 +193,7 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -263,7 +263,7 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -336,7 +336,7 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -407,7 +407,7 @@ func ListTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	for _, tenant := range tenants.Tenants {
-		fmt.Printf("• %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
+		fmt.Printf("• %s, %s, %s\n", tenant.ID, tenant.Name, tenant.Description)
 	}
 
 	return nil
@@ -446,7 +446,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -526,7 +526,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -623,7 +623,7 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -701,7 +701,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {
@@ -814,7 +814,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Tenants {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, *tenant.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
 		}
 
 		if len(choices) == 0 {

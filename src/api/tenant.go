@@ -275,3 +275,25 @@ func GetGatwayZones(urls configuration.Url) (*ZoneMap, error) {
 	}
 	return &response, nil
 }
+
+func AssignTenantToCoupon(urls configuration.Url, accessToken, tenantID, CouponCode string) (*GenericIDResponseModel, error) {
+	var err error
+	var response GenericIDResponseModel
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/coupon"
+
+	requestBody := map[string]interface{}{
+		"coupon_code": CouponCode,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
