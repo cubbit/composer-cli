@@ -129,7 +129,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 
 	for _, tenant := range tenants.Tenants {
 		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", tenant.ID, tenant.Name, *tenant.Description)
+			fmt.Printf(" • %s, %s, %s\n", tenant.ID, tenant.Name, tenant.Description)
 		} else {
 			fmt.Printf(" • %s\n", tenant.Name)
 		}

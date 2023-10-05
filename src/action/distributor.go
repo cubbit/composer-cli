@@ -640,6 +640,50 @@ func GetDistributorReport(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var tenantID, tenantName, couponCode, configPath string
+	var conf *configuration.Config
+	var response *api.GenericIDResponseModel
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if tenantName, err = cmd.Flags().GetString("tenant-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if couponCode, err = cmd.Flags().GetString("coupon-code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if tenantID == "" {
+		var tenant *api.Tenant
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, tenantName); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		tenantID = tenant.ID
+	}
+
+	if response, err = api.AssignTenantToCoupon(conf.Urls, *accessToken, tenantID, couponCode); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("tenant %s assigned successfully to %s", response.ID, couponCode))
+
+	return nil
+}
+
 func getDistributorByNameOrId(conf *configuration.Config, accessToken string, distributor string) (*api.Distributor, error) {
 	var err error
 	var distributors *api.DistributorList
