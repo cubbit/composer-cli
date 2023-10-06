@@ -1,3 +1,13 @@
+## 0.12.0 (2023-10-06)
+
+### Feat
+
+- **cli**: update tenant coupon
+
+### Fix
+
+- **cli**: fix pagination
+
 ## 0.11.1 (2023-10-02)
 
 ### Fix
