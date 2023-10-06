@@ -985,7 +985,7 @@ func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to assign?", false, false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor coupon would you like to assign?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
