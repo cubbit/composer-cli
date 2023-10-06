@@ -105,6 +105,8 @@ func (m *chooseModel) terminateSpinner() {
 }
 
 func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	start, end := m.paginator.GetSliceBounds(len(m.items))
+
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
@@ -131,11 +133,9 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.Right):
 			m.index = clamp(m.index+m.height, 0, len(m.items)-1)
-			m.paginator.NextPage()
 
 		case key.Matches(msg, m.keys.Left):
 			m.index = clamp(m.index-m.height, 0, len(m.items)-1)
-			m.paginator.PrevPage()
 
 		case key.Matches(msg, m.keys.Quit):
 			m.cancelled = true
@@ -156,13 +156,14 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.numSelected++
 				m.currentOrder++
 			}
+
 		case key.Matches(msg, m.keys.SelectAll):
 			if m.limit <= 1 {
 				break
 			}
 			for i := range m.items {
 				if m.numSelected >= m.limit {
-					break // do not exceed given limit
+					break
 				}
 				if m.items[i].selected {
 					continue
@@ -182,8 +183,9 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.numSelected = 0
 			m.currentOrder = 0
+
 		case key.Matches(msg, m.keys.Enter):
-			if m.index < len(m.items) {
+			if m.index < end {
 				if m.items[m.index].selected {
 					m.items[m.index].selected = false
 					m.numSelected--
@@ -199,16 +201,16 @@ func (m chooseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.startSpinner()
 					return m, m.spinner.Tick
 				}
-
 				return m, tea.Quit
 			}
 		}
 
-		if m.index > len(m.items) {
-			m.index = 0
-		} else if m.index < 0 {
-			m.index = len(m.items)
+		if m.index > end {
+			m.index = start
+		} else if m.index < start {
+			m.index = end
 		}
+
 	}
 
 	var cmd tea.Cmd
@@ -235,45 +237,51 @@ func (m chooseModel) View() string {
 	start, end := m.paginator.GetSliceBounds(len(m.items))
 
 	for i, item := range m.items[start:end] {
-		if i == m.index%m.height {
-			s.WriteString(m.cursorStyle.Render(m.cursor))
-		} else {
+		if m.index == end {
 			s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.cursor)))
+		} else {
+			if i == m.index%m.height {
+				s.WriteString(m.cursorStyle.Render(m.cursor))
+			} else {
+				s.WriteString(strings.Repeat(" ", runewidth.StringWidth(m.cursor)))
+			}
 		}
 
 		if item.selected {
 			s.WriteString(m.selectedItemStyle.Render(m.selectedPrefix + item.text))
 		} else if i == m.index%m.height {
-			s.WriteString(m.cursorStyle.Render(m.cursorPrefix + item.text))
+			if m.index != end {
+				s.WriteString(m.cursorStyle.Render(m.cursorPrefix + item.text))
+			} else {
+				s.WriteString(m.itemStyle.Render(m.unselectedPrefix + item.text))
+			}
 		} else {
 			s.WriteString(m.itemStyle.Render(m.unselectedPrefix + item.text))
 		}
 
 		if i != m.height {
-			s.WriteRune('\n')
+			s.WriteString("\n")
 		}
+	}
+
+	if m.paginator.TotalPages > 1 {
+		s.WriteString(strings.Repeat("\n", m.height-m.paginator.ItemsOnPage(len(m.items))+1))
+		s.WriteString("  " + m.paginator.View())
 	}
 
 	if m.isLastStep {
 		button := &submitBlurredButton
-		if m.index == len(m.items) {
+		if m.index == end {
 			button = &submitFocusedButton
 		}
 		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
 	} else {
 		button := &continueBlurredButton
-		if m.index == len(m.items) {
+		if m.index == end {
 			button = &continueFocusedButton
 		}
 		fmt.Fprintf(&s, "\n\n%s\n\n", boldStyle.Render(*button))
 	}
-
-	if m.paginator.TotalPages <= 1 {
-		return s.String()
-	}
-
-	s.WriteString(strings.Repeat("\n", m.height-m.paginator.ItemsOnPage(len(m.items))+1))
-	s.WriteString("  " + m.paginator.View())
 
 	return s.String()
 }
@@ -338,7 +346,7 @@ func choose(title string, isLastStep bool, options []string, limit int) ([]strin
 	pager.PerPage = height
 	pager.Type = paginator.Dots
 	pager.ActiveDot = subduedStyle.Render("•")
-	pager.InactiveDot = verySubduedStyle.Render("•")
+	pager.InactiveDot = verySubduedStyle.Render("○")
 
 	for i, option := range options {
 		items[i] = item{text: option, selected: false, order: i}
