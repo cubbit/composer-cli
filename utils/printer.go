@@ -9,7 +9,7 @@ import (
 
 var (
 	boldStyle = lipgloss.NewStyle().Bold(true)
-	redBg     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FF0000"))
+	RedBg     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FF0000"))
 	greenBg   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#00FF80"))
 	yellowBg  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFBA00"))
 )
@@ -24,7 +24,7 @@ func PrintError(err error) {
 	for i, line := range lines {
 		if i == 0 {
 			l, _ := strings.CutSuffix(line, ": ")
-			fmt.Printf("%s %s\n", redBg.Render("ERR"), l)
+			fmt.Printf("%s %s\n", RedBg.Render("ERR"), l)
 		} else {
 			fmt.Println(line)
 		}
