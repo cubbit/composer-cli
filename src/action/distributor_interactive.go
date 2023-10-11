@@ -127,10 +127,12 @@ func RemoveDistributorInteractive(cmd *cobra.Command) error {
 	if choice, err = tui.ChooseOne("Which distributor would you like to delete?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingDistributor, err)
 	}
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	id, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Confirm your login to delete the distributor", true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+	splits := strings.Split(choice, ",")
+	_, id, _ = strings.Cut(splits[0], " ")
+	_, name, _ := strings.Cut(splits[1], " ")
+
+	if _, err = tui.TextInputs(fmt.Sprintf("Confirm your login to delete the distributor %s - %s 🚮", utils.RedBg.Render(name), utils.RedBg.Render(id)), true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
