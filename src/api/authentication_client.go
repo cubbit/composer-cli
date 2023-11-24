@@ -36,6 +36,28 @@ func GenerateOperatorChallenge(urls configuration.Url, email string) (*Challenge
 	return &response, nil
 }
 
+func GenerateAccountChallenge(urls configuration.Url, email string) (*ChallengeResponseModel, error) {
+	var err error
+	var response ChallengeResponseModel
+	url := urls.IamUrl + constants.GenerateAccountChallenge
+
+	requestBody := map[string]interface{}{
+		"email": email,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractChallengeResponseModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 func PerformOperatorSignin(urls configuration.Url, email, password string, challenge *ChallengeResponseModel, code string) (string, error) {
 	var err error
 	url := urls.IamUrl + constants.OperatorSignIn
@@ -57,6 +79,56 @@ func PerformOperatorSignin(urls configuration.Url, email, password string, chall
 		"email":            email,
 		"signed_challenge": base64.StdEncoding.EncodeToString(signedChallenge),
 		"tfa_code":         code,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractTokenExpirationModel(&tokenExpirationResponse),
+		extractRefreshCookie(&refreshTokenCookie),
+	); err != nil {
+		return "", err
+	}
+
+	if tokenExpirationResponse.Exp == 0 {
+		return "", fmt.Errorf(constants.ErrorTokenExpiration)
+	}
+
+	if tokenExpirationResponse.Token == "" {
+		return "", fmt.Errorf(constants.ErrorEmptyToken)
+	}
+
+	if refreshTokenCookie == "" {
+		return "", fmt.Errorf(constants.ErrorRefreshToken)
+	}
+
+	return refreshTokenCookie, nil
+}
+
+func PerformAccountSignin(urls configuration.Url, tenantID string, email, password string, challenge *ChallengeResponseModel, code string) (string, error) {
+	var err error
+	url := urls.IamUrl + constants.AccountSignIn
+	var privateKey ed25519.PrivateKey
+	var tokenExpirationResponse TokenAndExpirationResponseModel
+	var refreshTokenCookie string
+
+	h := sha256.New()
+	h.Write([]byte(password + challenge.Salt))
+	seed := h.Sum(nil)
+
+	if _, privateKey, err = utils.GenerateKeyPairFromSeed(seed); err != nil {
+		return "", err
+	}
+
+	signedChallenge := ed25519.Sign(privateKey, []byte(challenge.Challenge))
+
+	requestBody := map[string]interface{}{
+		"email":            email,
+		"signed_challenge": base64.StdEncoding.EncodeToString(signedChallenge),
+		"tfa_code":         code,
+		"tenant_id":        tenantID,
 	}
 
 	if err = request_utils.DoRequest(
@@ -108,6 +180,39 @@ func CreateOperator(urls configuration.Url, firstName, lastName, email, password
 		"last_name":                 lastName,
 		"email":                     email,
 		"authentication_public_key": base64.StdEncoding.EncodeToString(publicKey),
+	}
+
+	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateAccount(urls configuration.Url, firstName, lastName, email, password, tenantID string) error {
+	var err error
+
+	var challenge *ChallengeResponseModel
+	if challenge, err = GenerateOperatorChallenge(urls, email); err != nil {
+		return err
+	}
+
+	hash := sha256.New()
+	hash.Write([]byte(password + challenge.Salt))
+	seed := hash.Sum(nil)
+
+	var publicKey ed25519.PublicKey
+	if publicKey, _, err = utils.GenerateKeyPairFromSeed(seed); err != nil {
+		return err
+	}
+
+	url := urls.IamUrl + constants.CreateAccount
+	requestBody := map[string]interface{}{
+		"first_name":                firstName,
+		"last_name":                 lastName,
+		"email":                     email,
+		"authentication_public_key": base64.StdEncoding.EncodeToString(publicKey),
+		"tenant_id":                 tenantID,
 	}
 
 	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {

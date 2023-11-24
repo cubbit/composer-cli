@@ -33,6 +33,10 @@ const (
 	RefreshOperatorAccessToken     = "/v1/auth/operators/refresh/access"
 	ForgeOperatorDeleteTenantToken = "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id="
 
+	AccountSignIn            = "/v1/auth/signin"
+	GenerateAccountChallenge = "/v1/auth/signin/challenge"
+	CreateAccount            = "/v1/accounts/signup"
+
 	Tenants     = "/v1/tenants"
 	ListTenants = "/v1/tenants?owner="
 
