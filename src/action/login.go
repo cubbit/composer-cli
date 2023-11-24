@@ -40,7 +40,7 @@ func SignInOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeOperator, apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
@@ -52,7 +52,7 @@ func SignInOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignInRequest, err)
 	}
 
-	var confs = configuration.NewConfig(profile, *urls, refreshToken)
+	var confs = configuration.NewConfig(configuration.SessionTypeOperator, profile, *urls, refreshToken)
 	if err = confs.StoreSession(configPath); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
@@ -96,7 +96,7 @@ func SignInAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeAccount, apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
@@ -108,7 +108,7 @@ func SignInAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignInRequest, err)
 	}
 
-	var confs = configuration.NewConfig(profile, *urls, refreshToken)
+	var confs = configuration.NewConfig(configuration.SessionTypeAccount, profile, *urls, refreshToken)
 	if err = confs.StoreSession(configPath); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}

@@ -13,6 +13,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type SessionType string
+
+const (
+	SessionTypeUnauthenticated SessionType = "unauthenticated"
+	SessionTypeUser            SessionType = "user"
+	SessionTypeAccount         SessionType = "account"
+	SessionTypeOperator        SessionType = "operator"
+)
+
 type Url struct {
 	IamUrl  string `yaml:"iam"`
 	HiveUrl string `yaml:"hive"`
@@ -20,22 +29,24 @@ type Url struct {
 }
 
 type Config struct {
-	Name         string    `yaml:"name"`
-	Urls         Url       `yaml:"servers_url"`
-	RefreshToken string    `yaml:"refresh_token"`
-	UpdatedAt    time.Time `yaml:"updated_at"`
+	Name         string      `yaml:"name"`
+	Urls         Url         `yaml:"servers_url"`
+	RefreshToken string      `yaml:"refresh_token"`
+	UpdatedAt    time.Time   `yaml:"updated_at"`
+	SessionType  SessionType `yaml:"session_type"`
 }
 
 type Session struct {
 	Session map[string]Config `yaml:"session"`
 }
 
-func NewConfig(name string, urls Url, refreshToken string) *Config {
+func NewConfig(sessionType SessionType, name string, urls Url, refreshToken string) *Config {
 	return &Config{
 		Name:         name,
 		Urls:         urls,
 		RefreshToken: refreshToken,
 		UpdatedAt:    time.Now(),
+		SessionType:  sessionType,
 	}
 }
 
@@ -97,6 +108,10 @@ func (c *Config) LoadAndCheckSession(filePath string, name string) error {
 
 	if config.Name == "" {
 		return fmt.Errorf(constants.ErrorNameConfigNotFound)
+	}
+
+	if config.SessionType == "" {
+		return fmt.Errorf(constants.ErrorSessionTypeConfigNotFound)
 	}
 
 	*c = config
@@ -164,7 +179,7 @@ func ReadConfig(cmd *cobra.Command, isLastStep ...bool) (*Config, string, error)
 		}
 	}
 
-	var conf = NewConfig(profile, Url{}, "")
+	var conf = NewConfig("", profile, Url{}, "")
 	if err = conf.LoadAndCheckSession(configPath, profile); err != nil {
 		return nil, "", fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -172,9 +187,9 @@ func ReadConfig(cmd *cobra.Command, isLastStep ...bool) (*Config, string, error)
 	return conf, configPath, nil
 }
 
-func ConfigureAPIServerURL(apiServerUrl string) (*Url, error) {
+func ConfigureAPIServerURL(sessionType SessionType, apiServerUrl string) (*Url, error) {
 	var urls *Url
-	var conf = NewConfig("", Url{}, "")
+	var conf = NewConfig(sessionType, "", Url{}, "")
 
 	devPath := constants.DefaultFilePath
 

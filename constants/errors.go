@@ -51,11 +51,12 @@ const (
 	ErrorListingOperatorsRequest    = "failed request to list operators"
 	ErrorRemovingOperatorRequest    = "failed request to remove operator"
 
-	ErrorIamConfigNotFound   = "iam api server url is not defined in configuration"
-	ErrorHiveConfigNotFound  = "hive api server url is not defined in configuration"
-	ErrorTokenConfigNotFound = "refresh token is not defined in configuration file"
-	ErrorNameConfigNotFound  = "name is not defined in configuration file"
-	ErrorDashConfigNotFound  = "dash api server url is not defined in configuration"
+	ErrorIamConfigNotFound         = "iam api server url is not defined in configuration"
+	ErrorHiveConfigNotFound        = "hive api server url is not defined in configuration"
+	ErrorTokenConfigNotFound       = "refresh token is not defined in configuration file"
+	ErrorNameConfigNotFound        = "name is not defined in configuration file"
+	ErrorDashConfigNotFound        = "dash api server url is not defined in configuration"
+	ErrorSessionTypeConfigNotFound = "session type is not defined in configuration"
 
 	ErrorCreatingSwarm           = "error while creating swarm"
 	ErrorRetrievingSwarm         = "error while retrieving swarm"
