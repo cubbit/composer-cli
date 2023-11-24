@@ -19,7 +19,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -98,7 +98,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var tenants *api.TenantList
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -168,7 +168,7 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -219,7 +219,7 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var tenants *api.TenantList
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -279,7 +279,7 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -324,7 +324,7 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -372,7 +372,7 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -441,7 +441,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -497,7 +497,7 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -563,7 +563,7 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -610,7 +610,7 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 

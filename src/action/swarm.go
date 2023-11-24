@@ -36,7 +36,7 @@ func CreateSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -78,7 +78,7 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -122,7 +122,7 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 	var operator *api.Operator
 	var swarms []api.Swarm
 
-	if config, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -188,7 +188,7 @@ func RemoveSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -233,7 +233,7 @@ func EditSwarmDescription(cmd *cobra.Command, args ...string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -276,7 +276,7 @@ func EditSwarmName(cmd *cobra.Command, args ...string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -325,7 +325,7 @@ func AddOperatorToSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -387,7 +387,7 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -450,7 +450,7 @@ func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 

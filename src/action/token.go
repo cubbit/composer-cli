@@ -16,7 +16,7 @@ func GenerateAccessToken(cmd *cobra.Command, args []string) error {
 	var configPath string
 	var conf *configuration.Config
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 

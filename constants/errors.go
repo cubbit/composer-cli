@@ -57,6 +57,7 @@ const (
 	ErrorNameConfigNotFound        = "name is not defined in configuration file"
 	ErrorDashConfigNotFound        = "dash api server url is not defined in configuration"
 	ErrorSessionTypeConfigNotFound = "session type is not defined in configuration"
+	ErrorSessionTypeConfigInvalid  = "session type is invalid for this request"
 
 	ErrorCreatingSwarm           = "error while creating swarm"
 	ErrorRetrievingSwarm         = "error while retrieving swarm"

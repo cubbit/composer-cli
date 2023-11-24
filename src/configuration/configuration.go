@@ -77,7 +77,7 @@ func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
 	return &urls, nil
 }
 
-func (c *Config) LoadAndCheckSession(filePath string, name string) error {
+func (c *Config) LoadAndCheckSession(filePath string, name string, expectedSessionType SessionType) error {
 	var err error
 	var session *Session
 	var config Config
@@ -112,6 +112,10 @@ func (c *Config) LoadAndCheckSession(filePath string, name string) error {
 
 	if config.SessionType == "" {
 		return fmt.Errorf(constants.ErrorSessionTypeConfigNotFound)
+	}
+
+	if config.SessionType != expectedSessionType {
+		return fmt.Errorf(constants.ErrorSessionTypeConfigInvalid)
 	}
 
 	*c = config
@@ -154,7 +158,7 @@ func (c *Config) StoreSession(filePath string) error {
 	return nil
 }
 
-func ReadConfig(cmd *cobra.Command, isLastStep ...bool) (*Config, string, error) {
+func ReadConfig(cmd *cobra.Command, expectedSessionType SessionType, isLastStep ...bool) (*Config, string, error) {
 	var configPath string
 	var err error
 	var profile string
@@ -180,7 +184,7 @@ func ReadConfig(cmd *cobra.Command, isLastStep ...bool) (*Config, string, error)
 	}
 
 	var conf = NewConfig("", profile, Url{}, "")
-	if err = conf.LoadAndCheckSession(configPath, profile); err != nil {
+	if err = conf.LoadAndCheckSession(configPath, profile, expectedSessionType); err != nil {
 		return nil, "", fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 

@@ -57,7 +57,7 @@ func CreateDistributor(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -81,7 +81,7 @@ func ListDistributor(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var distributors *api.DistributorList
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, true); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -151,7 +151,7 @@ func RemoveDistributor(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -204,7 +204,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -289,7 +289,7 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -357,7 +357,7 @@ func DescribeDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -420,7 +420,7 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -469,7 +469,7 @@ func RevokeDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -518,7 +518,7 @@ func RemoveDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -587,7 +587,7 @@ func GetDistributorReport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -647,7 +647,7 @@ func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var response *api.GenericIDResponseModel
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
