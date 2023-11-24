@@ -39,7 +39,7 @@ func CreateOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if url, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
+	if url, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeOperator, apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 

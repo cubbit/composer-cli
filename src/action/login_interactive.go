@@ -16,13 +16,13 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 	var email, password, code, refreshToken, apiServerUrl, configPath, twoFa, profile string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
-	var conf = configuration.NewConfig("", configuration.Url{}, "")
+	var conf = configuration.NewConfig(configuration.SessionTypeOperator, "", configuration.Url{}, "")
 
 	if _, err = tui.TextInputs("Enter your API server URL", false, tui.Input{Placeholder: "Enter the api server url: (default https://api.cubbit.eu)", IsPassword: false, Value: &apiServerUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeOperator, apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
@@ -60,7 +60,7 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignInRequest, err)
 	}
 
-	conf = configuration.NewConfig(profile, *urls, refreshToken)
+	conf = configuration.NewConfig(configuration.SessionTypeOperator, profile, *urls, refreshToken)
 	conf.StoreSession(configPath)
 
 	utils.PrintSuccess(fmt.Sprintf("user %s signed in successfully", email))
@@ -73,13 +73,13 @@ func SignInAccountInteractive(cmd *cobra.Command) error {
 	var email, password, code, refreshToken, apiServerUrl, tenantID, configPath, twoFa, profile string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
-	var conf = configuration.NewConfig("", configuration.Url{}, "")
+	var conf = configuration.NewConfig(configuration.SessionTypeAccount, "", configuration.Url{}, "")
 
 	if _, err = tui.TextInputs("Enter your API server URL", false, tui.Input{Placeholder: "Enter the api server url: (default https://api.cubbit.eu)", IsPassword: false, Value: &apiServerUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if urls, err = configuration.ConfigureAPIServerURL(apiServerUrl); err != nil {
+	if urls, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeAccount, apiServerUrl); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
@@ -126,7 +126,7 @@ func SignInAccountInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorOperatorSignInRequest, err)
 	}
 
-	conf = configuration.NewConfig(profile, *urls, refreshToken)
+	conf = configuration.NewConfig(configuration.SessionTypeAccount, profile, *urls, refreshToken)
 	conf.StoreSession(configPath)
 
 	utils.PrintSuccess(fmt.Sprintf("account %s signed in successfully", email))

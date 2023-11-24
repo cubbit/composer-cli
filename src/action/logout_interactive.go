@@ -26,7 +26,7 @@ func SignOutOperatorInteractive(cmd *cobra.Command) error {
 		profile = constants.DefaultProfile
 	}
 
-	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
+	var conf = configuration.NewConfig(configuration.SessionTypeOperator, profile, configuration.Url{}, "")
 	if err = conf.StoreSession(configPath); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
@@ -52,7 +52,7 @@ func SignOutAccountInteractive(cmd *cobra.Command) error {
 		profile = constants.DefaultProfile
 	}
 
-	var conf = configuration.NewConfig(profile, configuration.Url{}, "")
+	var conf = configuration.NewConfig(configuration.SessionTypeAccount, profile, configuration.Url{}, "")
 	if err = conf.StoreSession(configPath); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
