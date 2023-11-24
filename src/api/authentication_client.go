@@ -193,7 +193,7 @@ func CreateAccount(urls configuration.Url, firstName, lastName, email, password,
 	var err error
 
 	var challenge *ChallengeResponseModel
-	if challenge, err = GenerateOperatorChallenge(urls, email); err != nil {
+	if challenge, err = GenerateAccountChallenge(urls, email); err != nil {
 		return err
 	}
 
