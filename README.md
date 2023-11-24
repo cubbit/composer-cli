@@ -27,19 +27,19 @@ cubbit operator --interactive signup
 How to log in securely
 
 ```
-cubbit login --interactive
+cubbit operator login --interactive
 ```
 
 alternative less secure
 
 ```
-cubbit login --api-server-url https://api.cubbit.eu --email test@cubbit.io --password 123456 --code 000-000 --profile default
+cubbit operator login --api-server-url https://api.cubbit.eu --email test@cubbit.io --password 123456 --code 000-000 --profile default
 ```
 
 How to sign out
 
 ```
-cubbit logout --profile default
+cubbit operator logout --profile default
 ```
 
 How to create a tenant
