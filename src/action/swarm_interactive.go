@@ -22,7 +22,7 @@ func CreateSwarmInteractive(cmd *cobra.Command) error {
 	var response *api.GenericIDResponseModel
 	var swarmConfig map[string]interface{}
 
-	if config, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -67,7 +67,7 @@ func DescribeSwarmInteractive(cmd *cobra.Command) error {
 	var operator *api.Operator
 	var swarm *api.Swarm
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -140,7 +140,7 @@ func ListSwarmsInteractive(cmd *cobra.Command) error {
 	var operator *api.Operator
 	var swarms []api.Swarm
 
-	if config, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -180,7 +180,7 @@ func RemoveSwarmInteractive(cmd *cobra.Command) error {
 	var operator *api.Operator
 	var swarms []api.Swarm
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -248,7 +248,7 @@ func EditSwarmDescriptionInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operator *api.Operator
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -319,7 +319,7 @@ func EditSwarmNameInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operator *api.Operator
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -391,7 +391,7 @@ func AddOperatorToSwarmInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var policies *api.PolicyList
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -490,7 +490,7 @@ func ListSwarmOperatorsInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operators *api.OperatorList
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
@@ -569,7 +569,7 @@ func RemoveSwarmOperatorInteractive(cmd *cobra.Command) error {
 	var operators *api.OperatorList
 	var operator *api.Operator
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, false); err != nil {
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
