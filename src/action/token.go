@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GenerateAccessToken(cmd *cobra.Command, args []string) error {
+func GenerateOperatorAccessToken(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
 	var configPath string

@@ -78,6 +78,23 @@ var operatorLogoutCmd = &cobra.Command{
 	},
 }
 
+var tokenSubCmd = &cobra.Command{
+	Use:   "token",
+	Short: "Generate access token",
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.GenerateOperatorAccessToken); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err := action.GenerateOperatorAccessTokenInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	operatorCmd.AddCommand(signupSubCmd)
 	signupSubCmd.Flags().String("api-server-url", "https://api.cubbit.eu/iam", "Api server URL")
@@ -94,6 +111,8 @@ func init() {
 	operatorLoginSubCmd.Flags().String("code", "", "Two factor authentication code")
 
 	operatorCmd.AddCommand(operatorLogoutCmd)
+
+	operatorCmd.AddCommand(tokenSubCmd)
 
 	rootCmd.AddCommand(operatorCmd)
 }
