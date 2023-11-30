@@ -225,16 +225,22 @@ func CreateAccount(urls configuration.Url, firstName, lastName, email, password,
 func ForgeOperatorAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
 	url := urls.IamUrl + constants.ForgeOperatorAccessToken
 
-	return getOperatorAccessToken(refreshToken, url)
+	return getAccessToken(refreshToken, url)
+}
+
+func RefreshAccountAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
+	url := urls.IamUrl + constants.RefreshAccountAccessToken
+
+	return getAccessToken(refreshToken, url)
 }
 
 func RefreshOperatorAccessToken(urls configuration.Url, refreshToken string) (string, string, error) {
 	url := urls.IamUrl + constants.RefreshOperatorAccessToken
 
-	return getOperatorAccessToken(refreshToken, url)
+	return getAccessToken(refreshToken, url)
 }
 
-func getOperatorAccessToken(refreshToken string, url string) (string, string, error) {
+func getAccessToken(refreshToken string, url string) (string, string, error) {
 	var err error
 	var tokenExpirationResponse TokenAndExpirationResponseModel
 

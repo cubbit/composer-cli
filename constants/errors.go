@@ -115,4 +115,6 @@ const (
 
 	ErrorInvalidZone            = "invalid zone"
 	ErrorRetrievingZonesRequest = "failed request to retrieve zones"
+
+	ErrorCreatingProjectRequest = "failed request to create the project"
 )

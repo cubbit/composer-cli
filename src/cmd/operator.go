@@ -84,7 +84,7 @@ var tokenSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, args, action.GenerateOperatorAccessToken); err != nil {
+			if err = tui.Send(cmd, args, action.GenerateAccessToken); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
