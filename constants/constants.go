@@ -33,9 +33,10 @@ const (
 	RefreshOperatorAccessToken     = "/v1/auth/operators/refresh/access"
 	ForgeOperatorDeleteTenantToken = "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id="
 
-	AccountSignIn            = "/v1/auth/signin"
-	GenerateAccountChallenge = "/v1/auth/signin/challenge"
-	CreateAccount            = "/v1/accounts/signup"
+	AccountSignIn             = "/v1/auth/signin"
+	GenerateAccountChallenge  = "/v1/auth/signin/challenge"
+	CreateAccount             = "/v1/accounts/signup"
+	RefreshAccountAccessToken = "/v1/auth/refresh/access"
 
 	Tenants     = "/v1/tenants"
 	ListTenants = "/v1/tenants?owner="
@@ -49,4 +50,6 @@ const (
 	ForgeDistributorDeleteToken = "/v1/auth/operators/forge/token?capabilities=delete_distributor&distributor_id="
 
 	Zones = "/v1/gateways/zones"
+
+	Projects = "/v1/projects"
 )

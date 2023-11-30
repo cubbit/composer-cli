@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GenerateOperatorAccessToken(cmd *cobra.Command, args []string) error {
+func GenerateAccessToken(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
 	var configPath string
@@ -38,8 +38,14 @@ func rehydrateTokenConfig(configPath string, conf *configuration.Config) (*strin
 	var accessToken, refreshToken string
 	var err error
 
-	if accessToken, refreshToken, err = api.RefreshOperatorAccessToken(conf.Urls, conf.RefreshToken); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if conf.SessionType == configuration.SessionTypeOperator {
+		if accessToken, refreshToken, err = api.RefreshOperatorAccessToken(conf.Urls, conf.RefreshToken); err != nil {
+			return nil, fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+		}
+	} else {
+		if accessToken, refreshToken, err = api.RefreshAccountAccessToken(conf.Urls, conf.RefreshToken); err != nil {
+			return nil, fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+		}
 	}
 
 	conf.RefreshToken = refreshToken
