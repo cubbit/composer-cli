@@ -98,5 +98,7 @@ func init() {
 
 	accountCmd.AddCommand(accountLogoutCmd)
 
-	rootCmd.AddCommand(accountCmd)
+	if ENABLE_ACCOUNT_SECTION {
+		rootCmd.AddCommand(accountCmd)
+	}
 }

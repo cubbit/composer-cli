@@ -41,5 +41,7 @@ func init() {
 	createProjectSubCmd.Flags().String("description", "", "Description of the tenant")
 	createProjectSubCmd.Flags().String("image-url", "", "Image URL of the tenant")
 
-	rootCmd.AddCommand(projectCmd)
+	if ENABLE_ACCOUNT_SECTION {
+		rootCmd.AddCommand(projectCmd)
+	}
 }

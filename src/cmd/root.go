@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const ENABLE_ACCOUNT_SECTION = false
+
 var interactive bool
 
 var rootCmd = &cobra.Command{
