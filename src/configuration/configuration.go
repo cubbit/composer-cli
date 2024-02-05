@@ -239,7 +239,7 @@ func composeURL(apiServerUrl string) *Url {
 	url := &Url{
 		IamUrl:  apiServerUrl + constants.BaseIamURI,
 		HiveUrl: apiServerUrl + constants.BaseHiveURI,
-		DashUrl: apiServerUrl,
+		DashUrl: constants.BaseDashURL,
 	}
 	return url
 }
