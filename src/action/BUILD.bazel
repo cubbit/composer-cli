@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "action",
+    srcs = [
+        "account.go",
+        "account_interactive.go",
+        "distributor.go",
+        "distributor_interactive.go",
+        "login.go",
+        "login_interactive.go",
+        "logout.go",
+        "logout_interactive.go",
+        "operator.go",
+        "operator_interactive.go",
+        "project.go",
+        "project_interactive.go",
+        "swarm.go",
+        "swarm_interactive.go",
+        "tenant.go",
+        "tenant_interactive.go",
+        "token.go",
+        "token_interactive.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/action",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration",
+        "//src/tui",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "api",
+    srcs = [
+        "authentication_client.go",
+        "distributor.go",
+        "operator.go",
+        "project.go",
+        "response.go",
+        "response_extractors.go",
+        "swarm.go",
+        "tenant.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/api",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/configuration",
+        "//src/request_utils",
+        "//utils",
+    ],
+)
