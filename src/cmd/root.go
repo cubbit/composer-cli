@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
+	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,13 @@ func Execute() {
 }
 
 func init() {
+	var defaultConfigPath string
+	var err error
+	if defaultConfigPath, err = configuration.GetDefaultConfigPath(); err != nil {
+		os.Exit(1)
+	}
+
 	rootCmd.PersistentFlags().BoolVarP(&interactive, "interactive", "i", false, "Run in interactive mode")
 	rootCmd.PersistentFlags().String("profile", constants.DefaultProfile, "Profile Configuration")
-	rootCmd.PersistentFlags().String("config", constants.DefaultFilePath, "Configuration path for file")
+	rootCmd.PersistentFlags().String("config", defaultConfigPath, "Configuration path for file")
 }
