@@ -9,10 +9,30 @@ on:
       - main
     paths:
       - ".cz.yaml"
+permissions:
+  contents: read
+  packages: write
 
 jobs:
+  setup:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Setup Bazel
+        uses: abhinavsingh/setup-bazel@v3
+        with:
+            version: 5.4.0
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
   build:
     runs-on: ubuntu-latest
+    needs: setup
     strategy:
       matrix:
         platform:
@@ -29,30 +49,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
+      - name: Configure Bazel
+        shell: bash
+        run: |
+            echo "build --symlink_prefix=dist/" >> .bazelrc.user            
+        working-directory: .
       - name: Build and package for ${{ matrix.platform }}
         id: build
         run: |
-          mkdir -p artifacts
           export GOOS=$(echo "${{ matrix.platform }}" | cut -d'_' -f1)
           export GOARCH=$(echo "${{ matrix.platform }}" | cut -d'_' -f2)
-          BINARY_NAME="${{ matrix.platform }}"
+          BINARY_NAME="cli"
           if [ "$GOOS" = "windows" ]; then
             BINARY_NAME="${BINARY_NAME}.exe"
           fi
           echo "binary_name=$BINARY_NAME" >> $GITHUB_OUTPUT
           echo "op_sys=$GOOS" >> $GITHUB_OUTPUT
           echo "cpu_arch=$GOARCH" >> $GITHUB_OUTPUT
-
-          go build -o artifacts/${BINARY_NAME}
+          bazel build --platforms=@io_bazel_rules_go//go/toolchain:${{ matrix.platform }} //:cli
       - name: Upload artifact for ${{ matrix.platform }}
         uses: actions/upload-artifact@v2
         with:
           name: "${{ matrix.platform }}_artifact"
-          path: artifacts/${{ steps.build.outputs.binary_name }}
+          path: ./dist/bin/cli_/${{ steps.build.outputs.binary_name }}
       - name: Upload ${{ matrix.platform }}  to Cubbit S3
         run: |
           GOOS=$(echo "${{ matrix.platform }}" | cut -d'_' -f1)
@@ -66,4 +85,4 @@ jobs:
           --acl public-read \
           --bucket cubbit-public \
           --key operator-cli/${{ steps.build.outputs.op_sys }}/${{ steps.build.outputs.cpu_arch }}/${BINARY_NAME} \
-          --body ./artifacts/${{ steps.build.outputs.binary_name }}
+          --body ./dist/bin/cli_/${{ steps.build.outputs.binary_name }}

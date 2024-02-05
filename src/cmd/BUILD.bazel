@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cmd",
+    srcs = [
+        "account.go",
+        "distributor.go",
+        "operator.go",
+        "project.go",
+        "root.go",
+        "swarm.go",
+        "tenant.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/action",
+        "//src/tui",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

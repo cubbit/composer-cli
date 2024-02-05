@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tui",
+    srcs = [
+        "choose.go",
+        "http.go",
+        "inputs.go",
+        "textarea.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/tui",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_charmbracelet_bubbles//key",
+        "@com_github_charmbracelet_bubbles//paginator",
+        "@com_github_charmbracelet_bubbles//spinner",
+        "@com_github_charmbracelet_bubbles//textarea",
+        "@com_github_charmbracelet_bubbles//textinput",
+        "@com_github_charmbracelet_bubbletea//:bubbletea",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+        "@com_github_mattn_go_runewidth//:go-runewidth",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "request_utils",
+    srcs = ["generic_request.go"],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/request_utils",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+    ],
+)
