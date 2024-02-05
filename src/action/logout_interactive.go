@@ -12,14 +12,18 @@ import (
 
 func SignOutOperatorInteractive(cmd *cobra.Command) error {
 	var err error
-	var configPath, profile string
+	var configPath, profile, defaultConfigPath string
 
-	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: "Enter the config file to load (default: ./)", Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
+	if defaultConfigPath, err = configuration.GetDefaultConfigPath(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
 	if configPath == "" {
-		configPath = constants.DefaultFilePath
+		configPath = defaultConfigPath
 	}
 
 	if profile == "" {
@@ -38,14 +42,18 @@ func SignOutOperatorInteractive(cmd *cobra.Command) error {
 
 func SignOutAccountInteractive(cmd *cobra.Command) error {
 	var err error
-	var configPath, profile string
+	var configPath, profile, defaultConfigPath string
 
-	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: "Enter the config file to load (default: ./)", Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
+	if defaultConfigPath, err = configuration.GetDefaultConfigPath(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
 	if configPath == "" {
-		configPath = constants.DefaultFilePath
+		configPath = defaultConfigPath
 	}
 
 	if profile == "" {

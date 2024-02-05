@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -123,17 +124,17 @@ func (c *Config) LoadAndCheckSession(filePath string, name string, expectedSessi
 	return nil
 }
 
-func (c *Config) StoreSession(filePath string) error {
+func (c *Config) StoreSession(path string) error {
 	var err error
 	var file *os.File
 	var data []byte
 	var session *Session
 
-	if session, err = c.loadSession(filePath); err != nil {
+	if session, err = c.loadSession(path); err != nil {
 		return err
 	}
 
-	if file, err = os.Create(filePath + ".config"); err != nil {
+	if file, err = os.Create(filepath.Join(path, constants.DefaultConfigFileName)); err != nil {
 		return err
 	}
 
@@ -208,12 +209,12 @@ func ConfigureAPIServerURL(sessionType SessionType, apiServerUrl string) (*Url, 
 	return urls, nil
 }
 
-func (c *Config) loadSession(filePath string) (*Session, error) {
+func (c *Config) loadSession(path string) (*Session, error) {
 	var err error
 	var data []byte
 	var session Session
 
-	if data, err = os.ReadFile(filePath + ".config"); err != nil {
+	if data, err = os.ReadFile(filepath.Join(path, constants.DefaultConfigFileName)); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return &Session{
 				Session: make(map[string]Config),
@@ -238,26 +239,42 @@ func composeURL(apiServerUrl string) *Url {
 	url := &Url{
 		IamUrl:  apiServerUrl + constants.BaseIamURI,
 		HiveUrl: apiServerUrl + constants.BaseHiveURI,
-		DashUrl: apiServerUrl,
+		DashUrl: constants.BaseDashURL,
 	}
 	return url
 }
 
 func promptForConfigFile(isLastStep ...bool) (string, string, error) {
-	var configPath, name string
+	var configPath, name, defaultConfigPath string
 	var err error
 
-	if _, err := tui.TextInputs("Enter your config file path and name", isLastStep[0], tui.Input{Placeholder: "the config file to load (default: ./)", IsPassword: false, Value: &configPath}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false, Value: &name}); err != nil {
+	if configPath, err = GetDefaultConfigPath(); err != nil {
+		return configPath, name, fmt.Errorf("error while getting default config path: %w", err)
+	}
+
+	if _, err := tui.TextInputs("Enter your config file path and name", isLastStep[0], tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), IsPassword: false, Value: &configPath}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false, Value: &name}); err != nil {
 		return configPath, name, fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 
 	}
 
 	if configPath == "" {
-		configPath = constants.DefaultFilePath
+		configPath = defaultConfigPath
 	}
 	if name == "" {
 		name = constants.DefaultProfile
 	}
 
 	return configPath, name, err
+}
+
+func GetDefaultConfigPath() (string, error) {
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("error getting home directory: %v", err)
+	}
+	configFolder := ".config"
+	configPath := filepath.Join(homeDir, configFolder)
+
+	return configPath, nil
 }

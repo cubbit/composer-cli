@@ -3,7 +3,8 @@ package constants
 
 const (
 	// Paths
-	DefaultFilePath = "./"
+	DefaultConfigFileName = "cubbit-session"
+	DefaultFilePath       = "./"
 
 	// Default Values
 	DefaultProfile = "default"
@@ -16,6 +17,9 @@ const (
 
 	// Base API URL
 	BaseAPIURL = "https://api.cubbit.eu"
+
+	// Base DASH URL
+	BaseDashURL = "https://dashboard.cubbit.eu"
 
 	// API URIS
 	BaseKeyvaultURI = "keyvault"

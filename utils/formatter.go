@@ -26,7 +26,7 @@ func printSemantic(data interface{}) {
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			fieldValue := val.Field(i).Interface()
-			fmt.Printf("%s: %v\n", field.Name, fieldValue)
+			fmt.Printf("%s: %v\n", field.Tag.Get("json"), fieldValue)
 		}
 	case reflect.Map:
 		iter := val.MapRange()
@@ -68,7 +68,7 @@ func printCSV(data interface{}) {
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			fieldValue := getString(val.Field(i))
-			header = append(header, field.Name)
+			header = append(header, field.Tag.Get("json"))
 			row = append(row, fieldValue)
 
 		}
@@ -95,7 +95,7 @@ func printCSV(data interface{}) {
 		var header []string
 		elemType := val.Type().Elem()
 		for i := 0; i < elemType.NumField(); i++ {
-			header = append(header, elemType.Field(i).Name)
+			header = append(header, elemType.Field(i).Tag.Get("json"))
 		}
 		writer.Write(header)
 

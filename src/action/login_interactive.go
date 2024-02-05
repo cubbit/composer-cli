@@ -13,7 +13,7 @@ import (
 
 func SignInOperatorInteractive(cmd *cobra.Command) error {
 	var err error
-	var email, password, code, refreshToken, apiServerUrl, configPath, twoFa, profile string
+	var email, password, code, refreshToken, apiServerUrl, configPath, twoFa, profile, defaultConfigPath string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
 	var conf = configuration.NewConfig(configuration.SessionTypeOperator, "", configuration.Url{}, "")
@@ -40,12 +40,16 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextInputs("Enter the config file path and name", true, tui.Input{Placeholder: "Enter the config file to load (default: ./)", IsPassword: false, Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", IsPassword: true, Value: &profile}); err != nil {
+	if defaultConfigPath, err = configuration.GetDefaultConfigPath(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
 	if configPath == "" {
-		configPath = constants.DefaultFilePath
+		configPath = defaultConfigPath
 	}
 
 	if profile == "" {
@@ -70,7 +74,7 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 
 func SignInAccountInteractive(cmd *cobra.Command) error {
 	var err error
-	var email, password, code, refreshToken, apiServerUrl, tenantID, configPath, twoFa, profile string
+	var email, password, code, refreshToken, apiServerUrl, tenantID, configPath, twoFa, profile, defaultConfigPath string
 	var challenge *api.ChallengeResponseModel
 	var urls *configuration.Url
 	var conf = configuration.NewConfig(configuration.SessionTypeAccount, "", configuration.Url{}, "")
@@ -106,12 +110,16 @@ func SignInAccountInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextInputs("Enter the config file path and name", true, tui.Input{Placeholder: "Enter the config file to load (default: ./)", IsPassword: false, Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", IsPassword: true, Value: &profile}); err != nil {
+	if defaultConfigPath, err = configuration.GetDefaultConfigPath(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
 	if configPath == "" {
-		configPath = constants.DefaultFilePath
+		configPath = defaultConfigPath
 	}
 
 	if profile == "" {
