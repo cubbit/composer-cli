@@ -248,8 +248,8 @@ func promptForConfigFile(isLastStep ...bool) (string, string, error) {
 	var configPath, name, defaultConfigPath string
 	var err error
 
-	if configPath, err = GetDefaultConfigPath(); err != nil {
-		return configPath, name, fmt.Errorf("error while getting default config path: %w", err)
+	if defaultConfigPath, err = GetDefaultConfigPath(); err != nil {
+		return defaultConfigPath, name, fmt.Errorf("error while getting default config path: %w", err)
 	}
 
 	if _, err := tui.TextInputs("Enter your config file path and name", isLastStep[0], tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), IsPassword: false, Value: &configPath}, tui.Input{Placeholder: "Enter the configuration name (default: default)", IsPassword: false, Value: &name}); err != nil {

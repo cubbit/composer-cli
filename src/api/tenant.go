@@ -9,7 +9,7 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings map[string]interface{}, couponCode, zone string) (*GenericIDResponseModel, error) {
+func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings TenantSettings, couponCode, zone string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
 	url := urls.IamUrl + constants.Tenants
@@ -46,10 +46,10 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 	return &response, nil
 }
 
-func ListTenants(urls configuration.Url, accessToken string) (*TenantList, error) {
+func ListTenants(urls configuration.Url, accessToken string) (*GenericPaginatedResponse[*Tenant], error) {
 	var err error
 	url := urls.IamUrl + constants.Tenants
-	var response TenantList
+	var response GenericPaginatedResponse[*Tenant]
 
 	if err = request_utils.DoRequest(
 		url,
@@ -208,7 +208,7 @@ func RemoveTenantOperator(urls configuration.Url, accessToken, tenantID, operato
 	return nil
 }
 
-func GetTenant(urls configuration.Url, accessToken, ownerID string, tenantID string) (*Tenant, error) {
+func GetTenant(urls configuration.Url, accessToken, tenantID string) (*Tenant, error) {
 	var err error
 	url := urls.IamUrl + constants.Tenants + "/" + tenantID
 	var response Tenant
@@ -296,4 +296,47 @@ func AssignTenantToCoupon(urls configuration.Url, accessToken, tenantID, CouponC
 	}
 
 	return &response, nil
+}
+
+func EditTenantSettings(urls configuration.Url, accessToken string, tenantID string, settings TenantSettings) error {
+	var err error
+
+	requestBody := map[string]interface{}{
+		"settings": settings,
+	}
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EditOperatorRoleInTenant(urls configuration.Url, accessToken, tenantID, operatorID, role string) error {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/operators/" + operatorID + "/roles"
+
+	requestBody := map[string]interface{}{
+		"policy_id": role,
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return err
+	}
+
+	return nil
 }

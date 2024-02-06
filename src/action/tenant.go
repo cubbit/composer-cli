@@ -76,7 +76,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	var settings map[string]interface{}
+	var settings api.TenantSettings
 
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
@@ -96,7 +96,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var configPath string
 	var conf *configuration.Config
-	var tenants *api.TenantList
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -122,14 +122,19 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 
 	utils.PrintList("Your Tenants List")
 
-	if len(tenants.Tenants) == 0 {
+	if len(tenants.Data) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
 
-	for _, tenant := range tenants.Tenants {
+	for _, tenant := range tenants.Data {
 		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", tenant.ID, tenant.Name, tenant.Description)
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			fmt.Printf(" • %s, %s, %v\n", tenant.ID, tenant.Name, description)
 		} else {
 			fmt.Printf(" • %s\n", tenant.Name)
 		}
@@ -177,13 +182,13 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenants *api.TenantList
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
-		for _, tenant := range tenants.Tenants {
+		for _, tenant := range tenants.Data {
 			if name == tenant.Name {
 				id = tenant.ID
 			}
@@ -217,7 +222,7 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, format, configPath string
 	var conf *configuration.Config
-	var tenants *api.TenantList
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -245,14 +250,14 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 
 	switch {
 	case name == "":
-		for _, tenant := range tenants.Tenants {
+		for _, tenant := range tenants.Data {
 			if id == tenant.ID {
 				utils.PrintFormattedData(*tenant, format)
 				break
 			}
 		}
 	case id == "":
-		for _, tenant := range tenants.Tenants {
+		for _, tenant := range tenants.Data {
 			if name == tenant.Name {
 				utils.PrintFormattedData(*tenant, format)
 				break
@@ -552,7 +557,7 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, operator string
+	var id, name, configPath string
 	var conf *configuration.Config
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
@@ -581,13 +586,15 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	operator = args[0]
+	var operator *api.Operator
+	operatorID := args[0]
 
-	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operator); err != nil {
+	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
-	if err = api.RemoveTenantOperator(conf.Urls, *accessToken, id, operator); err != nil {
+	operatorID = operator.ID
+	if err = api.RemoveTenantOperator(conf.Urls, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorRequest, err)
 	}
 
@@ -644,14 +651,14 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 
 func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantID string) (*api.Tenant, error) {
 	var err error
-	var tenants *api.TenantList
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 	var tenant *api.Tenant
 
 	if tenants, err = api.ListTenants(conf.Urls, accessToken); err != nil {
 		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
-	for _, tn := range tenants.Tenants {
+	for _, tn := range tenants.Data {
 		if tenantID == tn.Name || tenantID == tn.ID {
 			tenant = tn
 
@@ -665,23 +672,181 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 	return tenant, nil
 }
 
-func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (string, error) {
+func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (*api.Operator, error) {
 	var err error
 	var operators *api.OperatorList
-	var id string
 
 	if operators, err = api.ListTenantOperators(conf.Urls, accessToken, tenantID); err != nil {
-		return id, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {
-			id = op.ID
+			return &op, nil
 		}
 	}
 
-	if id == "" {
-		return "", fmt.Errorf("operator %s not found", operator)
+	return nil, fmt.Errorf("operator %s not found", operator)
+}
+
+func EditTenantSettings(cmd *cobra.Command, args ...string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	return id, nil
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	settingsString := args[0]
+
+	var settings api.TenantSettings
+
+	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
+	}
+
+	if err = api.EditTenantSettings(conf.Urls, *accessToken, id, settings); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("tenant %s settings updated successfully", id))
+
+	return nil
+}
+
+func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, format string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	var operator *api.Operator
+	operatorID := args[0]
+	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	utils.PrintFormattedData(*operator, format)
+
+	return nil
+}
+
+func EditTenantOperatorRole(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, role, configPath string
+	var conf *configuration.Config
+	var policies *api.PolicyList
+	var found bool
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if role, err = cmd.Flags().GetString("role"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
+	}
+
+	operatorID := args[0]
+	var operator *api.Operator
+	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	operatorID = operator.ID
+
+	if policies, err = api.ListTenantPolicies(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
+	}
+
+	for _, policy := range policies.Policies {
+		if policy.Name == role {
+			role = policy.ID
+			found = true
+		}
+	}
+
+	if !found {
+		utils.PrintNotFound(fmt.Sprintf("Policy %s not found", role))
+		return nil
+	}
+
+	if err = api.EditOperatorRoleInTenant(conf.Urls, *accessToken, id, operatorID, role); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("operator %s 's role updated successfully", operatorID))
+
+	return nil
 }
