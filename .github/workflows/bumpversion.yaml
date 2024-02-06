@@ -12,6 +12,9 @@ on:
 jobs:
   bump_version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     name: "Bump version and create changelog with commitizen"
     steps:
       - name: Check out
