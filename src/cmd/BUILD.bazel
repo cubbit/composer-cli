@@ -16,6 +16,7 @@ go_library(
     deps = [
         "//constants",
         "//src/action",
+        "//src/configuration",
         "//src/tui",
         "//utils",
         "@com_github_spf13_cobra//:cobra",
