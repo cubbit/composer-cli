@@ -56,4 +56,7 @@ const (
 	Zones = "/v1/gateways/zones"
 
 	Projects = "/v1/projects"
+
+	DeleteTenantAccountToken = "/v1/auth/operators/forge/token?capabilities=delete_account&account_id="
+
 )

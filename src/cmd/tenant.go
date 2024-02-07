@@ -442,6 +442,247 @@ var EditTenantOperatorRoleSubCmd = &cobra.Command{
 	},
 }
 
+
+var listTenantAccountsSubCmd = &cobra.Command{
+	Use:   "list-accounts",
+	Short: "lists tenant accounts",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListTenantAccounts); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListTenantAccountsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeTenantAccountSubCmd = &cobra.Command{
+	Use:   "describe-account",
+	Short: "describes tenant accounts",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeTenantAccount); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeTenantAccountInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeTenantAccountSubCmd = &cobra.Command{
+	Use:     "remove-account",
+	Short:   "removes a tenant account",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RemoveTenantAccount); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveTenantAccountInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var banTenantAccountSubCmd = &cobra.Command{
+	Use:     "ban-account",
+	Short:   "bans a tenant account",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.BanTenantAccount); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.BanTenantAccountInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var unbanTenantAccountSubCmd = &cobra.Command{
+	Use:     "unban-account",
+	Short:   "unbans a tenant account",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.UnbanTenantAccount); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.UnbanTenantAccountInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var restoreTenantAccountSubCmd = &cobra.Command{
+	Use:     "restore-account",
+	Short:   "restores a tenant account",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RestoreTenantAccount); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RestoreTenantAccountInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var deleteTenantAccountSessionsSubCmd = &cobra.Command{
+	Use:     "delete-account-sessions",
+	Short:   "deletes all sessions of a tenant account",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DeleteTenantAccountSessions); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DeleteTenantAccountSessionsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
@@ -490,6 +731,25 @@ func init() {
 
 	tenantCmd.AddCommand(EditTenantOperatorRoleSubCmd)
 	EditTenantOperatorRoleSubCmd.Flags().String("role", "", "Role of the operator")
+
+	tenantCmd.AddCommand(listTenantAccountsSubCmd)
+	listTenantAccountsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for accounts")
+	listTenantAccountsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different accounts")
+
+	tenantCmd.AddCommand(describeTenantAccountSubCmd)
+	describeTenantAccountSubCmd.Flags().String("format", "default", "Formats the output")
+
+	tenantCmd.AddCommand(removeTenantAccountSubCmd)
+	removeTenantAccountSubCmd.Flags().String("email", "", "Email address")
+	removeTenantAccountSubCmd.Flags().String("password", "", "Password")
+	removeTenantAccountSubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	tenantCmd.AddCommand(banTenantAccountSubCmd)
+	tenantCmd.AddCommand(unbanTenantAccountSubCmd)
+
+	tenantCmd.AddCommand(restoreTenantAccountSubCmd)
+
+	tenantCmd.AddCommand(deleteTenantAccountSessionsSubCmd)
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")

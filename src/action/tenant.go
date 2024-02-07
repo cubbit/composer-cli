@@ -850,3 +850,413 @@ func EditTenantOperatorRole(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
+func ListTenantAccounts(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+	var accounts *api.GenericPaginatedResponse[*api.Account]
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
+	}
+
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
+	}
+
+	utils.PrintList("Your Tenant Accounts List")
+
+	if len(accounts.Data) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	var verbose, l bool
+
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if l, err = cmd.Flags().GetBool("line"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	for _, account := range accounts.Data {
+		if verbose {
+			fmt.Printf(" • %s, %s %s\n", account.ID, account.FirstName, account.LastName)
+		} else {
+			fmt.Printf(" • %s\n", account.ID)
+		}
+		if l {
+			fmt.Println()
+		}
+	}
+
+	return nil
+}
+
+func DescribeTenantAccount(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, format string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	var account *api.Account
+	accountID := args[0]
+	if account, err = getTenantAccountById(conf, *accessToken, id, accountID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantAccountRequest, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	utils.PrintFormattedData(*account, format)
+
+	return nil
+}
+
+func RemoveTenantAccount(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, email, password, code, configPath, deleteTenantAccountToken string
+	var conf *configuration.Config
+	var challenge *api.ChallengeResponseModel
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if password, err = cmd.Flags().GetString("password"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if code, err = cmd.Flags().GetString("code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+
+		if id == "" {
+			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
+			return nil
+		}
+	}
+
+	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
+	}
+
+	accountID := args[0]
+	if deleteTenantAccountToken, err = api.ForgeOperatorDeleteTenantAccountToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, accountID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorForgingTenantAccountDeleteTokenRequest, err)
+	}
+
+	if err = api.RemoveTenantAccount(conf.Urls, *accessToken, id, accountID, deleteTenantAccountToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantAccountRequest, err)
+	}
+
+	utils.PrintDelete(fmt.Sprintf("account %s removed successfully", accountID))
+
+	return nil
+}
+
+func BanTenantAccount(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+
+		if id == "" {
+			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
+			return nil
+		}
+	}
+
+	accountID := args[0]
+
+	if err = api.ToggleBanAccount(conf.Urls, *accessToken, id, accountID, true); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorBanningTenantAccountRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("account %s banned successfully", accountID))
+
+	return nil
+}
+
+func UnbanTenantAccount(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+
+		if id == "" {
+			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
+			return nil
+		}
+	}
+
+	accountID := args[0]
+
+	if err = api.ToggleBanAccount(conf.Urls, *accessToken, id, accountID, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorUnbanningTenantAccountRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("account %s unbanned successfully", accountID))
+
+	return nil
+}
+
+func RestoreTenantAccount(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+
+		if id == "" {
+			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
+			return nil
+		}
+	}
+
+	accountID := args[0]
+
+	if err = api.RestoreTenantAccount(conf.Urls, *accessToken, id, accountID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRestoringTenantAccountRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("account %s restored successfully", accountID))
+
+	return nil
+}
+
+func DeleteTenantAccountSessions(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			if name == tenant.Name {
+				id = tenant.ID
+			}
+		}
+
+		if id == "" {
+			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
+			return nil
+		}
+	}
+
+	accountID := args[0]
+
+	if err = api.DeleteTenantAccountSessions(conf.Urls, *accessToken, id, accountID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantAccountSessionsRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("account %s sessions deleted successfully", accountID))
+
+	return nil
+}
+
+func getTenantAccountById(conf *configuration.Config, accessToken string, tenantID string, account string) (*api.Account, error) {
+	var err error
+	var accounts *api.GenericPaginatedResponse[*api.Account]
+
+	if accounts, err = api.ListTenantAccounts(conf.Urls, accessToken, tenantID); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+	}
+	for _, ac := range accounts.Data {
+		if ac.ID == account {
+			return ac, nil
+		}
+	}
+
+	return nil, fmt.Errorf("operator %s not found", account)
+}

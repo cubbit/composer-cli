@@ -233,6 +233,31 @@ type ZoneResponse struct {
 type ZoneMap struct {
 	Zones map[string]ZoneResponse `json:"zones"`
 }
+
+type Account struct {
+	ID                 string              `json:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
+	FirstName          string              `json:"first_name" example:"Mario"`
+	LastName           string              `json:"last_name" example:"Rossi"`
+	Internal           bool                `json:"internal" example:"false"`
+	Banned             bool                `json:"banned" example:"false"`
+	CreatedAt          time.Time           `json:"created_at"`
+	DeletedAt          *time.Time          `json:"deleted_at" example:"false"`
+	MaxAllowedProjects int                 `json:"max_allowed_projects"  example:"3"`
+	Emails             []AccountEmail      `json:"emails"`
+	TwoFactorEnabled   bool                `json:"two_factor_enabled"`
+	EndpointGateway    string              `json:"endpoint_gateway"`
+	TenantID           string              `json:"tenant_id"`
+	AuthProvider       AccountAuthProvider `json:"auth_provider" example:"cubbit"`
+}
+
+type AccountEmail struct {
+	ID        string    `json:"id" example:"5ff281ee-75e7-4543-a304-ca861521f2a7"`
+	Email     string    `json:"email" example:"mario.rossi@cubbit.io"`
+	Verified  bool      `json:"verified" example:"true"`
+	Default   bool      `json:"default" example:"true"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type GenericPaginatedResponse[T interface{}] struct {
 	Data     []T  `json:"data"`
 	NextPage *int `json:"next_page"`
