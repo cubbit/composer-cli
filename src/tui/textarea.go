@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -9,11 +10,18 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	greenBorderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00"))
+	redBorderStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
 )
 
 type TextArea struct {
-	Placeholder string
-	Value       *string
+	Placeholder  string
+	Value        *string
+	InitialValue string
 }
 
 type textAreaModel struct {
@@ -25,6 +33,7 @@ type textAreaModel struct {
 	spinnerDone bool
 	input       textarea.Model
 	spinner     spinner.Model
+	err         error
 }
 
 func initialTextAreaModel(title string, isLastStep bool, ta TextArea) textAreaModel {
@@ -34,11 +43,12 @@ func initialTextAreaModel(title string, isLastStep bool, ta TextArea) textAreaMo
 	}
 	t := textarea.New()
 	t.Cursor.Style = cursorStyle
-	t.CharLimit = 32
 	t.CharLimit = 0
 	t.Focus()
-	t.InsertString("{}")
-	t.Prompt = ""
+	t.InsertString(ta.InitialValue)
+	t.Prompt = greenBorderStyle.Render(lipgloss.ThickBorder().Left + " ")
+	t.SetWidth(80)
+	t.SetHeight(20)
 	m.input = t
 
 	return m
@@ -58,6 +68,26 @@ func (m *textAreaModel) terminateSpinner() {
 	p.Send(time.Now())
 }
 
+func (m *textAreaModel) validateJSONCmd(input string) tea.Cmd {
+	return func() tea.Msg {
+		if !json.Valid([]byte(input)) {
+			m.err = fmt.Errorf("invalid JSON format")
+			m.input.Prompt = redBorderStyle.Render(lipgloss.ThickBorder().Left + " ")
+			return m.err
+		}
+
+		var data map[string]interface{}
+		if err := json.Unmarshal([]byte(input), &data); err != nil {
+			m.err = err
+			return err
+		}
+
+		// Clear error if JSON is valid
+		m.err = nil
+		m.input.Prompt = greenBorderStyle.Render(lipgloss.ThickBorder().Left + " ")
+		return data
+	}
+}
 func (m textAreaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case time.Time:
@@ -73,43 +103,56 @@ func (m textAreaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+l":
+		case "i":
+			m.input.Focus()
+
+		case "ctrl+enter":
 			if m.input.Focused() {
 				m.input.InsertString("\n")
 			}
 			return m, m.input.Focus()
+		case "tab":
+			if m.input.Focused() {
+				m.input.InsertString("\t")
+			}
 
-		case "ctrl+c", "esc":
+		case "ctrl+c":
 			m.quit = true
 			m.cancel = true
 			return m, tea.Quit
 
-		case "tab", "shift+tab", "up", "enter", "down":
-			s := msg.String()
+		case "esc":
+			m.input.Blur()
+		case "shift+tab", "up", "enter", "down":
+			if !m.input.Focused() {
+				s := msg.String()
 
-			if s == "enter" && m.focusIndex == 1 {
-				m.quit = true
-				if m.isLastStep {
-					m.startSpinner()
-					return m, m.spinner.Tick
+				if s == "enter" && m.focusIndex == 1 {
+					if m.err == nil {
+						m.quit = true
+						if m.isLastStep {
+							m.startSpinner()
+							return m, m.spinner.Tick
+						}
+						return m, tea.Quit
+					}
 				}
-				return m, tea.Quit
-			}
 
-			if s == "up" || s == "shift+tab" {
-				m.focusIndex--
-			} else {
-				m.focusIndex++
-			}
+				if s == "up" || s == "shift+tab" {
+					m.focusIndex--
+				} else {
+					m.focusIndex++
+				}
 
-			if m.focusIndex > 1 {
-				m.focusIndex = 0
-			} else if m.focusIndex < 0 {
-				m.focusIndex = 1
-			}
+				if m.focusIndex > 1 {
+					m.focusIndex = 0
+				} else if m.focusIndex < 0 {
+					m.focusIndex = 1
+				}
 
-			cmds := make([]tea.Cmd, 1)
-			return m, tea.Batch(cmds...)
+				cmds := make([]tea.Cmd, 1)
+				return m, tea.Batch(cmds...)
+			}
 		}
 	}
 
@@ -120,6 +163,7 @@ func (m textAreaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *textAreaModel) updateInputs(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
+	m.validateJSONCmd(m.input.Value())()
 	m.input, cmd = m.input.Update(msg)
 	return cmd
 }
@@ -137,6 +181,10 @@ func (m textAreaModel) View() string {
 	}
 
 	s.WriteString(boldStyle.Render(m.title))
+	s.WriteString("\n")
+	if m.err != nil {
+		s.WriteString("\n" + "❌ " + m.err.Error() + "\n")
+	}
 	s.WriteString("\n")
 	s.WriteString(m.input.View())
 

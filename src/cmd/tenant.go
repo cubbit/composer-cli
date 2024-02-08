@@ -340,6 +340,108 @@ var connectSwarmSubCmd = &cobra.Command{
 	},
 }
 
+var editTenantSettingsSubCmd = &cobra.Command{
+	Use:   "edit-settings",
+	Short: "edit a tenant settings",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no new settings argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = action.EditTenantSettings(cmd, args...); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditTenantSettingsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeTenantOperatorsSubCmd = &cobra.Command{
+	Use:   "describe-operator",
+	Short: "describe tenant operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no operator name or id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeTenantOperator); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeTenantOperatorInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var EditTenantOperatorRoleSubCmd = &cobra.Command{
+	Use:   "edit-operator",
+	Short: "edit tenant operator role",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no operator id or name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.EditTenantOperatorRole); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditTenantOperatorRoleInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
@@ -380,6 +482,14 @@ func init() {
 	removeTenantSubCmd.Flags().String("email", "", "Email address")
 	removeTenantSubCmd.Flags().String("password", "", "Password")
 	removeTenantSubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	tenantCmd.AddCommand(editTenantSettingsSubCmd)
+
+	tenantCmd.AddCommand(describeTenantOperatorsSubCmd)
+	describeTenantOperatorsSubCmd.Flags().String("format", "default", "Formats the output")
+
+	tenantCmd.AddCommand(EditTenantOperatorRoleSubCmd)
+	EditTenantOperatorRoleSubCmd.Flags().String("role", "", "Role of the operator")
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")

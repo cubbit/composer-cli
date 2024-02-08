@@ -921,7 +921,7 @@ func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
 	var choices []string
 	var distributors *api.DistributorList
 	var distributorCoupons *api.DistributorCouponList
-	var tenants *api.TenantList
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 	var response *api.GenericIDResponseModel
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
@@ -936,8 +936,13 @@ func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
-	for _, tenant := range tenants.Tenants {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+	for _, tenant := range tenants.Data {
+		description := ""
+		if tenant.Description != nil {
+			description = *tenant.Description
+		}
+
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 	}
 
 	if len(choices) == 0 {

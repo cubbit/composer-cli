@@ -54,17 +54,62 @@ type GenericIDResponseModel struct {
 }
 
 type Tenant struct {
-	ID          string                 `json:"id" example:"784da023-cc6c-4a46-8e31-bc0a521d19e0"`
-	Name        string                 `json:"name" example:"Cubbit"`
-	Description string                 `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
-	OwnerID     string                 `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
-	CreatedAt   time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
-	DeletedAt   time.Time              `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
-	ImageUrl    string                 `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
-	Settings    map[string]interface{} `json:"settings" example:"{}"`
-	CouponID    string                 `json:"coupon_id"`
+	ID          string          `json:"id" example:"784da023-cc6c-4a46-8e31-bc0a521d19e0"`
+	Name        string          `json:"name" example:"Cubbit"`
+	Description *string         `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
+	OwnerID     string          `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
+	CreatedAt   time.Time       `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	DeletedAt   *time.Time      `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	ImageUrl    *string         `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
+	Settings    *TenantSettings `json:"settings"`
+	Metadata    map[string]interface{}
+	CouponID    *string `json:"coupon_id" example:"9OPADNOEJFNO"`
 }
 
+type TenantSettings struct {
+	ConsoleUrl        *string                                    `json:"console_url" example:"https://console.cubbit.eu"`
+	GatewayUrl        *string                                    `json:"gateway_url" example:"https://s3.cubbit.eu"`
+	Project           *TenantSettingsProject                     `json:"project"`
+	Account           *TenantSettingsAccount                     `json:"account"`
+	AllowedDomains    *[]string                                  `json:"allowed_domains"`
+	BlockedDomains    *[]string                                  `json:"blocked_domains"`
+	Notifications     *MonitoredResourceForSeverityNotifications `json:"notifications"`
+	SignupDisabled    bool                                       `json:"signup_disabled"`
+	SupportLink       *string                                    `json:"support_link"`
+	DisplayName       *string                                    `json:"display_name"`
+	WhitelabelEnabled bool                                       `json:"whitelabel_enabled"`
+}
+
+type TenantSettingsProject struct {
+	DefaultMaxProjectEgressBandwidth *int64 `json:"default_max_egress_bandwidth" example:"42"`
+	DefaultMaxProjectStorage         *int64 `json:"default_max_storage" example:"42"`
+}
+
+type TenantSettingsAccount struct {
+	DefaultMaxProject          *int                        `json:"default_max_project"`
+	EnabledAuthProviders       *[]AccountAuthProvider      `json:"enabled_auth_providers"`
+	EnabledAuthProvidersConfig *EnabledAuthProvidersConfig `json:"enabled_auth_providers_config"`
+}
+
+type AccountAuthProvider string
+type EnabledAuthProvidersConfig struct {
+	GoogleClientID         *string `json:"google_client_id"`
+	MicrosoftApplicationID *string `json:"microsoft_application_id"`
+	MicrosoftDirectoryID   *string `json:"microsoft_directory_id"`
+}
+type Severity string
+type SeverityForNotificationType map[Severity]SeverityNotificationType
+type MonitoredResourceForSeverityNotifications map[string]SeverityForNotificationType
+
+type SeverityNotificationType struct {
+	Threshold int          `json:"threshold" binding:"required,gte=1,lte=100" example:"33"`
+	Notify    Notification `json:"notify" binding:"required"`
+}
+
+type Notification struct {
+	NotifyOwner bool     `json:"notify_owner" binding:"required" example:"true"`
+	Emails      []string `json:"emails" binding:"required,dive,email" example:"true"`
+}
 type TenantList struct {
 	Tenants []*Tenant `json:"tenants"`
 }
@@ -187,4 +232,9 @@ type ZoneResponse struct {
 
 type ZoneMap struct {
 	Zones map[string]ZoneResponse `json:"zones"`
+}
+type GenericPaginatedResponse[T interface{}] struct {
+	Data     []T  `json:"data"`
+	NextPage *int `json:"next_page"`
+	Count    int  `json:"count"`
 }
