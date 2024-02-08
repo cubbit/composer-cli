@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -1327,7 +1328,12 @@ func ListTenantAccountsInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 		}
 
 		if len(choices) == 0 {
@@ -1511,7 +1517,12 @@ func RemoveTenantAccountInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 		}
 
 		if len(choices) == 0 {
@@ -1618,7 +1629,12 @@ func BanTenantAccountInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 		}
 
 		if len(choices) == 0 {
@@ -1715,7 +1731,12 @@ func UnbanTenantAccountInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 		}
 
 		if len(choices) == 0 {
@@ -1812,7 +1833,12 @@ func RestoreTenantAccountInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 		}
 
 		if len(choices) == 0 {
@@ -1909,7 +1935,12 @@ func DeleteTenantAccountSessionsInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, tenant.Description))
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
 		}
 
 		if len(choices) == 0 {
@@ -1967,6 +1998,209 @@ func DeleteTenantAccountSessionsInteractive(cmd *cobra.Command) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("account %s sessions deleted successfully", accountID))
+
+	return nil
+}
+
+func CreateTenantAccountsInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	var emailsString string
+
+	if _, err = tui.EmailBulkTextAreas("Fill in with the list of emails", true, tui.EmailBulkTextArea{Placeholder: "email1,email2,email3...", Value: &emailsString}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+
+	}
+
+	emails := strings.Split(emailsString, ",")
+	for i, email := range emails {
+		emails[i] = strings.TrimSpace(email)
+	}
+
+	if err = api.CreateTenantAccounts(conf.Urls, *accessToken, id, emails); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantAccountsRequest, err)
+	}
+
+	utils.PrintSuccess("accounts created successfully")
+
+	return nil
+}
+
+func UpdateTenantAccountInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, choice, firstName, lastName, endpointGateway, internal, maxAllowedProjects string
+	var conf *configuration.Config
+	var accounts *api.GenericPaginatedResponse[*api.Account]
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			description := ""
+			if tenant.Description != nil {
+				description = *tenant.Description
+			}
+
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
+	}
+
+	if len(accounts.Data) == 0 {
+		utils.PrintNotFound("No accounts found")
+		return nil
+	}
+
+	var choices []string
+
+	for _, ac := range accounts.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s %s", ac.ID, ac.FirstName, ac.LastName))
+
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No accounts found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which account would you like to update?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorUpdatingTenantAccountRequest, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	accountID, _, _ := strings.Cut(withoutPrefix, ",")
+
+	if _, err = tui.TextInputs("Fill in the form for the account to update", false, tui.Input{Placeholder: "First Name", Value: &firstName}, tui.Input{Placeholder: "Last Name", Value: &lastName}, tui.Input{Placeholder: "Endpoint Gateway", Value: &endpointGateway}, tui.Input{Placeholder: "Internal", Value: &internal}, tui.Input{Placeholder: "Max Allowed Projects", Value: &maxAllowedProjects}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	internalBool := internal == "true"
+	maxAllowedProjectsInt, err := strconv.Atoi(maxAllowedProjects)
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorParsingMaxAllowedProjects, err)
+	}
+	requestBody := api.UpdateAccountRequest{
+		FirstName:          &firstName,
+		LastName:           &lastName,
+		EndpointGateway:    &endpointGateway,
+		Internal:           &internalBool,
+		MaxAllowedProjects: &maxAllowedProjectsInt,
+	}
+
+	if err = api.UpdateAccount(conf.Urls, *accessToken, id, accountID, requestBody); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorUpdatingTenantAccountRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("account %s updated successfully", accountID))
 
 	return nil
 }
