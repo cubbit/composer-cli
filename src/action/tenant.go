@@ -649,6 +649,137 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func CreateTenantAccounts(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+	var emails []string
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if emails, err = cmd.Flags().GetStringSlice("emails"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	if err = api.CreateTenantAccounts(conf.Urls, *accessToken, id, emails); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantAccountsRequest, err)
+	}
+
+	utils.PrintSuccess("accounts created successfully")
+
+	return nil
+}
+
+func UpdateTenantAccount(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, firstName, lastName, endpointGateway string
+	var internal bool
+	var maxAllowedProjects int
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if firstName, err = cmd.Flags().GetString("first-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if lastName, err = cmd.Flags().GetString("last-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if internal, err = cmd.Flags().GetBool("internal"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if maxAllowedProjects, err = cmd.Flags().GetInt("max-allowed-projects"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if endpointGateway, err = cmd.Flags().GetString("endpoint-gateway"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		id = tenant.ID
+	}
+
+	accountID := args[0]
+
+	internalPtr := &internal
+	isChanged := cmd.Flags().Changed("internal")
+	if !isChanged {
+		internalPtr = nil
+	}
+
+	maxAllowedProjectsPtr := &maxAllowedProjects
+	isChanged = cmd.Flags().Changed("max-allowed-projects")
+	if !isChanged {
+		maxAllowedProjectsPtr = nil
+	}
+
+	requestBody := api.UpdateAccountRequest{
+		FirstName:          &firstName,
+		LastName:           &lastName,
+		Internal:           internalPtr,
+		EndpointGateway:    &endpointGateway,
+		MaxAllowedProjects: maxAllowedProjectsPtr,
+	}
+
+	if err = api.UpdateAccount(conf.Urls, *accessToken, id, accountID, requestBody); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorUpdatingTenantAccountRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("account %s updated successfully", accountID))
+
+	return nil
+}
+
 func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantID string) (*api.Tenant, error) {
 	var err error
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]

@@ -233,6 +233,14 @@ type ZoneResponse struct {
 type ZoneMap struct {
 	Zones map[string]ZoneResponse `json:"zones"`
 }
+type UpdateAccountRequest struct {
+	FirstName          *string `json:"first_name" example:"mario" binding:"omitempty,min=1,max=256"`
+	LastName           *string `json:"last_name" example:"rossi" binding:"omitempty,min=1,max=256"`
+	EndpointGateway    *string `json:"endpoint_gateway" binding:"omitempty,url,excludes= " example:"s3.cubbit.eu"`
+	Internal           *bool   `json:"internal" example:"false"`
+	MaxAllowedProjects *int    `json:"max_allowed_projects" example:"3"`
+}
+
 
 type Account struct {
 	ID                 string              `json:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`

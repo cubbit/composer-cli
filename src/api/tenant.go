@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -417,6 +418,52 @@ func DeleteTenantAccountSessions(urls configuration.Url, accessToken, tenantID, 
 		request_utils.WithRequestMethod(http.MethodDelete),
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateTenantAccounts(urls configuration.Url, accessToken, tenantID string, emails []string) error {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts"
+
+	requestBody := map[string]interface{}{
+		"emails": emails,
+	}
+
+	postBody, _ := json.Marshal(requestBody)
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBodyByte(postBody),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateAccount(urls configuration.Url, accessToken, tenantID, accountID string, accountBody UpdateAccountRequest) error {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID
+
+	requestBody, err := json.Marshal(accountBody)
+	if err != nil {
+		return err
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithRequestBodyByte(requestBody),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
 		return err
 	}
 

@@ -4,6 +4,7 @@ go_library(
     name = "tui",
     srcs = [
         "choose.go",
+        "email_bulk_textarea.go",
         "http.go",
         "inputs.go",
         "textarea.go",

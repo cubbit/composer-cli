@@ -442,7 +442,6 @@ var EditTenantOperatorRoleSubCmd = &cobra.Command{
 	},
 }
 
-
 var listTenantAccountsSubCmd = &cobra.Command{
 	Use:   "list-accounts",
 	Short: "lists tenant accounts",
@@ -683,6 +682,79 @@ var deleteTenantAccountSessionsSubCmd = &cobra.Command{
 	},
 }
 
+var createTenantAccountsSubCmd = &cobra.Command{
+	Use:   "create-accounts",
+	Short: "creates accounts in a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("emails")
+
+			swarms, _ := cmd.Flags().GetStringSlice("emails")
+			if len(swarms) == 0 {
+				fmt.Println("Error: no emails provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.CreateTenantAccounts); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.CreateTenantAccountsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var updateTenantAccountSubCmd = &cobra.Command{
+	Use:   "edit-account",
+	Short: "updates an account in a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no account id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.UpdateTenantAccount); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.UpdateTenantAccountInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
@@ -750,6 +822,16 @@ func init() {
 	tenantCmd.AddCommand(restoreTenantAccountSubCmd)
 
 	tenantCmd.AddCommand(deleteTenantAccountSessionsSubCmd)
+
+	tenantCmd.AddCommand(createTenantAccountsSubCmd)
+	createTenantAccountsSubCmd.Flags().StringSlice("emails", []string{}, "accounts email to create")
+
+	tenantCmd.AddCommand(updateTenantAccountSubCmd)
+	updateTenantAccountSubCmd.Flags().String("first-name", "", "First name of the account")
+	updateTenantAccountSubCmd.Flags().String("last-name", "", "Last name of the account")
+	updateTenantAccountSubCmd.Flags().String("endpoint-gateway", "", "Endpoint gateway of the account")
+	updateTenantAccountSubCmd.Flags().Bool("internal", false, "Defines if the account is internal")
+	updateTenantAccountSubCmd.Flags().Int("max-allowed-projects", 1, "Max allowed projects of the account")
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")
