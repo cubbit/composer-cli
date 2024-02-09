@@ -1,3 +1,21 @@
+## 0.13.0 (2024-02-09)
+
+### Feat
+
+- **cli**: add tenant account cmds (#81)
+- **cli**: configure bazel build and update workflows
+- **project**: create projects
+- **token**: move access token under operator
+- **session**: avoid using wrong session for request
+- **session**: improve session type
+- **account**: introduce account signup, signin, signout
+
+### Fix
+
+- **cli**: update action permissions (#82)
+- **account**: disable account and project section
+- **account**: wrong endpoint called
+
 ## 0.12.0 (2023-10-06)
 
 ### Feat
