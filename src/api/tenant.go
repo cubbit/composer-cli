@@ -55,7 +55,7 @@ func ListTenants(urls configuration.Url, accessToken string) (*GenericPaginatedR
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractTenantListModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -335,6 +335,88 @@ func EditOperatorRoleInTenant(urls configuration.Url, accessToken, tenantID, ope
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ListTenantAccounts(urls configuration.Url, accessToken, tenantID string) (*GenericPaginatedResponse[*Account], error) {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts"
+	var response GenericPaginatedResponse[*Account]
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func RemoveTenantAccount(urls configuration.Url, accessToken, tenantID, accountID, deleteTenantAccountToken string) error {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "?token=" + deleteTenantAccountToken
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ToggleBanAccount(urls configuration.Url, accessToken, tenantID string, accountID string, banned bool) error {
+	var err error
+	banUrl := "ban"
+	if !banned {
+		banUrl = "unban"
+	}
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "/" + banUrl
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RestoreTenantAccount(urls configuration.Url, accessToken, tenantID, accountID string) error {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "/restore"
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteTenantAccountSessions(urls configuration.Url, accessToken, tenantID, accountID string) error {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "/sessions"
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
 		return err
 	}
 

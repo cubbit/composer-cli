@@ -119,4 +119,15 @@ const (
 	ErrorRetrievingZonesRequest = "failed request to retrieve zones"
 
 	ErrorCreatingProjectRequest = "failed request to create the project"
+
+	ErrorListingTenantAccountsRequest           = "failed request to list tenant accounts"
+	ErrorDeletingTenantAccountRequest           = "failed request to delete tenant account"
+	ErrorDescribingTenantAccountRequest         = "failed request to describe tenant account"
+	ErrorEditingTenantAccountRequest            = "failed request to edit tenant account"
+	ErrorBanningTenantAccountRequest            = "failed request to ban tenant account"
+	ErrorUnbanningTenantAccountRequest          = "failed request to unban tenant account"
+	ErrorRestoringTenantAccountRequest          = "failed request to restore tenant account"
+	ErrorDeletingTenantAccountSessionsRequest   = "failed request to delete tenant account sessions"
+	ErrorRetrievingTenantAccountRequest         = "failed request to retrieve tenant account"
+	ErrorForgingTenantAccountDeleteTokenRequest = "failed request to forge tenant account delete token"
 )
