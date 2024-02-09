@@ -218,7 +218,7 @@ func (m emailBulkTextAreaModel) View() string {
 
 	s.WriteString(boldStyle.Render(m.title) + "\n")
 	s.WriteString("\n")
-	s.WriteString("💡 Hint: Please make sure emails are separated by commas without extra spaces.\n")
+	s.WriteString("💡 Hint: Please make sure emails are separated by commas.\n")
 
 	if m.input.Value() != "" && m.focusIndex == 1 {
 		isValid := m.validateEmailBulkStringCmd()

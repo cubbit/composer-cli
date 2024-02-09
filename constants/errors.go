@@ -133,4 +133,6 @@ const (
 	ErrorCreatingTenantAccountsRequest          = "failed request to create tenant accounts"
 	ErrorUpdatingTenantAccountRequest           = "failed request to update tenant account"
 	ErrorParsingMaxAllowedProjects              = "error while parsing max allowed projects"
+
+	ErrorInvalidInternalValue = "invalid internal value"
 )
