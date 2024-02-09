@@ -1002,16 +1002,18 @@ func EditTenantSettingsInteractive(cmd *cobra.Command) error {
 
 	}
 
-	if id == "" {
+	if id != "" {
+		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+	}
+
+	if id == "" && name != "" {
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 		id = tenant.ID
 
-	} else {
-		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
 	}
 
 	settingsJSON, err := json.MarshalIndent(tenant.Settings, "", "    ")
@@ -2179,21 +2181,48 @@ func UpdateTenantAccountInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	accountID, _, _ := strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Fill in the form for the account to update", false, tui.Input{Placeholder: "First Name", Value: &firstName}, tui.Input{Placeholder: "Last Name", Value: &lastName}, tui.Input{Placeholder: "Endpoint Gateway", Value: &endpointGateway}, tui.Input{Placeholder: "Internal", Value: &internal}, tui.Input{Placeholder: "Max Allowed Projects", Value: &maxAllowedProjects}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form for the account to update", true, tui.Input{Placeholder: "First Name", Value: &firstName}, tui.Input{Placeholder: "Last Name", Value: &lastName}, tui.Input{Placeholder: "Endpoint Gateway", Value: &endpointGateway}, tui.Input{Placeholder: "Internal", Value: &internal}, tui.Input{Placeholder: "Max Allowed Projects", Value: &maxAllowedProjects}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	internalBool := internal == "true"
-	maxAllowedProjectsInt, err := strconv.Atoi(maxAllowedProjects)
-	if err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorParsingMaxAllowedProjects, err)
+	var internalPtr *bool
+	if internal != "" && internal != "true" && internal != "false" {
+		return fmt.Errorf("%s: %w", constants.ErrorInvalidInternalValue, err)
+	}
+	v := internal == "true"
+	internalPtr = &v
+
+	var maxAllowedProjectsPtr *int
+	if maxAllowedProjects != "" {
+
+		v, err := strconv.Atoi(maxAllowedProjects)
+		if err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorParsingMaxAllowedProjects, err)
+		}
+
+		maxAllowedProjectsPtr = &v
+	}
+
+	var firstNamePtr *string
+	if firstName != "" {
+		firstNamePtr = &firstName
+	}
+
+	var lastNamePtr *string
+	if lastName != "" {
+		lastNamePtr = &lastName
+	}
+
+	var endpointGatewayPtr *string
+	if endpointGateway != "" {
+		endpointGatewayPtr = &endpointGateway
 	}
 	requestBody := api.UpdateAccountRequest{
-		FirstName:          &firstName,
-		LastName:           &lastName,
-		EndpointGateway:    &endpointGateway,
-		Internal:           &internalBool,
-		MaxAllowedProjects: &maxAllowedProjectsInt,
+		FirstName:          firstNamePtr,
+		LastName:           lastNamePtr,
+		EndpointGateway:    endpointGatewayPtr,
+		Internal:           internalPtr,
+		MaxAllowedProjects: maxAllowedProjectsPtr,
 	}
 
 	if err = api.UpdateAccount(conf.Urls, *accessToken, id, accountID, requestBody); err != nil {

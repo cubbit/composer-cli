@@ -598,7 +598,7 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operator))
+	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operatorID))
 
 	return nil
 }
@@ -763,11 +763,26 @@ func UpdateTenantAccount(cmd *cobra.Command, args []string) error {
 		maxAllowedProjectsPtr = nil
 	}
 
+	var firstNamePtr *string
+	if firstName != "" {
+		firstNamePtr = &firstName
+	}
+
+	var lastNamePtr *string
+	if lastName != "" {
+		lastNamePtr = &lastName
+	}
+
+	var endpointGatewayPtr *string
+	if endpointGateway != "" {
+		endpointGatewayPtr = &endpointGateway
+	}
+
 	requestBody := api.UpdateAccountRequest{
-		FirstName:          &firstName,
-		LastName:           &lastName,
+		FirstName:          firstNamePtr,
+		LastName:           lastNamePtr,
 		Internal:           internalPtr,
-		EndpointGateway:    &endpointGateway,
+		EndpointGateway:    endpointGatewayPtr,
 		MaxAllowedProjects: maxAllowedProjectsPtr,
 	}
 
