@@ -545,5 +545,5 @@ cubbit-operator-cli swarm --name <name> --id <id> edit-operator <operator-id> ed
 ### Generate project report
 
 ```bash
-cubbit-operator-cli project --name <name> --id <id>  report --format <json|csv|semantic> --from <from> --to <to> --output <output>
+cubbit-operator-cli tenant --name <name> --id <id> report-projects <project-id> --format <json|csv|semantic> --from <from> --to <to> --output <output>
 ```
