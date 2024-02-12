@@ -71,7 +71,7 @@ cubbit-operator-cli tenant describe --interactive
 ### List all of the available tenants
 
 ```bash
-cubbit-operator-cli tenant list --verbose --line
+cubbit-operator-cli tenant list --verbose --line --query <query> --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 ### Delete a tenant
@@ -125,7 +125,7 @@ cubbit-operator-cli tenant add-operator --interactive
 ### List operators of a tenant
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  list-operators
+cubbit-operator-cli tenant --name <name> --id <id>  list-operators --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 ### Remove an operator of a tenant
@@ -167,7 +167,7 @@ cubbit-operator-cli swarm describe --interactive
 ### List all of the available swarms
 
 ```bash
-cubbit-operator-cli swarm list --verbose --line
+cubbit-operator-cli swarm list --verbose --line --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 ### Delete a swarm
@@ -221,7 +221,7 @@ cubbit-operator-cli swarm add-operator --interactive
 ### List operators of a swarm
 
 ```bash
-cubbit-operator-cli swarm --name <name> --id <id> list-operators
+cubbit-operator-cli swarm --name <name> --id <id> list-operators --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 ### Remove an operator of a swarm
@@ -251,7 +251,7 @@ cubbit-operator-cli tenant connect-swarm --interactive
 ### List tenant available swarms
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> list-available-swarms
+cubbit-operator-cli tenant --name <name> --id <id> list-available-swarms --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 Interactively
@@ -275,7 +275,7 @@ cubbit-operator-cli distributor create/new --interactive
 ### List distributors
 
 ```bash
-cubbit-operator-cli distributor list
+cubbit-operator-cli distributor list --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 Interactively
@@ -347,7 +347,7 @@ cubbit-operator-cli distributor edit-coupon --interactive
 ### List distributor coupons
 
 ```bash
-cubbit-operator-cli distributor --name <name> --id <id>  list-coupons
+cubbit-operator-cli distributor --name <name> --id <id>  list-coupons --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 Interactively
@@ -402,70 +402,64 @@ go build -o build/cubbit github.com/cubbit/cubbit/client/cli
 
 ### Tenant Commands
 
-Update account max projects:
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> account <account-id> edit-max-projects <max-projects>
-```
-
 Edit tenant settings:
 
 ```bash
 cubbit-operator-cli tenant --name <name> --id <id>  edit-settings {settings} 
 ```
 
-List accounts registered under a tenant:
+List users registered under a tenant:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  account list/ls
+cubbit-operator-cli tenant --name <name> --id <id> list-users --query <query> --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
-Create multiple accounts under a tenant:
+Create multiple users under a tenant:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  account create/new <email1,email2>
+cubbit-operator-cli tenant --name <name> --id <id>  create-user --emails <email1,email2>
 ```
 
-Describe an account:
+Describe a user:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> account describe <account-id>
+cubbit-operator-cli tenant --name <name> --id <id> describe-user <user-id>
 ```
 
-Delete an account:
+Delete a user:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> account delete <account-id>
+cubbit-operator-cli tenant --name <name> --id <id> delete-user <user-id>
 ```
 
-Edit an account:
+Edit a user:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  account <account-id> edit --first-name <first-name> --last-name <last-name> --internal <true|false> --max-allowed-projects <max-allowed-projects> --endpoint-gateway <endpoint-gateway>
+cubbit-operator-cli tenant --name <name> --id <id>  edit-user <user-id> --first-name <first-name> --last-name <last-name> --internal <true|false> --max-allowed-projects <max-allowed-projects> --endpoint-gateway <endpoint-gateway>
 ```
 
-Ban an account:
-  
+Freeze a user:
+
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> account ban <account-id>
+cubbit-operator-cli tenant --name <name> --id <id> freeze-user <user-id>
 ```
 
-Unban an account:
+Unfreeze a user:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  account unban <account-id>
+cubbit-operator-cli tenant --name <name> --id <id>  unfreeze-user <user-id>
 ```
 
-Restore an account:
+Restore a user:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  account restore <account-id>
+cubbit-operator-cli tenant --name <name> --id <id>  restore-user <user-id>
 ```
 
-Invalidate an account sessions:
+Invalidate a user sessions:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  account delete-sessions <account-id>
+cubbit-operator-cli tenant --name <name> --id <id>  delete-user-sessions <user-id>
 ```
 
 Update tenant coupon:
@@ -477,67 +471,61 @@ cubbit-operator-cli tenant --name <name> --id <id>  edit-coupon --coupon-code <c
 Get the operator with at least get access to the tenant:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> operator describe <operator-id>
+cubbit-operator-cli tenant --name <name> --id <id> describe-operator <operator-id>
 ```
 
 Edit the role of an operator inside a tenant:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> operator <operator-id> edit --policy-id <policy-id>
+cubbit-operator-cli tenant --name <name> --id <id> edit-operator <operator-id> --role <role>
 ```
   
 List projects registered under a tenant:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project list/ls
+cubbit-operator-cli tenant --name <name> --id <id> list-projects --query <query> --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 Describe a project:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project describe <project-id>
+cubbit-operator-cli tenant --name <name> --id <id> describe-project <project-id>
 ```
 
 Delete a project:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project delete <project-id>
+cubbit-operator-cli tenant --name <name> --id <id> delete-project <project-id>
 ```
 
 Edit a project:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project <project-id> edit --image-url <image-url> --description <description> --name <name>
+cubbit-operator-cli tenant --name <name> --id <id> edit-project <project-id> --image-url <image-url> --description <description> --name <name>
 ```
 
-Ban a project:
+Freeze a project:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project ban <project-id>
+cubbit-operator-cli tenant --name <name> --id <id> freeze-project <project-id>
 ```
 
-Unban a project:
+Unfreeze a project:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project unban <project-id>
+cubbit-operator-cli tenant --name <name> --id <id> unfreeze-project <project-id>
 ```
 
 Restore a project:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> project restore <project-id>
-```
-
-List sign-in providers:
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> sign-in-providers list/ls
+cubbit-operator-cli tenant --name <name> --id <id> restore-project <project-id>
 ```
 
 List swarms associated with a tenant:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> swarm list/ls
+cubbit-operator-cli tenant --name <name> --id <id> list-swarms --sort <sort_key> --page <page> --page-size <page-size>
 ```
 
 ### Swarm Commands
@@ -545,85 +533,17 @@ cubbit-operator-cli tenant --name <name> --id <id> swarm list/ls
 Get the swarm operator:
 
 ```bash
-cubbit-operator-cli swarm --name <name> --id <id> operator describe <operator-id>
+cubbit-operator-cli swarm --name <name> --id <id> describe-operator <operator-id>
 ```
 
 Edit the role of a swarm operator:
 
 ```bash
-cubbit-operator-cli swarm --name <name> --id <id> operator <operator-id> edit --policy-id <policy-id>
+cubbit-operator-cli swarm --name <name> --id <id> edit-operator <operator-id> edit --role <role>
 ```
 
-### Operator Commands
-
-List operators:
+### Generate project report
 
 ```bash
-cubbit-operator-cli operator list/ls
-```
-
-Update operator email:
-
-```bash
-cubbit-operator-cli operator --id <operator-id> --email <email>
-```
-
-Get self operator:
-
-```bash
-cubbit-operator-cli operator describe 
-```
-
-Get other operator:
-
-```bash
-cubbit-operator-cli operator describe --id <operator-id>
-```
-
-Delete self operator:
-
-```bash
-cubbit-operator-cli operator delete
-```
-
-Delete other operator:
-
-```bash
-cubbit-operator-cli operator delete --id <operator-id>
-```
-
-Update self operator credentials:
-
-```bash
-cubbit-operator-cli operator edit --password <password>
-```
-
-Add TFA to self operator:
-
-```bash
-cubbit-operator-cli operator tfa add --codes <codes> --secret <secret> --validation-code <validation-code>
-```
-
-Add TFA to other operator:
-
-```bash
-cubbit-operator-cli operator --id <operator-id> tfa add --codes <codes> --secret <secret> --validation-code <validation-code>
-```
-
-Delete TFA from self operator:
-
-```bash
-cubbit-operator-cli operator tfa delete 
-```
-
-Delete TFA from other operator:
-
-```bash
-cubbit-operator-cli operator --id <operator-id> tfa delete 
-```
-
-List operator allowed actions:
-
-```bash
-cubbit-operator-cli operator --id <operator-id> list-allowed-actions
+cubbit-operator-cli project --name <name> --id <id>  report --format <json|csv|semantic> --from <from> --to <to> --output <output>
 ```
