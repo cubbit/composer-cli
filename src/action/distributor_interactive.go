@@ -937,12 +937,7 @@ func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	for _, tenant := range tenants.Data {
-		description := ""
-		if tenant.Description != nil {
-			description = *tenant.Description
-		}
-
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, description))
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
 	}
 
 	if len(choices) == 0 {

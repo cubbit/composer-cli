@@ -443,8 +443,8 @@ var EditTenantOperatorRoleSubCmd = &cobra.Command{
 }
 
 var listTenantAccountsSubCmd = &cobra.Command{
-	Use:   "list-accounts",
-	Short: "lists tenant accounts",
+	Use:   "list-users",
+	Short: "lists tenant users",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -471,8 +471,8 @@ var listTenantAccountsSubCmd = &cobra.Command{
 }
 
 var describeTenantAccountSubCmd = &cobra.Command{
-	Use:   "describe-account",
-	Short: "describes tenant accounts",
+	Use:   "describe-user",
+	Short: "describes tenant users",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -484,7 +484,7 @@ var describeTenantAccountSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -505,8 +505,8 @@ var describeTenantAccountSubCmd = &cobra.Command{
 }
 
 var removeTenantAccountSubCmd = &cobra.Command{
-	Use:     "remove-account",
-	Short:   "removes a tenant account",
+	Use:     "remove-user",
+	Short:   "removes a tenant user",
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
@@ -522,7 +522,7 @@ var removeTenantAccountSubCmd = &cobra.Command{
 			cmd.MarkFlagRequired("password")
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -543,8 +543,8 @@ var removeTenantAccountSubCmd = &cobra.Command{
 }
 
 var banTenantAccountSubCmd = &cobra.Command{
-	Use:     "ban-account",
-	Short:   "bans a tenant account",
+	Use:     "freeze-user",
+	Short:   "freezes a tenant user",
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
@@ -557,7 +557,7 @@ var banTenantAccountSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -578,8 +578,8 @@ var banTenantAccountSubCmd = &cobra.Command{
 }
 
 var unbanTenantAccountSubCmd = &cobra.Command{
-	Use:     "unban-account",
-	Short:   "unbans a tenant account",
+	Use:     "unfreeze-user",
+	Short:   "unfreezes a tenant user",
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
@@ -592,7 +592,7 @@ var unbanTenantAccountSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -613,8 +613,8 @@ var unbanTenantAccountSubCmd = &cobra.Command{
 }
 
 var restoreTenantAccountSubCmd = &cobra.Command{
-	Use:     "restore-account",
-	Short:   "restores a tenant account",
+	Use:     "restore-user",
+	Short:   "restores a tenant user",
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
@@ -627,7 +627,7 @@ var restoreTenantAccountSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -648,8 +648,8 @@ var restoreTenantAccountSubCmd = &cobra.Command{
 }
 
 var deleteTenantAccountSessionsSubCmd = &cobra.Command{
-	Use:     "delete-account-sessions",
-	Short:   "deletes all sessions of a tenant account",
+	Use:     "delete-user-sessions",
+	Short:   "deletes all sessions of a tenant user",
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
@@ -662,7 +662,7 @@ var deleteTenantAccountSessionsSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -683,8 +683,8 @@ var deleteTenantAccountSessionsSubCmd = &cobra.Command{
 }
 
 var createTenantAccountsSubCmd = &cobra.Command{
-	Use:   "create-accounts",
-	Short: "creates accounts in a tenant",
+	Use:   "create-users",
+	Short: "creates users in a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -721,8 +721,8 @@ var createTenantAccountsSubCmd = &cobra.Command{
 }
 
 var updateTenantAccountSubCmd = &cobra.Command{
-	Use:   "edit-account",
-	Short: "updates an account in a tenant",
+	Use:   "edit-user",
+	Short: "updates a user in a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -734,7 +734,7 @@ var updateTenantAccountSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no account id argument provided")
+				fmt.Println("Error: no user id argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -805,8 +805,8 @@ func init() {
 	EditTenantOperatorRoleSubCmd.Flags().String("role", "", "Role of the operator")
 
 	tenantCmd.AddCommand(listTenantAccountsSubCmd)
-	listTenantAccountsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for accounts")
-	listTenantAccountsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different accounts")
+	listTenantAccountsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for users")
+	listTenantAccountsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different users")
 
 	tenantCmd.AddCommand(describeTenantAccountSubCmd)
 	describeTenantAccountSubCmd.Flags().String("format", "default", "Formats the output")
@@ -824,14 +824,14 @@ func init() {
 	tenantCmd.AddCommand(deleteTenantAccountSessionsSubCmd)
 
 	tenantCmd.AddCommand(createTenantAccountsSubCmd)
-	createTenantAccountsSubCmd.Flags().StringSlice("emails", []string{}, "accounts email to create")
+	createTenantAccountsSubCmd.Flags().StringSlice("emails", []string{}, "list of users emails to create")
 
 	tenantCmd.AddCommand(updateTenantAccountSubCmd)
-	updateTenantAccountSubCmd.Flags().String("first-name", "", "First name of the account")
-	updateTenantAccountSubCmd.Flags().String("last-name", "", "Last name of the account")
-	updateTenantAccountSubCmd.Flags().String("endpoint-gateway", "", "Endpoint gateway of the account")
-	updateTenantAccountSubCmd.Flags().Bool("internal", false, "Defines if the account is internal")
-	updateTenantAccountSubCmd.Flags().Int("max-allowed-projects", 1, "Max allowed projects of the account")
+	updateTenantAccountSubCmd.Flags().String("first-name", "", "First name of the user")
+	updateTenantAccountSubCmd.Flags().String("last-name", "", "Last name of the user")
+	updateTenantAccountSubCmd.Flags().String("endpoint-gateway", "", "Endpoint gateway of the user")
+	updateTenantAccountSubCmd.Flags().Bool("internal", false, "Defines if the user is internal")
+	updateTenantAccountSubCmd.Flags().Int("max-allowed-projects", 1, "Max allowed projects for the user")
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")
