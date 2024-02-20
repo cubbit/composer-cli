@@ -241,7 +241,6 @@ type UpdateAccountRequest struct {
 	MaxAllowedProjects *int    `json:"max_allowed_projects" example:"3"`
 }
 
-
 type Account struct {
 	ID                 string              `json:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
 	FirstName          string              `json:"first_name" example:"Mario"`
@@ -270,4 +269,24 @@ type GenericPaginatedResponse[T interface{}] struct {
 	Data     []T  `json:"data"`
 	NextPage *int `json:"next_page"`
 	Count    int  `json:"count"`
+}
+
+type ProjectItem struct {
+	ProjectID          string     `json:"project_id" example:"132d7f00-9e10-425e-afca-515cc4240d9f"`
+	ProjectName        string     `json:"project_name" example:"Cubbit"`
+	ProjectDescription string     `json:"project_description" example:"Cloud storage: best cloud service"`
+	ProjectEmail       string     `json:"project_email" example:"321d7f00-9e10-425e-afca-515cc4240d9f@cubbit.io"`
+	ProjectCreatedAt   time.Time  `json:"project_created_at" example:"2023-01-18T12:42:59.089247Z"`
+	ProjectDeletedAt   *time.Time `json:"project_deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	ProjectBannedAt    *time.Time `json:"project_banned_at" example:"2023-01-18T12:42:59.089247Z"`
+	ProjectImageUrl    string     `json:"project_image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
+	ProjectTenantID    string     `json:"project_tenant_id" example:"7add5517-9ddf-4037-a2e2-79e8bd664494"`
+	RootAccountEmail   string     `json:"root_account_email" example:"piero@cubbit.io"`
+	RootAccountID      string     `json:"root_account_id" example:"132d7f00-9e10-425e-afca-515cc4240d9f"`
+}
+
+type UpdateTenantProjectRequestBody struct {
+	Name        *string `json:"name" example:"CubbitCloud"`
+	Description *string `json:"description" example:"Cloud storage made easy"`
+	ImageUrl    *string `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 }

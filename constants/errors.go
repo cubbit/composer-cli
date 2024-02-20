@@ -135,4 +135,15 @@ const (
 	ErrorParsingMaxAllowedProjects              = "error while parsing max allowed projects"
 
 	ErrorInvalidInternalValue = "invalid internal value"
+
+	ErrorListingTenantProjectsRequest           = "failed request to list tenant projects"
+	ErrorDeletingTenantProjectRequest           = "failed request to delete tenant project"
+	ErrorDescribingTenantProjectRequest         = "failed request to describe tenant project"
+	ErrorEditingTenantProjectRequest            = "failed request to edit tenant project"
+	ErrorFreezingTenantProjectRequest           = "failed request to freeze tenant project"
+	ErrorUnfreezingTenantProjectRequest         = "failed request to unfreeze tenant project"
+	ErrorRestoringTenantProjectRequest          = "failed request to restore tenant project"
+	ErrorRetrievingTenantProjectRequest         = "failed request to retrieve tenant project"
+	ErrorForgingTenantProjectDeleteTokenRequest = "failed request to forge tenant project delete token"
+	ErrorUpdatingTenantProjectRequest           = "failed request to update tenant project"
 )
