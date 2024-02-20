@@ -1,3 +1,13 @@
+## 0.14.0 (2024-02-20)
+
+### Feat
+
+- **cli**: create and edit accounts in a tenant
+
+### Fix
+
+- **cli**: build
+
 ## 0.13.0 (2024-02-09)
 
 ### Feat
