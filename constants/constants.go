@@ -58,5 +58,5 @@ const (
 	Projects = "/v1/projects"
 
 	DeleteTenantAccountToken = "/v1/auth/operators/forge/token?capabilities=delete_account&account_id="
-
+	DeleteTenantProjectToken = "/v1/auth/operators/forge/token?capabilities=delete_project&project_id="
 )

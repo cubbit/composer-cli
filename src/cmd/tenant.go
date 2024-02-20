@@ -755,6 +755,246 @@ var updateTenantAccountSubCmd = &cobra.Command{
 	},
 }
 
+var listTenantProjectsSubCmd = &cobra.Command{
+	Use:   "list-projects",
+	Short: "lists tenant projects",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListTenantProjects); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListTenantProjectsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeTenantProjectSubCmd = &cobra.Command{
+	Use:   "describe-project",
+	Short: "describes tenant projects",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no project id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeTenantProject); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeTenantProjectInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeTenantProjectSubCmd = &cobra.Command{
+	Use:     "remove-project",
+	Short:   "removes a tenant project",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+
+			if len(args) == 0 {
+				fmt.Println("Error: no project id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RemoveTenantProject); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveTenantProjectInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var banTenantProjectSubCmd = &cobra.Command{
+	Use:     "freeze-project",
+	Short:   "freezes a tenant project",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no project id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.BanTenantProject); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.BanTenantProjectInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var unbanTenantProjectSubCmd = &cobra.Command{
+	Use:     "unfreeze-project",
+	Short:   "unfreezes a tenant project",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no project id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.UnbanTenantProject); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.UnbanTenantProjectInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var restoreTenantProjectSubCmd = &cobra.Command{
+	Use:     "restore-project",
+	Short:   "restores a tenant project",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no project id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RestoreTenantProject); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RestoreTenantProjectInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var updateTenantProjectSubCmd = &cobra.Command{
+	Use:   "edit-project",
+	Short: "updates a project in a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no project id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.UpdateTenantProject); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.UpdateTenantProjectInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
@@ -832,6 +1072,26 @@ func init() {
 	updateTenantAccountSubCmd.Flags().String("endpoint-gateway", "", "Endpoint gateway of the user")
 	updateTenantAccountSubCmd.Flags().Bool("internal", false, "Defines if the user is internal")
 	updateTenantAccountSubCmd.Flags().Int("max-allowed-projects", 1, "Max allowed projects for the user")
+
+	tenantCmd.AddCommand(listTenantProjectsSubCmd)
+	listTenantProjectsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for projects")
+	listTenantProjectsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different projects")
+
+	tenantCmd.AddCommand(describeTenantProjectSubCmd)
+	describeTenantProjectSubCmd.Flags().String("format", "default", "Formats the output")
+
+	tenantCmd.AddCommand(removeTenantProjectSubCmd)
+	removeTenantProjectSubCmd.Flags().String("email", "", "Email address")
+	removeTenantProjectSubCmd.Flags().String("password", "", "Password")
+	removeTenantProjectSubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	tenantCmd.AddCommand(banTenantProjectSubCmd)
+	tenantCmd.AddCommand(unbanTenantProjectSubCmd)
+	tenantCmd.AddCommand(restoreTenantProjectSubCmd)
+
+	tenantCmd.AddCommand(updateTenantProjectSubCmd)
+	updateTenantProjectSubCmd.Flags().String("description", "", "Description of the project")
+	updateTenantProjectSubCmd.Flags().String("image-url", "", "Image URL of the project")
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")

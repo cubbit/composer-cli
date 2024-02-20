@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -32,6 +33,112 @@ func CreateProject(urls configuration.Url, accessToken, name string, description
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func ListTenantProjects(urls configuration.Url, accessToken, tenantID string) (*GenericPaginatedResponse[*ProjectItem], error) {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects"
+	var response GenericPaginatedResponse[*ProjectItem]
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func RemoveTenantProject(urls configuration.Url, accessToken, tenantID, projectID, deleteTenantProjectToken string) error {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "?token=" + deleteTenantProjectToken
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ToggleBanProject(urls configuration.Url, accessToken, tenantID string, projectID string, banned bool) error {
+	var err error
+	banUrl := "ban"
+	if !banned {
+		banUrl = "unban"
+	}
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/" + banUrl
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RestoreTenantProject(urls configuration.Url, accessToken, tenantID, projectID string) error {
+	var err error
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/restore"
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateProject(urls configuration.Url, accessToken, tenantID, projectID string, projectBody UpdateTenantProjectRequestBody) error {
+	var err error
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
+
+	requestBody, err := json.Marshal(projectBody)
+	if err != nil {
+		return err
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithRequestBodyByte(requestBody),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetTenantProject(urls configuration.Url, accessToken, tenantID, projectID string) (*ProjectItem, error) {
+	var err error
+	var response ProjectItem
+
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
