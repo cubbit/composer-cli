@@ -1,3 +1,9 @@
+## 0.15.0 (2024-02-21)
+
+### Feat
+
+- **cli**: manage tenant projects
+
 ## 0.14.0 (2024-02-20)
 
 ### Feat
