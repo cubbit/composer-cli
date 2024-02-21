@@ -220,7 +220,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if couponName, err = cmd.Flags().GetString("coupon-name"); err != nil {
+	if couponName, err = cmd.Flags().GetString("distributor-code-name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -269,7 +269,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s created successfully", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("distributor code %s created successfully", response.ID))
 
 	return nil
 }
@@ -321,7 +321,7 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	utils.PrintList("Your Distributor Coupons List")
+	utils.PrintList("Your Distributor Codes List")
 
 	if len(distributorCoupons.Coupons) == 0 {
 		utils.PrintEmptyList()
@@ -404,7 +404,7 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if couponName, err = cmd.Flags().GetString("coupon-name"); err != nil {
+	if couponName, err = cmd.Flags().GetString("distributor-code-name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -449,7 +449,7 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s updated successfully", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("distributor code %s updated successfully", response.ID))
 
 	return nil
 }
@@ -499,7 +499,7 @@ func RevokeDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s has been revoked successfully", response.CouponCode))
+	utils.PrintSuccess(fmt.Sprintf("new distributor code %s has been revoked successfully", response.CouponCode))
 
 	return nil
 }
@@ -548,7 +548,7 @@ func RemoveDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRemovingDistributorCouponRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("distributor coupon %s removed successfully", couponID))
+	utils.PrintDelete(fmt.Sprintf("distributor code %s removed successfully", couponID))
 
 	return nil
 }
@@ -583,7 +583,7 @@ func GetDistributorReport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if coupon, err = cmd.Flags().GetString("coupon"); err != nil {
+	if coupon, err = cmd.Flags().GetString("distributor-code"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -640,50 +640,6 @@ func GetDistributorReport(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var tenantID, tenantName, couponCode, configPath string
-	var conf *configuration.Config
-	var response *api.GenericIDResponseModel
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if tenantName, err = cmd.Flags().GetString("tenant-name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if couponCode, err = cmd.Flags().GetString("coupon-code"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if tenantID == "" {
-		var tenant *api.Tenant
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, tenantName); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		tenantID = tenant.ID
-	}
-
-	if response, err = api.AssignTenantToCoupon(conf.Urls, *accessToken, tenantID, couponCode); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("tenant %s assigned successfully to %s", response.ID, couponCode))
-
-	return nil
-}
-
 func getDistributorByNameOrId(conf *configuration.Config, accessToken string, distributor string) (*api.Distributor, error) {
 	var err error
 	var distributors *api.DistributorList
@@ -718,6 +674,6 @@ func getDistributorCouponByNameOrId(conf *configuration.Config, accessToken stri
 		}
 	}
 
-	return nil, fmt.Errorf("distributor coupon %s not found", coupon)
+	return nil, fmt.Errorf("distributor code %s not found", coupon)
 
 }

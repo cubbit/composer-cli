@@ -23,7 +23,7 @@ var createTenantSubCmd = &cobra.Command{
 		if !interactive {
 			cmd.MarkFlagRequired("name")
 			cmd.MarkFlagRequired("settings")
-			cmd.MarkFlagRequired("coupon-code")
+			cmd.MarkFlagRequired("distributor-code")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -187,7 +187,7 @@ var editTenantImageSubCmd = &cobra.Command{
 }
 
 var listTenantAvailableSwarmsSubCmd = &cobra.Command{
-	Use:   "list-available-swarms",
+	Use:   "list-swarms",
 	Short: "lists the swarms that can be connected",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
@@ -995,13 +995,47 @@ var updateTenantProjectSubCmd = &cobra.Command{
 	},
 }
 
+var editTenantDistributorCodeSubCmd = &cobra.Command{
+	Use:   "edit-distributor-code",
+	Short: "assigns a tenant to a new distributor code",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no distributor code argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}	
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.AssignTenantToCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.AssignTenantToCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
 	createTenantSubCmd.Flags().String("description", "", "Description of the tenant")
 	createTenantSubCmd.Flags().String("image-url", "", "Image URL of the tenant")
 	createTenantSubCmd.Flags().String("settings", "", "A Json object containing the tenant settings")
-	createTenantSubCmd.Flags().String("coupon-code", "", "A code provided by the Distributor that authorizes the tenant creation")
+	createTenantSubCmd.Flags().String("distributor-code", "", "A code provided by the Distributor that authorizes the tenant creation")
 	createTenantSubCmd.Flags().String("zone", "", "Zone of the tenant creation")
 
 	tenantCmd.AddCommand(listTenantSubCmd)
@@ -1092,6 +1126,7 @@ func init() {
 	tenantCmd.AddCommand(updateTenantProjectSubCmd)
 	updateTenantProjectSubCmd.Flags().String("description", "", "Description of the project")
 	updateTenantProjectSubCmd.Flags().String("image-url", "", "Image URL of the project")
+	tenantCmd.AddCommand(editTenantDistributorCodeSubCmd)
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")

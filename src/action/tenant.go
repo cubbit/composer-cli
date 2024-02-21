@@ -987,7 +987,49 @@ func EditTenantOperatorRole(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("operator %s 's role updated successfully", operatorID))
+	utils.PrintSuccess(fmt.Sprintf("operator %s role updated successfully", operatorID))
+
+	return nil
+}
+
+func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, couponCode, configPath string
+	var conf *configuration.Config
+	var response *api.GenericIDResponseModel
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" {
+		var tenant *api.Tenant
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
+	}
+
+	couponCode = args[0]
+
+	if response, err = api.AssignTenantToCoupon(conf.Urls, *accessToken, id, couponCode); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("tenant %s assigned successfully to %s", response.ID, couponCode))
 
 	return nil
 }

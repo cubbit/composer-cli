@@ -146,6 +146,7 @@ type Operator struct {
 	Emails             []OperatorEmail `json:"emails"`
 	TwoFactorEnabled   bool            `json:"two_factor_enabled" example:"true"`
 	Status             string          `json:"status"`
+	PolicyName         string          `json:"policy_name"`
 }
 
 type OperatorList struct {

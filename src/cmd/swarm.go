@@ -279,6 +279,74 @@ var removeSwarmOperatorSubCmd = &cobra.Command{
 	},
 }
 
+var describeSwarmOperatorsSubCmd = &cobra.Command{
+	Use:   "describe-operator",
+	Short: "describe swarm operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no operator email or id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeSwarmOperator); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeSwarmOperatorInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var EditSwarmOperatorRoleSubCmd = &cobra.Command{
+	Use:   "edit-operator",
+	Short: "edit swarm operator role",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no operator id or email argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.EditSwarmOperatorRole); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditSwarmOperatorRoleInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -312,6 +380,12 @@ func init() {
 	removeSwarmSubCmd.Flags().String("email", "", "Email address")
 	removeSwarmSubCmd.Flags().String("password", "", "Password")
 	removeSwarmSubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	swarmCmd.AddCommand(describeSwarmOperatorsSubCmd)
+	describeSwarmOperatorsSubCmd.Flags().String("format", "default", "Format of the output")
+
+	swarmCmd.AddCommand(EditSwarmOperatorRoleSubCmd)
+	EditSwarmOperatorRoleSubCmd.Flags().String("role", "", "Role of the operator")
 
 	rootCmd.AddCommand(swarmCmd)
 	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")
