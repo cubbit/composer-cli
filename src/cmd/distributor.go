@@ -98,9 +98,9 @@ var removeDistributorSubCmd = &cobra.Command{
 }
 
 var createDistributorCouponSubCmd = &cobra.Command{
-	Use:     "create-coupon",
-	Short:   "create a new distributor coupon",
-	Aliases: []string{"new-coupon"},
+	Use:     "create-distributor-code",
+	Short:   "create a new distributor code",
+	Aliases: []string{"new-distributor-code"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -111,7 +111,7 @@ var createDistributorCouponSubCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			cmd.MarkFlagRequired("coupon-name")
+			cmd.MarkFlagRequired("distributor-code-name")
 			cmd.MarkFlagRequired("swarms")
 
 			swarms, _ := cmd.Flags().GetStringSlice("swarms")
@@ -137,8 +137,8 @@ var createDistributorCouponSubCmd = &cobra.Command{
 }
 
 var listDistributorCouponsSubCmd = &cobra.Command{
-	Use:   "list-coupons",
-	Short: "list distributor coupons",
+	Use:   "list-distributor-codes",
+	Short: "list distributor codes",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -165,8 +165,8 @@ var listDistributorCouponsSubCmd = &cobra.Command{
 }
 
 var describeDistributorCouponSubCmd = &cobra.Command{
-	Use:   "describe-coupon",
-	Short: "describe a distributor coupon",
+	Use:   "describe-distributor-code",
+	Short: "describe a distributor code",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -200,8 +200,8 @@ var describeDistributorCouponSubCmd = &cobra.Command{
 }
 
 var editDistributorCouponSubCmd = &cobra.Command{
-	Use:   "edit-coupon",
-	Short: "edit a distributor coupon",
+	Use:   "edit-distributor-code",
+	Short: "edit a distributor code",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -213,7 +213,7 @@ var editDistributorCouponSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no distributor coupon id/name argument provided")
+				fmt.Println("Error: no distributor code id/name argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -235,8 +235,8 @@ var editDistributorCouponSubCmd = &cobra.Command{
 }
 
 var revokeDistributorCouponSubCmd = &cobra.Command{
-	Use:   "revoke-coupon",
-	Short: "revoke distributor coupon code",
+	Use:   "revoke-distributor-code",
+	Short: "revoke distributor code",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -248,7 +248,7 @@ var revokeDistributorCouponSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no distributor coupon id/name argument provided")
+				fmt.Println("Error: no distributor code id/name argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -270,8 +270,8 @@ var revokeDistributorCouponSubCmd = &cobra.Command{
 }
 
 var removeDistributorCouponSubCmd = &cobra.Command{
-	Use:   "remove-coupon",
-	Short: "remove distributor coupon",
+	Use:   "remove-distributor-code",
+	Short: "remove distributor code",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
@@ -283,7 +283,7 @@ var removeDistributorCouponSubCmd = &cobra.Command{
 			}
 
 			if len(args) == 0 {
-				fmt.Println("Error: no distributor coupon id/name argument provided")
+				fmt.Println("Error: no distributor code id/name argument provided")
 				cmd.Usage()
 				os.Exit(1)
 			}
@@ -346,36 +346,6 @@ var reportDistributSubCmd = &cobra.Command{
 	},
 }
 
-var assignTenantSubCmd = &cobra.Command{
-	Use:   "assign-tenant",
-	Short: "assigns a tenant to a distributor coupon",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if !interactive {
-			tenantID, _ := cmd.Flags().GetString("tenant-id")
-			tenantName, _ := cmd.Flags().GetString("tenant-name")
-			if tenantID == "" && tenantName == "" {
-				fmt.Println("Error: at least one of the two required flags --tenant-id or --tenant-name should be provided.")
-				cmd.Usage()
-				os.Exit(1)
-			}
-
-			cmd.MarkFlagRequired("coupon-code")
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		if !interactive {
-			if err = tui.Send(cmd, args, action.AssignTenantToCoupon); err != nil {
-				utils.PrintError(err)
-			}
-		} else {
-			if err = action.AssignTenantToCouponInteractive(cmd); err != nil {
-				utils.PrintError(err)
-			}
-		}
-	},
-}
-
 func init() {
 	distributorCmd.AddCommand(createDistributorSubCmd)
 	createDistributorSubCmd.Flags().String("name", "", "Name of the distributor")
@@ -398,37 +368,32 @@ func init() {
 	distributorCmd.AddCommand(reportDistributSubCmd)
 	reportDistributSubCmd.Flags().String("from", "", "Start date and time in DD/MM/YYYY+HH:mm:ss format")
 	reportDistributSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
-	reportDistributSubCmd.Flags().String("coupon", "", "The distributor coupon id or name")
+	reportDistributSubCmd.Flags().String("distributor-code", "", "The distributor code")
 	reportDistributSubCmd.Flags().String("format", "json", "Formats the result")
 	reportDistributSubCmd.Flags().StringP("output", "o", "", "Specify the output file or directory.Use a dot (.) to indicate the current directory.")
 
 	distributorCmd.AddCommand(createDistributorCouponSubCmd)
-	createDistributorCouponSubCmd.Flags().String("coupon-name", "", "Name of the distributor coupon")
-	createDistributorCouponSubCmd.Flags().String("description", "", "Description of the distributor coupon")
-	createDistributorCouponSubCmd.Flags().Int("redemption-count", -1, "Max redemptions of the distributor coupon")
-	createDistributorCouponSubCmd.Flags().StringSlice("swarms", []string{}, "List of swarm ids associated to the distributor coupon")
-	createDistributorCouponSubCmd.Flags().String("zone", "", "Zone of the distributor coupon creation")
+	createDistributorCouponSubCmd.Flags().String("distributor-code-name", "", "Name of the distributor code")
+	createDistributorCouponSubCmd.Flags().String("description", "", "Description of the distributor code")
+	createDistributorCouponSubCmd.Flags().Int("redemption-count", -1, "Max redemptions of the distributor code")
+	createDistributorCouponSubCmd.Flags().StringSlice("swarms", []string{}, "List of swarm ids associated to the distributor code")
+	createDistributorCouponSubCmd.Flags().String("zone", "", "Zone of the distributor code creation")
 
 	distributorCmd.AddCommand(listDistributorCouponsSubCmd)
-	listDistributorCouponsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for distributor coupons")
-	listDistributorCouponsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different distributor coupons")
+	listDistributorCouponsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for distributor codes")
+	listDistributorCouponsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different distributor codes")
 
 	distributorCmd.AddCommand(describeDistributorCouponSubCmd)
 	describeDistributorCouponSubCmd.Flags().String("format", "default", "Formats the output")
 
 	distributorCmd.AddCommand(editDistributorCouponSubCmd)
-	editDistributorCouponSubCmd.Flags().String("coupon-name", "", "New name of the distributor coupon")
-	editDistributorCouponSubCmd.Flags().String("description", "", "New description of the distributor coupon")
-	editDistributorCouponSubCmd.Flags().Int("redemption-count", 0, "New max redemptions of the distributor coupon")
+	editDistributorCouponSubCmd.Flags().String("distributor-code-name", "", "New name of the distributor code")
+	editDistributorCouponSubCmd.Flags().String("description", "", "New description of the distributor code")
+	editDistributorCouponSubCmd.Flags().Int("redemption-count", 0, "New max redemptions of the distributor code")
 
 	distributorCmd.AddCommand(revokeDistributorCouponSubCmd)
 
 	distributorCmd.AddCommand(removeDistributorCouponSubCmd)
-
-	distributorCmd.AddCommand(assignTenantSubCmd)
-	assignTenantSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
-	assignTenantSubCmd.Flags().String("tenant-name", "", "Name of the tenant")
-	assignTenantSubCmd.Flags().String("coupon-code", "", "Coupon code to assign to the tenant")
 
 	rootCmd.AddCommand(distributorCmd)
 	distributorCmd.PersistentFlags().String("name", "", "Name of the distributor")

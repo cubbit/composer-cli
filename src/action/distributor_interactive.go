@@ -280,7 +280,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 			choices = append(choices, fmt.Sprintf("• %s", zn.Name))
 		}
 
-		if choice, err = tui.ChooseOne("Which zone would you like to create your coupon?", true, false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Which zone would you like to create your distributor code?", true, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 		}
 
@@ -312,7 +312,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.ID, sw.Name, sw.Description))
 	}
 
-	if choices, err = tui.ChooseMany("Which swarm would you like to associate to the distributor coupon?", true, choices); err != nil {
+	if choices, err = tui.ChooseMany("Which swarm would you like to associate to the distributor code?", true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarmList, err)
 	}
 
@@ -326,7 +326,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s created successfully", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("distributor code %s created successfully", response.ID))
 
 	return nil
 }
@@ -392,7 +392,7 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
 	}
 
-	utils.PrintList("Your Distributor Coupons List")
+	utils.PrintList("Your Distributor Codes List")
 
 	if len(distributorCoupons.Coupons) == 0 {
 		utils.PrintEmptyList()
@@ -475,11 +475,11 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor coupon found")
+		utils.PrintNotFound("No distributor code found")
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to describe?", false, false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor code would you like to describe?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -572,11 +572,11 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor coupon found")
+		utils.PrintNotFound("No distributor code found")
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to edit?", false, false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor code would you like to edit?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -602,7 +602,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributor coupon %s updated successfully", response.ID))
+	utils.PrintSuccess(fmt.Sprintf("distributor code %s updated successfully", response.ID))
 
 	return nil
 }
@@ -677,11 +677,11 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor coupon found")
+		utils.PrintNotFound("No distributor code found")
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to revoke?", false, true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor code would you like to revoke?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -692,7 +692,7 @@ func RevokeDistributorCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("new distributor coupon  code %s has been revoked successfully", response.CouponCode))
+	utils.PrintSuccess(fmt.Sprintf("new distributor code %s has been revoked successfully", response.CouponCode))
 
 	return nil
 }
@@ -766,11 +766,11 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor coupon found")
+		utils.PrintNotFound("No distributor code found")
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to remove?", false, true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which distributor code would you like to remove?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 	}
 
@@ -781,7 +781,7 @@ func RemoveDistributorCouponInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRemovingDistributorCouponRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("distributor coupon %s removed successfully", couponID))
+	utils.PrintDelete(fmt.Sprintf("distributor code %s removed successfully", couponID))
 
 	return nil
 }
@@ -859,7 +859,7 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 	}
 
 	if len(choices) != 0 {
-		if choice, err = tui.ChooseOne("Choose your distributor coupon", true, false, choices); err != nil {
+		if choice, err = tui.ChooseOne("Choose your distributor code", true, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
 		}
 
@@ -912,94 +912,3 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 	return nil
 }
 
-func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var tenantID, couponCode, configPath string
-	var conf *configuration.Config
-	var choice string
-	var choices []string
-	var distributors *api.DistributorList
-	var distributorCoupons *api.DistributorCouponList
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var response *api.GenericIDResponseModel
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-	}
-
-	for _, tenant := range tenants.Data {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No tenants found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which tenant would you like to select?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	tenantID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	choices = []string{}
-	if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
-	}
-
-	for _, distributor := range distributors.Distributors {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which distributor would you like to select?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
-	}
-
-	_, withoutPrefix, _ = strings.Cut(choice, " ")
-	id, _, _ := strings.Cut(withoutPrefix, ",")
-
-	choices = []string{}
-	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
-	}
-
-	for _, coupon := range distributorCoupons.Coupons {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Code))
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No distributor coupon found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which distributor coupon would you like to assign?", false, true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
-	}
-
-	parts := strings.Split(choice, ",")
-
-	couponCode = strings.TrimSpace(parts[2])
-
-	if response, err = api.AssignTenantToCoupon(conf.Urls, *accessToken, tenantID, couponCode); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingTenantRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("tenant %s assigned successfully to %s", response.ID, couponCode))
-
-	return nil
-}

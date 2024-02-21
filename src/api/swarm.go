@@ -198,3 +198,24 @@ func RemoveSwarmOperator(urls configuration.Url, accessToken, swarmID, operatorI
 
 	return nil
 }
+
+func EditOperatorRoleInSwarm(urls configuration.Url, accessToken, tenantID, operatorID, role string) error {
+	var err error
+	url := urls.IamUrl + constants.Swarms + "/" + tenantID + "/operators/" + operatorID + "/roles"
+
+	requestBody := map[string]interface{}{
+		"policy_id": role,
+	}
+	
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithRequestBody(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAccessToken(accessToken),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}

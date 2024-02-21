@@ -662,3 +662,229 @@ func RemoveSwarmOperatorInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func DescribeSwarmOperatorInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, choice, operatorID, format string
+	var conf *configuration.Config
+	var operators *api.OperatorList
+	var operator *api.Operator
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your swarm", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+	}
+
+	if operators, err = api.ListSwarmOperators(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+	}
+
+	if len(operators.Operators) == 0 {
+		utils.PrintNotFound("No operators found")
+		return nil
+	}
+
+	var choices []string
+
+	for _, op := range operators.Operators {
+		if op.ID != operator.ID {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s %s", op.ID, op.Email, op.FirstName, op.LastName))
+		}
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No operators found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which operator would you like to describe?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	operatorID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	for _, op := range operators.Operators {
+		if op.ID == operatorID {
+			utils.PrintFormattedData(op, format)
+			break
+		}
+	}
+
+	return nil
+}
+
+func EditSwarmOperatorRoleInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, role, operatorID, configPath, choice string
+	var conf *configuration.Config
+	var policies *api.PolicyList
+	var operators *api.OperatorList
+	var operator *api.Operator
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your swarm", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if operators, err = api.ListSwarmOperators(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+	}
+
+	if len(operators.Operators) == 0 {
+		utils.PrintNotFound("No operators found")
+		return nil
+	}
+
+	var choices []string
+	for _, op := range operators.Operators {
+		if op.ID != operator.ID {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s %s", op.ID, op.Email, op.FirstName, op.LastName))
+		}
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No operators found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("choose your operator", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	operatorID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if policies, err = api.ListSwarmPolicies(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
+	}
+
+	choices = make([]string, 0)
+	for _, policy := range policies.Policies {
+		choices = append(choices, fmt.Sprintf("• %s", policy.Name))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No policies found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which policy would you like to assign to the operator?", false, true, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingPolicies, err)
+	}
+	_, choice, _ = strings.Cut(choice, " ")
+
+	for _, policy := range policies.Policies {
+		if policy.Name == choice {
+			role = policy.ID
+		}
+	}
+
+	if err = api.EditOperatorRoleInSwarm(conf.Urls, *accessToken, id, operatorID, role); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingOperatorRoleRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("operator %s role updated successfully", operatorID))
+
+	return nil
+}

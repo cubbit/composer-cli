@@ -439,7 +439,7 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, operator string
+	var id, name, configPath string
 	var conf *configuration.Config
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
@@ -464,17 +464,17 @@ func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	operator = args[0]
+	operatorID := args[0]
 
-	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operator); err != nil {
+	if _, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperator, err)
 	}
 
-	if err = api.RemoveSwarmOperator(conf.Urls, *accessToken, id, operator); err != nil {
+	if err = api.RemoveSwarmOperator(conf.Urls, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRemovingOperatorRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operator))
+	utils.PrintDelete(fmt.Sprintf("operator %s removed successfully", operatorID))
 
 	return nil
 }
@@ -506,23 +506,128 @@ func getSwarmByNameOrId(conf *configuration.Config, accessToken string, swarm st
 	return id, nil
 }
 
-func getSwarmOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (string, error) {
+func getSwarmOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (*api.Operator, error) {
 	var err error
 	var operators *api.OperatorList
-	var id string
 
 	if operators, err = api.ListSwarmOperators(conf.Urls, accessToken, tenantID); err != nil {
-		return id, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		return nil, fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {
-			id = op.ID
+			return &op, nil
 		}
 	}
 
-	if id == "" {
-		return "", fmt.Errorf("operator %s not found", operator)
+	return nil, fmt.Errorf("operator %s not found", operator)
+}
+
+func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, format string
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	return id, nil
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	var operator *api.Operator
+	operatorID := args[0]
+	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	utils.PrintFormattedData(*operator, format)
+
+	return nil
+}
+
+func EditSwarmOperatorRole(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, role, configPath string
+	var conf *configuration.Config
+	var policies *api.PolicyList
+	var found bool
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if role, err = cmd.Flags().GetString("role"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	operatorID := args[0]
+	var operator *api.Operator
+	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	operatorID = operator.ID
+
+	if policies, err = api.ListTenantPolicies(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
+	}
+
+	for _, policy := range policies.Policies {
+		if policy.Name == role {
+			role = policy.ID
+			found = true
+		}
+	}
+
+	if !found {
+		utils.PrintNotFound(fmt.Sprintf("Policy %s not found", role))
+		return nil
+	}
+
+	if err = api.EditOperatorRoleInTenant(conf.Urls, *accessToken, id, operatorID, role); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingOperatorRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("operator %s role updated successfully", operatorID))
+
+	return nil
 }
