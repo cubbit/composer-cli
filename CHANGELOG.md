@@ -1,3 +1,9 @@
+## 0.16.0 (2024-02-22)
+
+### Feat
+
+- **cli**: describe/edit a swarm collaborator
+
 ## 0.15.0 (2024-02-21)
 
 ### Feat
