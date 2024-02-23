@@ -8,6 +8,7 @@ go_library(
         "operator.go",
         "project.go",
         "root.go",
+        "server.go",
         "swarm.go",
         "tenant.go",
     ],
