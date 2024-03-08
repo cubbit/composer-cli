@@ -55,7 +55,7 @@ func CreateAccount(cmd *cobra.Command, args []string) error {
 func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, sort string
+	var id, name, configPath, sort, filter string
 	var conf *configuration.Config
 	var accounts *api.GenericPaginatedResponse[*api.Account]
 
@@ -88,7 +88,15 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, sort); err != nil {
+	if filter, err = cmd.Flags().GetString("filter"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter != "" {
+		filter = utils.BuildFilterQuery(filter)
+	}
+
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -454,7 +462,7 @@ func getTenantAccountById(conf *configuration.Config, accessToken string, tenant
 	var err error
 	var accounts *api.GenericPaginatedResponse[*api.Account]
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, accessToken, tenantID, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, accessToken, tenantID, "", ""); err != nil {
 		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 	for _, ac := range accounts.Data {

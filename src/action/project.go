@@ -60,7 +60,7 @@ func CreateProject(cmd *cobra.Command, args []string) error {
 func ListTenantProjects(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, sort string
+	var id, name, configPath, sort, filter string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
 
@@ -93,7 +93,15 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, sort); err != nil {
+	if filter, err = cmd.Flags().GetString("filter"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter != "" {
+		filter = utils.BuildFilterQuery(filter)
+	}
+
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -116,7 +124,7 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 
 	for _, project := range projects.Data {
 		if verbose {
-			fmt.Printf(" • %s, %s %s\n", project.ProjectID, project.ProjectName, project.ProjectDescription)
+			fmt.Printf(" • %s, %s, %s\n", project.ProjectID, project.ProjectName, project.ProjectDescription)
 		} else {
 			fmt.Printf(" • %s\n", project.ProjectID)
 		}

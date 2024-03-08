@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -50,7 +51,8 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*GenericPaginatedResponse[*Tenant], error) {
 	var err error
 	var finalResponse GenericPaginatedResponse[*Tenant]
-	url := urls.IamUrl + constants.Tenants + "?sort_key=" + sort
+
+	url := urls.IamUrl + constants.Tenants + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
 
 	var nextPage *int
 	page := 1
@@ -58,7 +60,7 @@ func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*Gen
 	for {
 		var response GenericPaginatedResponse[*Tenant]
 		if err = request_utils.DoRequest(
-			url+"&page="+strconv.Itoa(page)+"&q="+filter,
+			url+"&page="+strconv.Itoa(page),
 			request_utils.WithAccessToken(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),

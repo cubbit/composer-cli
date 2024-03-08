@@ -113,7 +113,7 @@ func ListTenantAccountsInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, sort); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, sort, ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -193,7 +193,7 @@ func DescribeTenantAccountInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -295,7 +295,7 @@ func RemoveTenantAccountInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
@@ -402,7 +402,7 @@ func BanTenantAccountInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -499,7 +499,7 @@ func UnbanTenantAccountInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -596,7 +596,7 @@ func RestoreTenantAccountInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -693,7 +693,7 @@ func DeleteTenantAccountSessionsInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
@@ -868,7 +868,7 @@ func UpdateTenantAccountInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, ""); err != nil {
+	if accounts, err = api.ListTenantAccounts(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
