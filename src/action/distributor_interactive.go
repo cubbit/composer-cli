@@ -179,9 +179,12 @@ func ListDistributorInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
+	var list []string
 	for _, distributor := range distributors.Distributors {
-		fmt.Printf("• %s, %s, %s\n", distributor.ID, distributor.Name, distributor.Description)
+		list = append(list, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
 	}
+
+	tui.List(list)
 
 	return nil
 }
@@ -399,9 +402,12 @@ func ListDistributorCouponsInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
+	var list []string
 	for _, coupon := range distributorCoupons.Coupons {
-		fmt.Printf("• %s, %s, %s, %s\n", coupon.ID, coupon.Name, coupon.Description, coupon.Zone)
+		list = append(list, fmt.Sprintf("• %s, %s, %s, %s", coupon.ID, coupon.Name, coupon.Description, coupon.Zone))
 	}
+
+	tui.List(list)
 
 	return nil
 }
@@ -911,4 +917,3 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
-

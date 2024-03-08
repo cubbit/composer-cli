@@ -62,8 +62,7 @@ type Tenant struct {
 	DeletedAt   *time.Time      `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
 	ImageUrl    *string         `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 	Settings    *TenantSettings `json:"settings"`
-	Metadata    map[string]interface{}
-	CouponID    *string `json:"coupon_id" example:"9OPADNOEJFNO"`
+	CouponID    *string         `json:"coupon_id" example:"9OPADNOEJFNO"`
 }
 
 type TenantSettings struct {

@@ -163,10 +163,12 @@ func ListSwarmsInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
+	var list []string
 	for _, swarm := range swarms {
-		fmt.Printf("• %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
-
+		list = append(list, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
 	}
+
+	tui.List(list)
 
 	return nil
 }
@@ -554,10 +556,13 @@ func ListSwarmOperatorsInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
+	var list []string
 	for _, operator := range operators.Operators {
-		fmt.Printf(" • %s, %s %s\n", operator.ID, operator.FirstName, operator.LastName)
-
+		list = append(list, fmt.Sprintf("• %s, %s, %s %s", operator.ID, operator.Email, operator.FirstName, operator.LastName))
 	}
+
+	tui.List(list)
+
 	return nil
 }
 

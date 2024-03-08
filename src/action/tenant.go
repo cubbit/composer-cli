@@ -97,6 +97,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 	var configPath string
 	var conf *configuration.Config
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var sort, filter string
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -106,7 +107,19 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+	if sort, err = cmd.Flags().GetString("sort"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter, err = cmd.Flags().GetString("filter"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter != "" {
+		filter = utils.BuildFilterQuery(filter)
+	}
+
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
@@ -179,7 +192,7 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 	if id == "" {
 		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
@@ -239,7 +252,7 @@ func DescribeTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
@@ -795,7 +808,7 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 	var tenant *api.Tenant
 
-	if tenants, err = api.ListTenants(conf.Urls, accessToken); err != nil {
+	if tenants, err = api.ListTenants(conf.Urls, accessToken, "", ""); err != nil {
 		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 

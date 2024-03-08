@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
+	"time"
 )
 
 func PrintFormattedData(data interface{}, format string) {
@@ -15,18 +17,30 @@ func PrintFormattedData(data interface{}, format string) {
 	case "csv":
 		printCSV(data)
 	default:
-		printSemantic(data)
+		printSemantic(data, 0)
 	}
 }
 
-func printSemantic(data interface{}) {
+func printSemantic(data interface{}, indentLevel int) {
 	val := reflect.ValueOf(data)
 	switch val.Kind() {
 	case reflect.Struct:
+		if val.Type().String() == "time.Time" {
+			fmt.Println(val.Interface().(time.Time).String())
+			return
+		}
+		if indentLevel > 0 {
+			fmt.Println()
+		}
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			fieldValue := val.Field(i).Interface()
-			fmt.Printf("%s: %v\n", field.Tag.Get("json"), fieldValue)
+			fmt.Printf("%s%s:", strings.Repeat("\t", indentLevel), field.Tag.Get("json"))
+			if field.Type.Kind() == reflect.Struct {
+				printSemantic(fieldValue, indentLevel+1)
+			} else {
+				printSemantic(fieldValue, indentLevel)
+			}
 		}
 	case reflect.Map:
 		iter := val.MapRange()
@@ -40,6 +54,26 @@ func printSemantic(data interface{}) {
 			elem := val.Index(i).Interface()
 			fmt.Printf("%v\n", elem)
 		}
+	case reflect.Bool:
+		fmt.Println(val.Bool())
+	case reflect.String:
+		fmt.Println(val.String())
+	case reflect.Int, reflect.Int32, reflect.Int64:
+		fmt.Println(val.Int())
+	case reflect.Float32, reflect.Float64:
+		fmt.Println(val.Float())
+	case reflect.Ptr:
+		if val.IsNil() {
+			fmt.Println("null")
+		} else if val.Elem().Kind() == reflect.Struct {
+			printSemantic(val.Elem().Interface(), indentLevel+1)
+
+		} else {
+			derefVal := val.Elem().Interface()
+			printSemantic(derefVal, 0)
+		}
+	case reflect.Interface:
+		fmt.Println(val.Elem())
 	default:
 		fmt.Println("Unsupported data type")
 	}
@@ -59,7 +93,6 @@ func printCSV(data interface{}) {
 	val := reflect.ValueOf(data)
 	switch val.Kind() {
 	case reflect.Struct:
-
 		writer := csv.NewWriter(os.Stdout)
 		defer writer.Flush()
 		var header []string
@@ -109,6 +142,14 @@ func printCSV(data interface{}) {
 			writer.Write(row)
 		}
 
+	case reflect.Ptr:
+		if val.IsNil() {
+			fmt.Println("null")
+		} else {
+			derefVal := val.Elem().Interface()
+			printCSV(derefVal)
+		}
+
 	default:
 		fmt.Println("Unsupported data type")
 	}
@@ -116,13 +157,47 @@ func printCSV(data interface{}) {
 
 func getString(field reflect.Value) string {
 	switch field.Kind() {
-	case reflect.Array, reflect.Slice, reflect.Map, reflect.Struct:
-		jsonData, err := json.Marshal(field.Interface())
-		if err != nil {
-			return ""
+	case reflect.String:
+		return field.String()
+	case reflect.Bool:
+		return fmt.Sprintf("%t", field.Bool())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return fmt.Sprintf("%d", field.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return fmt.Sprintf("%d", field.Uint())
+	case reflect.Float32, reflect.Float64:
+		return fmt.Sprintf("%f", field.Float())
+	case reflect.Ptr:
+		if field.IsNil() {
+			return "null"
+		} else {
+			return getString(field.Elem())
 		}
-		return string(jsonData)
+	case reflect.Struct:
+		if field.Type() == reflect.TypeOf(time.Time{}) {
+			return field.Interface().(time.Time).String()
+		} else {
+			return structToString(field.Interface())
+		}
 	default:
-		return fmt.Sprintf("%v", field.Interface())
+		return fmt.Sprintf("Unsupported type: %v", field.Kind())
 	}
+}
+
+func structToString(data interface{}) string {
+	val := reflect.ValueOf(data)
+	var str strings.Builder
+
+	str.Write([]byte("{"))
+	for i := 0; i < val.NumField(); i++ {
+		if i > 0 {
+			str.WriteString(", ")
+		}
+		field := val.Type().Field(i)
+		fieldValue := val.Field(i)
+		str.WriteString(field.Tag.Get("json") + ": " + getString(fieldValue))
+	}
+	str.Write([]byte("}"))
+
+	return str.String()
 }

@@ -44,6 +44,28 @@ var listTenantSubCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "list tenants",
 	Aliases: []string{"ls"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			allowed_sorting_keys := []string{"id", "name", "owner_id", "coupon_id", "created_at", "deleted_at"}
+			sort, _ := cmd.Flags().GetString("sort")
+
+			if sort != "" && !utils.Contains(allowed_sorting_keys, sort) {
+				fmt.Println("Error: invalid sort key provided, allowed keys are: id, name, owner_id, coupon_id, created_at, deleted_at")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			filter, _ := cmd.Flags().GetString("filter")
+			if filter != "" {
+				if !utils.IsValidFilter(filter) {
+					fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
+					cmd.Usage()
+					os.Exit(1)
+				}
+			}
+
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
@@ -454,6 +476,15 @@ var listTenantAccountsSubCmd = &cobra.Command{
 				cmd.Usage()
 				os.Exit(1)
 			}
+
+			allowed_sorting_keys := []string{"id", "first_name", "last_name", "max_allowed_projects", "created_at", "deleted_at", "tenant_id"}
+			sort, _ := cmd.Flags().GetString("sort")
+
+			if sort != "" && !utils.Contains(allowed_sorting_keys, sort) {
+				fmt.Println("Error: invalid sort key provided, allowed keys are: id, name, owner_id, coupon_id, created_at, deleted_at")
+				cmd.Usage()
+				os.Exit(1)
+			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -767,6 +798,16 @@ var listTenantProjectsSubCmd = &cobra.Command{
 				cmd.Usage()
 				os.Exit(1)
 			}
+
+			allowed_sorting_keys := []string{"project_id", "project_name", "project_created_at", "project_deleted_at", "project_banned_at", "project_tenant_id", "project_email", "root_account_email"}
+			sort, _ := cmd.Flags().GetString("sort")
+
+			if sort != "" && !utils.Contains(allowed_sorting_keys, sort) {
+				fmt.Println("Error: invalid sort key provided, allowed keys are: project_id, project_name, project_created_at, project_deleted_at, project_banned_at, project_tenant_id, project_email, root_account_email")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -1012,7 +1053,7 @@ var editTenantDistributorCodeSubCmd = &cobra.Command{
 				fmt.Println("Error: no distributor code argument provided")
 				cmd.Usage()
 				os.Exit(1)
-			}	
+			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -1041,6 +1082,8 @@ func init() {
 	tenantCmd.AddCommand(listTenantSubCmd)
 	listTenantSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for tenants")
 	listTenantSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different tenants")
+	listTenantSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listTenantSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
 
 	tenantCmd.AddCommand(describeTenantSubCmd)
 	describeTenantSubCmd.Flags().String("format", "default", "Formats the output")
@@ -1081,6 +1124,7 @@ func init() {
 	tenantCmd.AddCommand(listTenantAccountsSubCmd)
 	listTenantAccountsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for users")
 	listTenantAccountsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different users")
+	listTenantAccountsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
 
 	tenantCmd.AddCommand(describeTenantAccountSubCmd)
 	describeTenantAccountSubCmd.Flags().String("format", "default", "Formats the output")
@@ -1110,6 +1154,7 @@ func init() {
 	tenantCmd.AddCommand(listTenantProjectsSubCmd)
 	listTenantProjectsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for projects")
 	listTenantProjectsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different projects")
+	listTenantProjectsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
 
 	tenantCmd.AddCommand(describeTenantProjectSubCmd)
 	describeTenantProjectSubCmd.Flags().String("format", "default", "Formats the output")

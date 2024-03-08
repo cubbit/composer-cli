@@ -4,6 +4,7 @@ go_library(
     name = "utils",
     srcs = [
         "crypto.go",
+        "filter.go",
         "formatter.go",
         "printer.go",
         "slices.go",
