@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -46,20 +47,36 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 	return &response, nil
 }
 
-func ListTenants(urls configuration.Url, accessToken string) (*GenericPaginatedResponse[*Tenant], error) {
+func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*GenericPaginatedResponse[*Tenant], error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants
-	var response GenericPaginatedResponse[*Tenant]
+	var finalResponse GenericPaginatedResponse[*Tenant]
+	url := urls.IamUrl + constants.Tenants + "?sort_key=" + sort
 
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
-	); err != nil {
-		return nil, err
+	var nextPage *int
+	page := 1
+
+	for {
+		var response GenericPaginatedResponse[*Tenant]
+		if err = request_utils.DoRequest(
+			url+"&page="+strconv.Itoa(page)+"&q="+filter,
+			request_utils.WithAccessToken(accessToken),
+			request_utils.WithExpectedStatusCode(http.StatusOK),
+			ExtractGenericModel(&response),
+		); err != nil {
+			return nil, err
+		}
+
+		finalResponse.Data = append(finalResponse.Data, response.Data...)
+		finalResponse.Count = response.Count
+		finalResponse.NextPage = response.NextPage
+
+		if nextPage = response.NextPage; nextPage == nil {
+			break
+		}
+		page++
 	}
-	return &response, nil
+
+	return &finalResponse, nil
 }
 
 func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantToken string) error {

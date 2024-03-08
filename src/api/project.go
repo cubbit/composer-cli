@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
@@ -40,20 +41,36 @@ func CreateProject(urls configuration.Url, accessToken, name string, description
 	return &response, nil
 }
 
-func ListTenantProjects(urls configuration.Url, accessToken, tenantID string) (*GenericPaginatedResponse[*ProjectItem], error) {
+func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort string) (*GenericPaginatedResponse[*ProjectItem], error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects"
-	var response GenericPaginatedResponse[*ProjectItem]
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects" + "?sort_key=" + sort
+	var finalResponse GenericPaginatedResponse[*ProjectItem]
 
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
-	); err != nil {
-		return nil, err
+	var nextPage *int
+	page := 1
+
+	for {
+		var response GenericPaginatedResponse[*ProjectItem]
+		if err = request_utils.DoRequest(
+			url+"&page="+strconv.Itoa(page),
+			request_utils.WithAccessToken(accessToken),
+			request_utils.WithExpectedStatusCode(http.StatusOK),
+			ExtractGenericModel(&response),
+		); err != nil {
+			return nil, err
+		}
+
+		finalResponse.Data = append(finalResponse.Data, response.Data...)
+		finalResponse.Count = response.Count
+		finalResponse.NextPage = response.NextPage
+
+		if nextPage = response.NextPage; nextPage == nil {
+			break
+		}
+		page++
 	}
-	return &response, nil
+
+	return &finalResponse, nil
 }
 
 func RemoveTenantProject(urls configuration.Url, accessToken, tenantID, projectID, deleteTenantProjectToken string) error {

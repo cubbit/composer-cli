@@ -60,7 +60,7 @@ func CreateProject(cmd *cobra.Command, args []string) error {
 func ListTenantProjects(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath string
+	var id, name, configPath, sort string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
 
@@ -69,6 +69,10 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 	}
 
 	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if sort, err = cmd.Flags().GetString("sort"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -89,7 +93,7 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, sort); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -209,7 +213,7 @@ func RemoveTenantProject(cmd *cobra.Command, args []string) error {
 	if id == "" {
 		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
@@ -268,7 +272,7 @@ func BanTenantProject(cmd *cobra.Command, args []string) error {
 	if id == "" {
 		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
@@ -320,7 +324,7 @@ func UnbanTenantProject(cmd *cobra.Command, args []string) error {
 	if id == "" {
 		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 
@@ -372,7 +376,7 @@ func RestoreTenantProject(cmd *cobra.Command, args []string) error {
 	if id == "" {
 		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken); err != nil {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
 

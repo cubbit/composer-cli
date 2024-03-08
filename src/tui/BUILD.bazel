@@ -7,11 +7,13 @@ go_library(
         "email_bulk_textarea.go",
         "http.go",
         "inputs.go",
+        "list.go",
         "textarea.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/src/tui",
     visibility = ["//visibility:public"],
     deps = [
+        "@com_github_charmbracelet_bubbles//help",
         "@com_github_charmbracelet_bubbles//key",
         "@com_github_charmbracelet_bubbles//paginator",
         "@com_github_charmbracelet_bubbles//spinner",
@@ -20,6 +22,8 @@ go_library(
         "@com_github_charmbracelet_bubbletea//:bubbletea",
         "@com_github_charmbracelet_lipgloss//:lipgloss",
         "@com_github_mattn_go_runewidth//:go-runewidth",
+        "@com_github_muesli_reflow//truncate",
+        "@com_github_sahilm_fuzzy//:fuzzy",
         "@com_github_spf13_cobra//:cobra",
     ],
 )
