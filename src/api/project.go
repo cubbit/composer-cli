@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -41,9 +42,9 @@ func CreateProject(urls configuration.Url, accessToken, name string, description
 	return &response, nil
 }
 
-func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort string) (*GenericPaginatedResponse[*ProjectItem], error) {
+func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*ProjectItem], error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects" + "?sort_key=" + sort
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
 	var finalResponse GenericPaginatedResponse[*ProjectItem]
 
 	var nextPage *int

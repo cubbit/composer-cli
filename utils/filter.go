@@ -9,9 +9,9 @@ import (
 
 type QueryOperator string
 
-func IsValidFilter(input string) bool {
-	pattern := `(\w+:\w+\s*)+`
+const pattern = `\w+:[^:]+(?: |$)`
 
+func IsValidFilter(input string) bool {
 	matched, err := regexp.MatchString(pattern, input)
 	if err != nil {
 		return false
@@ -46,7 +46,7 @@ func isNumber(value string) bool {
 }
 
 func BuildFilterQuery(input string) string {
-	keyValuePairs := strings.Split(input, " ")
+	keyValuePairs := regexp.MustCompile(pattern).FindAllString(input, -1)
 	var finalString string
 
 	for _, pair := range keyValuePairs {

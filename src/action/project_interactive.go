@@ -121,7 +121,7 @@ func ListTenantProjectsInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, sort); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, sort, ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -201,7 +201,7 @@ func DescribeTenantProjectInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, ""); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -302,7 +302,7 @@ func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, ""); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
@@ -411,7 +411,7 @@ func BanTenantProjectInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, ""); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -508,7 +508,7 @@ func UnbanTenantProjectInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, ""); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -604,7 +604,7 @@ func RestoreTenantProjectInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, ""); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
@@ -701,7 +701,7 @@ func UpdateTenantProjectInteractive(cmd *cobra.Command) error {
 		id = tenant.ID
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, ""); err != nil {
+	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 

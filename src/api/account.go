@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -10,9 +11,9 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func ListTenantAccounts(urls configuration.Url, accessToken, tenantID, sort string) (*GenericPaginatedResponse[*Account], error) {
+func ListTenantAccounts(urls configuration.Url, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*Account], error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts" + "?sort_key=" + sort
+	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
 	var finalResponse GenericPaginatedResponse[*Account]
 
 	var nextPage *int

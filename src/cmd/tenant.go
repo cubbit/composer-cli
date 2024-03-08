@@ -1125,6 +1125,7 @@ func init() {
 	listTenantAccountsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for users")
 	listTenantAccountsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different users")
 	listTenantAccountsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listTenantAccountsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
 
 	tenantCmd.AddCommand(describeTenantAccountSubCmd)
 	describeTenantAccountSubCmd.Flags().String("format", "default", "Formats the output")
@@ -1155,6 +1156,7 @@ func init() {
 	listTenantProjectsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for projects")
 	listTenantProjectsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different projects")
 	listTenantProjectsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listTenantProjectsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
 
 	tenantCmd.AddCommand(describeTenantProjectSubCmd)
 	describeTenantProjectSubCmd.Flags().String("format", "default", "Formats the output")
