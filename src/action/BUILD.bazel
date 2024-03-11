@@ -15,6 +15,7 @@ go_library(
         "operator_interactive.go",
         "project.go",
         "project_interactive.go",
+        "server.go",
         "swarm.go",
         "swarm_interactive.go",
         "tenant.go",
