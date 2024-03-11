@@ -1,3 +1,9 @@
+## 0.16.1 (2024-03-11)
+
+### Fix
+
+- **cli**: update regex for the query filter
+
 ## 0.16.0 (2024-02-22)
 
 ### Feat
