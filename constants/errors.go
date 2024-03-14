@@ -146,4 +146,10 @@ const (
 	ErrorRetrievingTenantProjectRequest         = "failed request to retrieve tenant project"
 	ErrorForgingTenantProjectDeleteTokenRequest = "failed request to forge tenant project delete token"
 	ErrorUpdatingTenantProjectRequest           = "failed request to update tenant project"
+
+	ErrorCreatingNexusRequest   = "failed request to create nexus"
+	ErrorListingNexusesRequest  = "failed request to list nexuses"
+	ErrorDeletingNexusRequest   = "failed request to delete nexus"
+	ErrorEditingNexusRequest    = "failed request to edit nexus"
+	ErrorRetrievingNexusRequest = "failed request to retrieve nexus"
 )

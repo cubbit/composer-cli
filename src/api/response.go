@@ -290,3 +290,33 @@ type UpdateTenantProjectRequestBody struct {
 	Description *string `json:"description" example:"Cloud storage made easy"`
 	ImageUrl    *string `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 }
+
+type CreateNexusRequestBody struct {
+	Name        string `json:"name" `
+	Description string `json:"description,omitempty"`
+	Location    string `json:"location"`
+}
+
+type UpdateNexusRequestBody struct {
+	Name        string `json:"name,omitempty" `
+	Description string `json:"description,omitempty"`
+}
+
+type Nexus struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	Location     string    `json:"location"`
+	CreationDate time.Time `json:"creation_date"`
+	LastModified time.Time `json:"last_modified"`
+	SwarmID      string    `json:"swarm_id"`
+	Capacity     int       `json:"capacity"`
+	Used         int       `json:"used"`
+}
+
+type NexusList struct {
+	Nexuses  []Nexus `json:"nexuses"`
+	Page     int     `json:"page"`
+	Count    int     `json:"count"`
+	NextPage *int    `json:"next_page"`
+}
