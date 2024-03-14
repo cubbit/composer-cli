@@ -6,6 +6,7 @@ go_library(
         "account.go",
         "authentication_client.go",
         "distributor.go",
+        "nexus.go",
         "operator.go",
         "project.go",
         "response.go",

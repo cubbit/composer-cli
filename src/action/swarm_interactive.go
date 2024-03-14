@@ -893,3 +893,460 @@ func EditSwarmOperatorRoleInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func CreateSwarmNexusInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, nexusName, description, location string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var nexus *api.Nexus
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if choice, err = tui.ChooseOne("Which swarm would you like to retrieve?", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &nexusName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Location*", IsPassword: false, Value: &location}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if len(description) > 200 {
+		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
+	}
+
+	nexusBody := api.CreateNexusRequestBody{
+		Name:        nexusName,
+		Description: description,
+		Location:    location,
+	}
+
+	if nexus, err = api.CreateNexus(conf.Urls, *accessToken, id, nexusBody); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingNexusRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("nexus %s created successfully", nexus.ID))
+
+	return nil
+}
+
+func DescribeSwarmNexusInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, choice, nexusID, format string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var nexuses *api.NexusList
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your swarm", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	var choices []string
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which nexus would you like to describe?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	for _, nx := range nexuses.Nexuses {
+		if nx.ID == nexusID {
+			utils.PrintFormattedData(nx, format)
+			break
+		}
+	}
+
+	return nil
+}
+
+func EditSwarmNexusInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, nexusName, description, nexusID, choice string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var nexuses *api.NexusList
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if choice, err = tui.ChooseOne("Which swarm would you like to retrieve?", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	var choices []string
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which nexus would you like to edit", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if _, err = tui.TextInputs("Fill in the form below", true, tui.Input{Placeholder: "Name", IsPassword: false, Value: &nexusName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	nexusBody := api.UpdateNexusRequestBody{
+		Name:        nexusName,
+		Description: description,
+	}
+
+	if err = api.UpdateNexus(conf.Urls, *accessToken, nexusID, nexusBody); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCreatingNexusRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("nexus %s updated successfully", nexusID))
+
+	return nil
+}
+
+func ListSwarmNexusesInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+	var nexuses *api.NexusList
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+		var operator *api.Operator
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your swarm", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if name != "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	utils.PrintList("Your Swarm Nexuses List")
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	var list []string
+	for _, nexus := range nexuses.Nexuses {
+		list = append(list, fmt.Sprintf("• %s, %s, %s", nexus.ID, nexus.Name, nexus.Description))
+	}
+
+	tui.List(list)
+
+	return nil
+}
+
+func RemoveSwarmNexusInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, choice, nexusID string
+	var conf *configuration.Config
+	var nexuses *api.NexusList
+	var operator *api.Operator
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var swarms []api.Swarm
+
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No swarms found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your swarm", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if name != "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	var choices []string
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which nexus would you like to remove?", false, true, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingNexusRequest, err)
+
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if err = api.DeleteNexus(conf.Urls, *accessToken, nexusID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingNexusRequest, err)
+	}
+
+	utils.PrintDelete(fmt.Sprintf("nexus %s removed successfully", nexusID))
+
+	return nil
+}
