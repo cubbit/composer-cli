@@ -484,6 +484,145 @@ var describeSwarmNexusSubCmd = &cobra.Command{
 	},
 }
 
+var createSwarmNodeSubCmd = &cobra.Command{
+	Use:   "create-node",
+	Short: "create a new node",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("node-name")
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("provider-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.CreateSwarmNode); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.CreateSwarmNodeInteractive(cmd); err != nil {
+
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeSwarmNodeSubCmd = &cobra.Command{
+	Use:   "describe-node",
+	Short: "describe a node",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			if len(args) == 0 {
+				fmt.Println("Error: no node id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeSwarmNode); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeSwarmNodeInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var editSwarmNodeSubCmd = &cobra.Command{
+	Use:   "edit-node",
+	Short: "edit a node",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			if len(args) == 0 {
+				fmt.Println("Error: no new name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.EditSwarmNode); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditSwarmNodeInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var deleteSwarmNodeSubCmd = &cobra.Command{
+	Use:   "delete-node",
+	Short: "delete a node",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			if len(args) == 0 {
+				fmt.Println("Error: no node id argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DeleteSwarmNode); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DeleteSwarmNodeInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listSwarmNodesSubCmd = &cobra.Command{
+	Use:   "list-nodes",
+	Short: "list nodes",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListSwarmNodes); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListSwarmNodesInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -541,6 +680,26 @@ func init() {
 
 	swarmCmd.AddCommand(describeSwarmNexusSubCmd)
 	describeSwarmNexusSubCmd.Flags().String("format", "default", "Format of the output")
+
+	swarmCmd.AddCommand(createSwarmNodeSubCmd)
+	createSwarmNodeSubCmd.Flags().String("node-name", "", "Name of the node")
+	createSwarmNodeSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	createSwarmNodeSubCmd.Flags().String("description", "", "Description of the node")
+	createSwarmNodeSubCmd.Flags().String("provider-id", "", "ID of the provider")
+
+	swarmCmd.AddCommand(describeSwarmNodeSubCmd)
+	describeSwarmNodeSubCmd.Flags().String("format", "default", "Format of the output")
+
+	swarmCmd.AddCommand(editSwarmNodeSubCmd)
+	editSwarmNodeSubCmd.Flags().String("node-name", "", "Name of the node")
+	editSwarmNodeSubCmd.Flags().String("description", "", "Description of the node")
+
+	swarmCmd.AddCommand(deleteSwarmNodeSubCmd)
+
+	swarmCmd.AddCommand(listSwarmNodesSubCmd)
+	listSwarmNodesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for nodes")
+	listSwarmNodesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different nodes")
+	listSwarmNodesSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
 
 	rootCmd.AddCommand(swarmCmd)
 	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")
