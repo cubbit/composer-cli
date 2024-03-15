@@ -152,4 +152,13 @@ const (
 	ErrorDeletingNexusRequest   = "failed request to delete nexus"
 	ErrorEditingNexusRequest    = "failed request to edit nexus"
 	ErrorRetrievingNexusRequest = "failed request to retrieve nexus"
+
+	ErrorCreatingNodeRequest     = "failed request to create node"
+	ErrorListingNodesRequest     = "failed request to list nodes"
+	ErrorDeletingNodeRequest     = "failed request to delete node"
+	ErrorEditingNodeRequest      = "failed request to edit node"
+	ErrorRetrievingNodeRequest   = "failed request to retrieve node"
+	ErrorCreatingSwarmSecret     = "failed request to create swarm secret"
+	ErrorListingProvidersRequest = "failed request to list providers"
+	
 )

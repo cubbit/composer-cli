@@ -320,3 +320,46 @@ type NexusList struct {
 	Count    int     `json:"count"`
 	NextPage *int    `json:"next_page"`
 }
+
+type CreateNodeBodyRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	NexusID     string `json:"nexus_id"`
+	SecretID    string `json:"secret_id"`
+}
+
+type UpdateNodeBodyRequest struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+type ProviderList struct {
+	Providers []Provider `json:"providers"`
+	Page      int        `json:"page"`
+	Count     int        `json:"count"`
+}
+
+type Provider struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	SwarmID string `json:"swarm_id"`
+	Email   string `json:"email"`
+}
+
+type Node struct {
+	ID           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description"`
+	Status       string                 `json:"status"`
+	CreationDate time.Time              `json:"creation_date"`
+	ProviderID   string                 `json:"provider_id"`
+	SecretID     string                 `json:"secret_id"`
+	NexusID      string                 `json:"nexus_id"`
+	Config       map[string]interface{} `json:"config"`
+}
+
+type NodeList struct {
+	Nodes []Node `json:"nodes"`
+	Page  int    `json:"page"`
+	Count int    `json:"count"`
+}

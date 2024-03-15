@@ -11,6 +11,8 @@ go_library(
         "login_interactive.go",
         "logout.go",
         "logout_interactive.go",
+        "node.go",
+        "node_interactive.go",
         "operator.go",
         "operator_interactive.go",
         "project.go",

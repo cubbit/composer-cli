@@ -61,4 +61,6 @@ const (
 	DeleteTenantProjectToken = "/v1/auth/operators/forge/token?capabilities=delete_project&project_id="
 
 	Nexuses = "/v1/nexuses"
+	Nodes   = "/v1/nodes"
+	NodesV2 = "/v2/nodes"
 )
