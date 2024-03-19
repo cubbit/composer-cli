@@ -949,7 +949,7 @@ func CreateSwarmNexusInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &nexusName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Location*", IsPassword: false, Value: &location}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", true, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &nexusName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Location*", IsPassword: false, Value: &location}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
