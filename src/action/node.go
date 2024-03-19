@@ -71,7 +71,7 @@ func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	fmt.Printf("Node %s created successfully\n", node.ID)
+	utils.PrintSuccess(fmt.Sprintf("Node %s created successfully\n", node.ID))
 
 	return nil
 }

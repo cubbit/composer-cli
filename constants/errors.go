@@ -160,5 +160,14 @@ const (
 	ErrorRetrievingNodeRequest   = "failed request to retrieve node"
 	ErrorCreatingSwarmSecret     = "failed request to create swarm secret"
 	ErrorListingProvidersRequest = "failed request to list providers"
-	
+
+	ErrorCreatingRedundancyClassRequest   = "failed request to create redundancy class"
+	ErrorListingRedundancyClassesRequest  = "failed request to list redundancy classes"
+	ErrorRetrievingRedundancyClassRequest = "failed request to retrieve redundancy class"
+
+	ErrorConvertingField     = "error while converting field"
+	ErrorNotEnoughNodes      = "not enough nodes"
+	ErrorNotEnoughNexuses    = "not enough nexuses"
+	ErrorCreatingRingRequest = "failed request to create ring"
+	ErrorListingRingsRequest = "failed request to list rings"
 )

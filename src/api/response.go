@@ -363,3 +363,72 @@ type NodeList struct {
 	Page  int    `json:"page"`
 	Count int    `json:"count"`
 }
+
+type CreateRedundancyClassRequestBody struct {
+	Name              string `json:"name"`
+	Description       string `json:"description,omitempty"`
+	InnerK            int    `json:"inner_k"`
+	InnerN            int    `json:"inner_n"`
+	OuterK            int    `json:"outer_k"`
+	OuterN            int    `json:"outer_n"`
+	AntiAffinityGroup int    `json:"anti_affinity_group"`
+}
+
+type RedundancyClass struct {
+	ID                string    `json:"id"`
+	Name              string    `json:"name"`
+	Description       string    `json:"description"`
+	InnerK            int       `json:"inner_k"`
+	InnerN            int       `json:"inner_n"`
+	OuterK            int       `json:"outer_k"`
+	OuterN            int       `json:"outer_n"`
+	AntiAffinityGroup int       `json:"anti_affinity_group"`
+	Capacity          int       `json:"capacity"`
+	CreationDate      time.Time `json:"creation_date"`
+	SwarmID           string    `json:"swarm_id"`
+}
+
+type RedundancyClassList struct {
+	Data []RedundancyClass `json:"data"`
+	Page int               `json:"page"`
+}
+
+type RingBulk struct {
+	RedundancyClassID string   `json:"redundancy_class_id"`
+	Nexuses           []string `json:"nexuses"`
+	RingsNumber       *int     `json:"number_of_rings,omitempty"`
+	AntiAffinityGroup *int     `json:"anti_affinity_group,omitempty"`
+}
+
+type Ring struct {
+	ID           string      `json:"id"`
+	N            int         `json:"n"`
+	K            int         `json:"k"`
+	SwarmID      string      `json:"swarm_id"`
+	Capacity     int         `json:"capacity"`
+	Used         int         `json:"used"`
+	Status       string      `json:"status"`
+	CreationDate string      `json:"creation_date"`
+	Nexuses      []RingNexus `json:"nexuses,omitempty"`
+	Nodes        []RingNode  `json:"nodes,omitempty"`
+}
+
+type RingNode struct {
+	NodeID    string `json:"node_id"`
+	NexusID   string `json:"nexus_id"`
+	Sequence1 int    `json:"sequence1"`
+	Sequence2 int    `json:"sequence2"`
+}
+
+type RingNexus struct {
+	NexusID  string `json:"nexus_id"`
+	N        int    `json:"n"`
+	K        int    `json:"k"`
+	Sequence int    `json:"sequence"`
+}
+
+type RingList struct {
+	Data  []Ring `json:"data"`
+	Page  int    `json:"page"`
+	Count int    `json:"count"`
+}
