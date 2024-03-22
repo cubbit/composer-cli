@@ -143,7 +143,7 @@ func EditSwarmNode(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func DeleteSwarmNode(cmd *cobra.Command, args []string) error {
+func RemoveSwarmNode(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
 	var configPath string
@@ -163,7 +163,7 @@ func DeleteSwarmNode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("Node %s deleted successfully", nodeID))
+	utils.PrintDelete(fmt.Sprintf("Node %s removed successfully", nodeID))
 	return nil
 }
 
@@ -173,6 +173,7 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 	var name, id, nexusID, configPath string
 	var conf *configuration.Config
 	var nodes *api.NodeList
+	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -209,8 +210,6 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var verbose, l bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -219,12 +218,15 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if verbose {
+		utils.PrintVerbose(nodes.Nodes, l)
+		return nil
+	}
+
 	for _, node := range nodes.Nodes {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s, %s\n", node.ID, node.Name, node.Description, node.NexusID)
-		} else {
-			fmt.Printf(" • %s\n", node.Name)
-		}
+
+		fmt.Printf(" • %s\n", node.Name)
+
 		if l {
 			fmt.Println()
 		}

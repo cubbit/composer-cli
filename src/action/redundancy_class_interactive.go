@@ -19,10 +19,12 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 	var name, id, redundancyClassName, redundancyClassDescription, configPath string
 	var innerK, innerN, outerK, outerN, antiAffinityGroup string
 	var innerKInt, innerNInt, outerKInt, outerNInt, antiAffinityGroupInt int
-
 	var conf *configuration.Config
 	var redundancyClass *api.RedundancyClass
 	var operator *api.Operator
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -41,10 +43,6 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 		}
@@ -71,7 +69,17 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", true, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &redundancyClassName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &redundancyClassDescription}, tui.Input{Placeholder: "Inner K*", IsPassword: false, Value: &innerK}, tui.Input{Placeholder: "Inner N*", IsPassword: false, Value: &innerN}, tui.Input{Placeholder: "Outer K*", IsPassword: false, Value: &outerK}, tui.Input{Placeholder: "Outer N*", IsPassword: false, Value: &outerN}, tui.Input{Placeholder: "Anti Affinity Group*", IsPassword: false, Value: &antiAffinityGroup}); err != nil {
+	if _, err = tui.TextInputs(
+		"Fill in the form below",
+		true,
+		tui.Input{Placeholder: "Name*", IsPassword: false, Value: &redundancyClassName},
+		tui.Input{Placeholder: "Description", IsPassword: false, Value: &redundancyClassDescription},
+		tui.Input{Placeholder: "Inner K*", IsPassword: false, Value: &innerK},
+		tui.Input{Placeholder: "Inner N*", IsPassword: false, Value: &innerN},
+		tui.Input{Placeholder: "Outer K*", IsPassword: false, Value: &outerK},
+		tui.Input{Placeholder: "Outer N*", IsPassword: false, Value: &outerN},
+		tui.Input{Placeholder: "Anti Affinity Group*", IsPassword: false, Value: &antiAffinityGroup}); err != nil {
+
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -122,10 +130,12 @@ func ListSwarmRedundancyClassesInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
 	var name, id, configPath string
-
 	var conf *configuration.Config
 	var RedundancyClassList *api.RedundancyClassList
 	var operator *api.Operator
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -144,10 +154,6 @@ func ListSwarmRedundancyClassesInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 		}
@@ -200,13 +206,13 @@ func DescribeSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
 	var name, id, configPath, format string
-
 	var conf *configuration.Config
 	var RedundancyClassList *api.RedundancyClassList
 	var operator *api.Operator
 	var choices []string
 	var choice string
 	var redundancyClassID string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -225,8 +231,6 @@ func DescribeSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var swarms []api.Swarm
-
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 		}

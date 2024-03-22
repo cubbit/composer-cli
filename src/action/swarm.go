@@ -58,13 +58,13 @@ func CreateSwarm(cmd *cobra.Command, args []string) error {
 }
 
 func DescribeSwarm(cmd *cobra.Command, args []string) error {
-
 	var err error
 	var id, name, format, configPath string
 	var accessToken *string
 	var config *configuration.Config
 	var operator *api.Operator
 	var swarm *api.Swarm
+	var swarms []*api.Swarm
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -91,8 +91,6 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if name != "" {
-		var swarms []api.Swarm
-
 		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -120,7 +118,8 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var config *configuration.Config
 	var operator *api.Operator
-	var swarms []api.Swarm
+	var swarms []*api.Swarm
+	var verbose, l bool
 
 	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -137,9 +136,11 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
-	var verbose bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if l, err = cmd.Flags().GetBool("line"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -150,11 +151,15 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if verbose {
+		utils.PrintVerbose(swarms, l)
+		return nil
+	}
+
 	for _, swarm := range swarms {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
-		} else {
-			fmt.Printf(" • %s\n", swarm.Name)
+		fmt.Printf(" • %s\n", swarm.Name)
+		if l {
+			fmt.Println()
 		}
 	}
 
@@ -422,12 +427,14 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if verbose {
+		utils.PrintVerbose(operators.Operators, l)
+		return nil
+	}
+
 	for _, operator := range operators.Operators {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s %s, %s\n", operator.ID, operator.Email, operator.FirstName, operator.LastName, operator.Status)
-		} else {
-			fmt.Printf(" • %s\n", operator.Email)
-		}
+		fmt.Printf(" • %s\n", operator.Email)
+
 		if l {
 			fmt.Println()
 		}
@@ -482,7 +489,7 @@ func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 func getSwarmByNameOrId(conf *configuration.Config, accessToken string, swarm string) (string, error) {
 	var err error
 	var operator *api.Operator
-	var swarms []api.Swarm
+	var swarms []*api.Swarm
 	var id string
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, accessToken); err != nil {
@@ -515,7 +522,7 @@ func getSwarmOperatorByEmailOrId(conf *configuration.Config, accessToken string,
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {
-			return &op, nil
+			return op, nil
 		}
 	}
 
@@ -527,6 +534,7 @@ func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath, format string
 	var conf *configuration.Config
+	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -550,7 +558,6 @@ func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	var operator *api.Operator
 	operatorID := args[0]
 	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
@@ -572,6 +579,7 @@ func EditSwarmOperatorRole(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var policies *api.PolicyList
 	var found bool
+	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -600,7 +608,6 @@ func EditSwarmOperatorRole(cmd *cobra.Command, args []string) error {
 	}
 
 	operatorID := args[0]
-	var operator *api.Operator
 	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
@@ -761,6 +768,7 @@ func ListSwarmNexuses(cmd *cobra.Command, args []string) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var nexuses *api.NexusList
+	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -795,8 +803,6 @@ func ListSwarmNexuses(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var verbose, l bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -805,12 +811,13 @@ func ListSwarmNexuses(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if verbose {
+		utils.PrintVerbose(nexuses.Nexuses, l)
+		return nil
+	}
+
 	for _, nexus := range nexuses.Nexuses {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s, %s\n", nexus.ID, nexus.Name, nexus.Description, nexus.Location)
-		} else {
-			fmt.Printf(" • %s\n", nexus.Name)
-		}
+		fmt.Printf(" • %s\n", nexus.Name)
 		if l {
 			fmt.Println()
 		}

@@ -49,6 +49,7 @@ func printSemantic(data interface{}, indentLevel int) {
 			value := iter.Value().Interface()
 			fmt.Printf("%v: %v\n", key, value)
 		}
+		fmt.Print("\n")
 	case reflect.Array, reflect.Slice:
 		for i := 0; i < val.Len(); i++ {
 			elem := val.Index(i).Interface()
@@ -179,6 +180,8 @@ func getString(field reflect.Value) string {
 		} else {
 			return structToString(field.Interface())
 		}
+	case reflect.Map:
+		return fmt.Sprintf("%v", field.Interface())
 	default:
 		return fmt.Sprintf("Unsupported type: %v", field.Kind())
 	}

@@ -93,6 +93,7 @@ func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 	var name, id, configPath string
 	var conf *configuration.Config
 	var redundancyClasses *api.RedundancyClassList
+	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -125,8 +126,6 @@ func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var verbose, l bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -135,12 +134,14 @@ func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if verbose {
+		utils.PrintVerbose(redundancyClasses.Data, l)
+		return nil
+	}
+
 	for _, rc := range redundancyClasses.Data {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s, %s\n", rc.ID, rc.Name, rc.Description, rc.SwarmID)
-		} else {
-			fmt.Printf(" • %s\n", rc.Name)
-		}
+		fmt.Printf(" • %s\n", rc.Name)
+
 		if l {
 			fmt.Println()
 		}

@@ -60,7 +60,6 @@ type Tenant struct {
 	OwnerID     string          `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
 	CreatedAt   time.Time       `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
 	DeletedAt   *time.Time      `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
-	ImageUrl    *string         `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 	Settings    *TenantSettings `json:"settings"`
 	CouponID    *string         `json:"coupon_id" example:"9OPADNOEJFNO"`
 }
@@ -149,7 +148,7 @@ type Operator struct {
 }
 
 type OperatorList struct {
-	Operators []Operator `json:"operators"`
+	Operators []*Operator `json:"operators"`
 }
 type OperatorEmail struct {
 	ID        string    `json:"id" example:"5ff281ee-75e7-4543-a304-ca861521f2a7"`
@@ -315,10 +314,10 @@ type Nexus struct {
 }
 
 type NexusList struct {
-	Nexuses  []Nexus `json:"nexuses"`
-	Page     int     `json:"page"`
-	Count    int     `json:"count"`
-	NextPage *int    `json:"next_page"`
+	Nexuses  []*Nexus `json:"nexuses"`
+	Page     int      `json:"page"`
+	Count    int      `json:"count"`
+	NextPage *int     `json:"next_page"`
 }
 
 type CreateNodeBodyRequest struct {
@@ -359,9 +358,9 @@ type Node struct {
 }
 
 type NodeList struct {
-	Nodes []Node `json:"nodes"`
-	Page  int    `json:"page"`
-	Count int    `json:"count"`
+	Nodes []*Node `json:"nodes"`
+	Page  int     `json:"page"`
+	Count int     `json:"count"`
 }
 
 type CreateRedundancyClassRequestBody struct {
@@ -389,8 +388,8 @@ type RedundancyClass struct {
 }
 
 type RedundancyClassList struct {
-	Data []RedundancyClass `json:"data"`
-	Page int               `json:"page"`
+	Data []*RedundancyClass `json:"data"`
+	Page int                `json:"page"`
 }
 
 type RingBulk struct {
@@ -428,7 +427,7 @@ type RingNexus struct {
 }
 
 type RingList struct {
-	Data  []Ring `json:"data"`
+	Data  []*Ring `json:"data"`
 	Page  int    `json:"page"`
 	Count int    `json:"count"`
 }

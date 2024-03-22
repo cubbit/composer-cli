@@ -63,6 +63,10 @@ func ListTenantProjectsInteractive(cmd *cobra.Command) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -81,10 +85,6 @@ func ListTenantProjectsInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -107,8 +107,6 @@ func ListTenantProjectsInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -145,9 +143,13 @@ func ListTenantProjectsInteractive(cmd *cobra.Command) error {
 func DescribeTenantProjectInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, projectID, format string
+	var id, name, configPath, projectID, format string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -166,10 +168,6 @@ func DescribeTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -192,8 +190,6 @@ func DescribeTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -210,7 +206,7 @@ func DescribeTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, project := range projects.Data {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", project.ProjectID, project.ProjectName, project.ProjectDescription))
@@ -245,10 +241,14 @@ func DescribeTenantProjectInteractive(cmd *cobra.Command) error {
 func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, projectID, email, password, deleteTenantProjectToken, code string
+	var id, name, configPath, projectID, email, password, deleteTenantProjectToken, code string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
 	var challenge *api.ChallengeResponseModel
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -267,10 +267,6 @@ func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -293,8 +289,6 @@ func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -311,7 +305,7 @@ func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, project := range projects.Data {
 		if project.ProjectDeletedAt == nil {
@@ -324,14 +318,19 @@ func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which project would you like to delete?", false, false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which project would you like to remove?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	projectID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs(fmt.Sprintf("Confirm your login to delete project %s 🚮", utils.RedBg.Render(projectID)), true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+	if _, err = tui.TextInputs(
+		fmt.Sprintf("Confirm your login to remove project %s 🚮", utils.RedBg.Render(projectID)),
+		true,
+		tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email},
+		tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -355,9 +354,13 @@ func RemoveTenantProjectInteractive(cmd *cobra.Command) error {
 func BanTenantProjectInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, projectID string
+	var id, name, configPath, projectID string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -376,10 +379,6 @@ func BanTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -402,8 +401,6 @@ func BanTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -420,7 +417,7 @@ func BanTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, project := range projects.Data {
 		if project.ProjectBannedAt == nil && project.ProjectDeletedAt == nil {
@@ -452,9 +449,13 @@ func BanTenantProjectInteractive(cmd *cobra.Command) error {
 func UnbanTenantProjectInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, projectID string
+	var id, name, configPath, projectID string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -473,10 +474,6 @@ func UnbanTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -499,7 +496,6 @@ func UnbanTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
@@ -517,7 +513,8 @@ func UnbanTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
+
 	for _, project := range projects.Data {
 		if project.ProjectBannedAt != nil && project.ProjectDeletedAt == nil {
 			choices = append(choices, fmt.Sprintf("• %s, %s , %s", project.ProjectID, project.ProjectName, project.ProjectDescription))
@@ -548,9 +545,13 @@ func UnbanTenantProjectInteractive(cmd *cobra.Command) error {
 func RestoreTenantProjectInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, projectID string
+	var id, name, configPath, projectID string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -569,10 +570,6 @@ func RestoreTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
@@ -595,8 +592,6 @@ func RestoreTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -613,7 +608,7 @@ func RestoreTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, project := range projects.Data {
 		if project.ProjectDeletedAt != nil {
@@ -645,9 +640,13 @@ func RestoreTenantProjectInteractive(cmd *cobra.Command) error {
 func UpdateTenantProjectInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, description, imageUrl string
+	var id, name, configPath, description, imageUrl string
 	var conf *configuration.Config
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
+	var choice string
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -666,10 +665,6 @@ func UpdateTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -692,8 +687,6 @@ func UpdateTenantProjectInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -710,7 +703,7 @@ func UpdateTenantProjectInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, project := range projects.Data {
 		if project.ProjectDeletedAt == nil {
