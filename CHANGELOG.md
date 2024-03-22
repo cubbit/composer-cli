@@ -1,3 +1,9 @@
+## 0.19.0 (2024-03-22)
+
+### Feat
+
+- **cli**: manage redundancy classes and rings
+
 ## 0.18.0 (2024-03-15)
 
 ### Feat
