@@ -17,6 +17,8 @@ func SetupSwarmRing(cmd *cobra.Command, args []string) error {
 	var redundancyClass *api.RedundancyClass
 	var nexusIDs []string
 	var ringsNumber int
+	var nodes *api.NodeList
+	var ringList *api.RingList
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -61,9 +63,6 @@ func SetupSwarmRing(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, nexus := range nexusIDs {
-
-		var nodes *api.NodeList
-
 		if nodes, err = api.ListNodes(conf.Urls, *accessToken, id, nexus); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 		}
@@ -72,8 +71,6 @@ func SetupSwarmRing(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s: %s", constants.ErrorNotEnoughNodes, " create more nodes for the nexus "+id)
 		}
 	}
-
-	var ringList *api.RingList
 
 	ringBulk := api.RingBulk{
 		RedundancyClassID: redundancyClassID,
@@ -120,6 +117,7 @@ func ListSwarmRings(cmd *cobra.Command, args []string) error {
 	var name, id, redundancyClassID, configPath string
 	var conf *configuration.Config
 	var ringList *api.RingList
+	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -158,8 +156,6 @@ func ListSwarmRings(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var verbose, l bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -168,12 +164,15 @@ func ListSwarmRings(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if verbose {
+		utils.PrintVerbose(ringList.Data, l)
+		return nil
+
+	}
+
 	for _, ring := range ringList.Data {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s\n", ring.ID, ring.SwarmID, ring.Status)
-		} else {
-			fmt.Printf(" • %s\n", ring.ID)
-		}
+		fmt.Printf(" • %s\n", ring.ID)
+
 		if l {
 			fmt.Println("")
 		}

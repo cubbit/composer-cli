@@ -28,6 +28,7 @@ func SetupSwarmRingInteractive(cmd *cobra.Command) error {
 	var nexusIDs []string
 	var ringList *api.RingList
 	var ringsNumber int
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -46,8 +47,6 @@ func SetupSwarmRingInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var swarms []api.Swarm
-
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 		}
@@ -97,7 +96,7 @@ func SetupSwarmRingInteractive(cmd *cobra.Command) error {
 
 	for _, rc := range RedundancyClassList.Data {
 		if rc.ID == redundancyClassID {
-			redundancyClass = rc
+			redundancyClass = *rc
 			break
 		}
 	}
@@ -161,7 +160,10 @@ func SetupSwarmRingInteractive(cmd *cobra.Command) error {
 
 	var ringsNumberString string
 
-	if _, err = tui.TextInputs(fmt.Sprintf("Fill in the number of rings (we suggest %d)", ringList.Count), true, tui.Input{Placeholder: "Rings Number", IsPassword: false, Value: &ringsNumberString}); err != nil {
+	if _, err = tui.TextInputs(
+		fmt.Sprintf("Fill in the number of rings (we suggest %d)", ringList.Count),
+		true,
+		tui.Input{Placeholder: "Rings Number", IsPassword: false, Value: &ringsNumberString}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 
 	}
@@ -198,6 +200,7 @@ func ListSwarmRingInteractive(cmd *cobra.Command) error {
 	var choice string
 	var redundancyClassID string
 	var ringList *api.RingList
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -216,8 +219,6 @@ func ListSwarmRingInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var swarms []api.Swarm
-
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 		}

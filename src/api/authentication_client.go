@@ -28,7 +28,7 @@ func GenerateOperatorChallenge(urls configuration.Url, email string) (*Challenge
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractChallengeResponseModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func GenerateAccountChallenge(urls configuration.Url, email string) (*ChallengeR
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractChallengeResponseModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func PerformOperatorSignin(urls configuration.Url, email, password string, chall
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshTokenCookie),
 	); err != nil {
 		return "", err
@@ -136,7 +136,7 @@ func PerformAccountSignin(urls configuration.Url, tenantID string, email, passwo
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshTokenCookie),
 	); err != nil {
 		return "", err
@@ -248,7 +248,7 @@ func getAccessToken(refreshToken string, url string) (string, string, error) {
 		url,
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithRefreshToken(refreshToken),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 		extractRefreshCookie(&refreshToken),
 	); err != nil {
 		return "", "", err
@@ -295,7 +295,7 @@ func ForgeOperatorDeleteTenantToken(urls configuration.Url, email, password, ref
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithRefreshToken(refreshToken),
 		request_utils.WithRequestBody(body),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 	); err != nil {
 		return "", err
 	}
@@ -341,7 +341,7 @@ func ForgeOperatorDeleteSwarmToken(urls configuration.Url, email, password, refr
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithRefreshToken(refreshToken),
 		request_utils.WithRequestBody(body),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 	); err != nil {
 		return "", err
 	}
@@ -387,7 +387,7 @@ func ForgeDistributorDeleteToken(urls configuration.Url, email, password, refres
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithRefreshToken(refreshToken),
 		request_utils.WithRequestBody(body),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 	); err != nil {
 		return "", err
 	}
@@ -433,7 +433,7 @@ func ForgeOperatorDeleteTenantAccountToken(urls configuration.Url, email, passwo
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithRefreshToken(refreshToken),
 		request_utils.WithRequestBody(body),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 	); err != nil {
 		return "", err
 	}
@@ -479,7 +479,7 @@ func ForgeOperatorDeleteTenantProjectToken(urls configuration.Url, email, passwo
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithRefreshToken(refreshToken),
 		request_utils.WithRequestBody(body),
-		extractTokenExpirationModel(&tokenExpirationResponse),
+		ExtractGenericModel(&tokenExpirationResponse),
 	); err != nil {
 		return "", err
 	}

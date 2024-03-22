@@ -569,9 +569,9 @@ var editSwarmNodeSubCmd = &cobra.Command{
 	},
 }
 
-var deleteSwarmNodeSubCmd = &cobra.Command{
-	Use:   "delete-node",
-	Short: "delete a node",
+var removeSwarmNodeSubCmd = &cobra.Command{
+	Use:   "remove-node",
+	Short: "remove a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
 			if len(args) == 0 {
@@ -584,11 +584,11 @@ var deleteSwarmNodeSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DeleteSwarmNode); err != nil {
+			if err = tui.Send(cmd, args, action.RemoveSwarmNode); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
-			if err = action.DeleteSwarmNodeInteractive(cmd); err != nil {
+			if err = action.RemoveSwarmNodeInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -845,7 +845,7 @@ func init() {
 	editSwarmNodeSubCmd.Flags().String("node-name", "", "Name of the node")
 	editSwarmNodeSubCmd.Flags().String("description", "", "Description of the node")
 
-	swarmCmd.AddCommand(deleteSwarmNodeSubCmd)
+	swarmCmd.AddCommand(removeSwarmNodeSubCmd)
 
 	swarmCmd.AddCommand(listSwarmNodesSubCmd)
 	listSwarmNodesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for nodes")

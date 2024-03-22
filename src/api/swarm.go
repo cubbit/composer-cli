@@ -28,7 +28,7 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		extractGenericIDResponseModel(&response),
+		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err
@@ -37,16 +37,16 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 	return &response, nil
 }
 
-func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]Swarm, error) {
+func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]*Swarm, error) {
 	var err error
 	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
-	var response []Swarm
+	var response []*Swarm
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractSwarmListResponseModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractSwarmResponseModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -101,6 +101,7 @@ func EditSwarmDescription(urls configuration.Url, accessToken, swarmID, descript
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(nil),
 	); err != nil {
 		return err
 	}
@@ -123,6 +124,7 @@ func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) er
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(nil),
 	); err != nil {
 		return err
 	}
@@ -139,7 +141,7 @@ func ListSwarmPolicies(urls configuration.Url, accessToken, swarmID string) (*Po
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractPolicyListModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -179,7 +181,7 @@ func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*O
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractOperatorListModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}

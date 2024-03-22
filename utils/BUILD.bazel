@@ -13,5 +13,8 @@ go_library(
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/utils",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_charmbracelet_lipgloss//:lipgloss"],
+    deps = [
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+        "@org_golang_x_crypto//ssh/terminal",
+    ],
 )

@@ -48,7 +48,12 @@ func SignOutAccountInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
+	if _, err = tui.TextInputs(
+		"",
+		true,
+		tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath},
+		tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
+
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 

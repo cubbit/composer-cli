@@ -15,13 +15,16 @@ import (
 func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, nodeName, description, nexusID, choice, providerID string
+	var id, name, configPath, nodeName, description, nexusID, providerID string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
 	var providers *api.ProviderList
 	var secret *api.GenericIDResponseModel
 	var node *api.Node
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -40,10 +43,6 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 		}
@@ -79,7 +78,7 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, nx := range nexuses.Nexuses {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
@@ -97,7 +96,12 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name", IsPassword: false, Value: &nodeName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}); err != nil {
+	if _, err = tui.TextInputs(
+		"Fill in the form below",
+		false,
+		tui.Input{Placeholder: "Name", IsPassword: false, Value: &nodeName},
+		tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}); err != nil {
+
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -146,11 +150,14 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, nexusID, format string
+	var id, name, configPath, nexusID, format string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
 	var nodes *api.NodeList
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -173,10 +180,6 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -213,7 +216,7 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, nx := range nexuses.Nexuses {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
@@ -269,11 +272,14 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, nexusID, nodeName, description string
+	var id, name, configPath, nexusID, nodeName, description string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
 	var nodes *api.NodeList
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -296,10 +302,6 @@ func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -336,7 +338,7 @@ func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, nx := range nexuses.Nexuses {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
@@ -393,14 +395,17 @@ func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 	return nil
 }
 
-func DeleteSwarmNodeInteractive(cmd *cobra.Command) error {
+func RemoveSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, nexusID string
+	var id, name, configPath, nexusID string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
 	var nodes *api.NodeList
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -423,10 +428,6 @@ func DeleteSwarmNodeInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -463,7 +464,7 @@ func DeleteSwarmNodeInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, nx := range nexuses.Nexuses {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
@@ -496,7 +497,7 @@ func DeleteSwarmNodeInteractive(cmd *cobra.Command) error {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", node.ID, node.Name, node.Description))
 	}
 
-	if choice, err = tui.ChooseOne("Which node would you like to delete?", false, true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which node would you like to remove?", false, true, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
 	}
 
@@ -507,7 +508,7 @@ func DeleteSwarmNodeInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("Node %s deleted successfully", nodeID))
+	utils.PrintDelete(fmt.Sprintf("Node %s removed successfully", nodeID))
 
 	return nil
 }
@@ -515,11 +516,14 @@ func DeleteSwarmNodeInteractive(cmd *cobra.Command) error {
 func ListSwarmNodesInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, choice, nexusID string
+	var id, name, configPath, nexusID string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
 	var nodes *api.NodeList
+	var choice string
+	var choices []string
+	var swarms []*api.Swarm
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -542,10 +546,6 @@ func ListSwarmNodesInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		var choice string
-		var choices []string
-		var swarms []api.Swarm
-
 		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -582,7 +582,7 @@ func ListSwarmNodesInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	var choices []string
+	choices = []string{}
 
 	for _, nx := range nexuses.Nexuses {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))

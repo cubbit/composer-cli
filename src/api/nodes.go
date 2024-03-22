@@ -66,6 +66,7 @@ func UpdateNode(urls configuration.Url, accessToken string, nodeID string, nodeB
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+		ExtractGenericModel(nil),
 	); err != nil {
 		return err
 	}

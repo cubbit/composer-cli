@@ -10,6 +10,7 @@ go_library(
         "root.go",
         "swarm.go",
         "tenant.go",
+        "version.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/src/cmd",
     visibility = ["//visibility:public"],
