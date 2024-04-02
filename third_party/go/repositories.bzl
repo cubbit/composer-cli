@@ -254,6 +254,13 @@ def go_repositories():
         version = "v0.0.0-20161208181325-20d25e280405",
     )
     go_repository(
+        name = "in_gopkg_yaml_v2",
+        build_file_proto_mode = "disable",
+        importpath = "gopkg.in/yaml.v2",
+        sum = "h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=",
+        version = "v2.4.0",
+    )
+    go_repository(
         name = "in_gopkg_yaml_v3",
         build_file_proto_mode = "disable",
         importpath = "gopkg.in/yaml.v3",
@@ -261,11 +268,25 @@ def go_repositories():
         version = "v3.0.1",
     )
     go_repository(
+        name = "org_golang_x_crypto",
+        build_file_proto_mode = "disable",
+        importpath = "golang.org/x/crypto",
+        sum = "h1:X31++rzVUdKhX5sWmSOFZxx8UW/ldWx55cbf08iNAMA=",
+        version = "v0.21.0",
+    )
+    go_repository(
         name = "org_golang_x_mod",
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/mod",
         sum = "h1:LUYupSeNrTNCGzR/hVBk2NHZO4hXcVaW1k4Qx7rjPx8=",
         version = "v0.8.0",
+    )
+    go_repository(
+        name = "org_golang_x_net",
+        build_file_proto_mode = "disable",
+        importpath = "golang.org/x/net",
+        sum = "h1:AQyQV4dYCvJ7vGmJyKki9+PBdyvhkSd8EIx/qb0AYv4=",
+        version = "v0.21.0",
     )
     go_repository(
         name = "org_golang_x_sync",
@@ -278,22 +299,22 @@ def go_repositories():
         name = "org_golang_x_sys",
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/sys",
-        sum = "h1:MVltZSvRTcU2ljQOhs94SXPftV6DCNnZViHeQps87pQ=",
-        version = "v0.6.0",
+        sum = "h1:DBdB3niSjOA/O0blCZBqDefyWNYveAYMNF1Wum0DYQ4=",
+        version = "v0.18.0",
     )
     go_repository(
         name = "org_golang_x_term",
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/term",
-        sum = "h1:clScbb1cHjoCkyRbWwBEUZ5H/tIFu5TAXIqaZD0Gcjw=",
-        version = "v0.6.0",
+        sum = "h1:FcHjZXDMxI8mM3nwhX9HlKop4C0YQvCVCdwYl2wOtE8=",
+        version = "v0.18.0",
     )
     go_repository(
         name = "org_golang_x_text",
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/text",
-        sum = "h1:57P1ETyNKtuIjB4SRd15iJxuhj8Gc416Y78H3qgMh68=",
-        version = "v0.8.0",
+        sum = "h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ=",
+        version = "v0.14.0",
     )
     go_repository(
         name = "org_golang_x_tools",
