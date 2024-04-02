@@ -18,6 +18,8 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 	var name, description, imageUrl, settingsString, couponCode, configPath, zone string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
+	var zones *api.ZoneMap
+	var settings api.TenantSettings
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -66,8 +68,6 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if zone != "" {
-		var zones *api.ZoneMap
-
 		if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 		}
@@ -75,8 +75,6 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf(constants.ErrorInvalidZone)
 		}
 	}
-
-	var settings api.TenantSettings
 
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
@@ -98,6 +96,7 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 	var sort, filter string
+	var verbose, l bool
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -123,8 +122,6 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
-	var verbose, l bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -140,12 +137,13 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if verbose {
+		utils.PrintVerbose(tenants.Data, l)
+		return nil
+	}
+
 	for _, tenant := range tenants.Data {
-		if verbose {
-			fmt.Printf(" • %s, %s, %v\n", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description))
-		} else {
-			fmt.Printf(" • %s\n", tenant.Name)
-		}
+		fmt.Printf(" • %s\n", tenant.Name)
 		if l {
 			fmt.Println()
 		}
@@ -160,6 +158,7 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 	var id, name, email, password, code, configPath, deleteTenantToken string
 	var conf *configuration.Config
 	var challenge *api.ChallengeResponseModel
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -190,8 +189,6 @@ func RemoveTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -283,6 +280,7 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -307,7 +305,6 @@ func EditTenantDescription(cmd *cobra.Command, args ...string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -328,6 +325,7 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -354,7 +352,6 @@ func EditTenantImage(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -376,6 +373,7 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var swarms *api.SwarmList
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -394,7 +392,6 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -429,6 +426,7 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var policies *api.PolicyList
 	var found bool
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -463,7 +461,6 @@ func AddOperatorToTenant(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -501,6 +498,8 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var operators *api.OperatorList
+	var tenant *api.Tenant
+	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -519,8 +518,6 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -538,8 +535,6 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var verbose, l bool
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -548,12 +543,13 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if verbose {
+		utils.PrintVerbose(operators.Operators, l)
+		return nil
+	}
+
 	for _, operator := range operators.Operators {
-		if verbose {
-			fmt.Printf(" • %s, %s, %s %s, %s\n", operator.ID, operator.Email, operator.FirstName, operator.LastName, operator.Status)
-		} else {
-			fmt.Printf(" • %s\n", operator.Email)
-		}
+		fmt.Printf(" • %s\n", operator.Email)
 		if l {
 			fmt.Println()
 		}
@@ -567,6 +563,8 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
+	var tenant *api.Tenant
+	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -585,8 +583,6 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -594,7 +590,6 @@ func RemoveTenantOperator(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	var operator *api.Operator
 	operatorID := args[0]
 
 	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
@@ -616,6 +611,7 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -634,8 +630,6 @@ func ConnectSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -663,6 +657,7 @@ func CreateTenantAccounts(cmd *cobra.Command, args []string) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var emails []string
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -685,8 +680,6 @@ func CreateTenantAccounts(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -698,7 +691,7 @@ func CreateTenantAccounts(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantAccountsRequest, err)
 	}
 
-	utils.PrintSuccess("accounts created successfully")
+	utils.PrintSuccess("users created successfully")
 
 	return nil
 }
@@ -710,6 +703,7 @@ func UpdateTenantAccount(cmd *cobra.Command, args []string) error {
 	var internal bool
 	var maxAllowedProjects int
 	var conf *configuration.Config
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -748,8 +742,6 @@ func UpdateTenantAccount(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -798,7 +790,7 @@ func UpdateTenantAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorUpdatingTenantAccountRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("account %s updated successfully", accountID))
+	utils.PrintSuccess(fmt.Sprintf("user %s updated successfully", accountID))
 
 	return nil
 }
@@ -835,7 +827,7 @@ func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {
-			return &op, nil
+			return op, nil
 		}
 	}
 
@@ -847,6 +839,8 @@ func EditTenantSettings(cmd *cobra.Command, args ...string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
+	var settings api.TenantSettings
+	var tenant *api.Tenant
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -866,14 +860,11 @@ func EditTenantSettings(cmd *cobra.Command, args ...string) error {
 
 	settingsString := args[0]
 
-	var settings api.TenantSettings
-
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -894,6 +885,8 @@ func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath, format string
 	var conf *configuration.Config
+	var tenant *api.Tenant
+	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -912,8 +905,6 @@ func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
-
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -921,7 +912,6 @@ func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
-	var operator *api.Operator
 	operatorID := args[0]
 	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
@@ -943,6 +933,8 @@ func EditTenantOperatorRole(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var policies *api.PolicyList
 	var found bool
+	var tenant *api.Tenant
+	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -965,7 +957,6 @@ func EditTenantOperatorRole(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -973,7 +964,6 @@ func EditTenantOperatorRole(cmd *cobra.Command, args []string) error {
 	}
 
 	operatorID := args[0]
-	var operator *api.Operator
 	if operator, err = getTenantOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
@@ -1011,6 +1001,7 @@ func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
 	var id, name, couponCode, configPath string
 	var conf *configuration.Config
 	var response *api.GenericIDResponseModel
+	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -1029,7 +1020,6 @@ func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
-		var tenant *api.Tenant
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}

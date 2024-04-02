@@ -36,7 +36,7 @@ func CreateDistributor(urls configuration.Url, accessToken, name string, descrip
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		extractGenericIDResponseModel(&response),
+		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func ListDistributors(urls configuration.Url, accessToken string) (*DistributorL
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractDistributorListModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID,
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		extractGenericIDResponseModel(&response),
+		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func ListDistributorCoupons(urls configuration.Url, accessToken, distributorID s
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractDistributorCouponListModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func GetDistributorCoupon(urls configuration.Url, accessToken, distributorID, co
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractDistributorCouponResponseModel(&response),
+		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distrib
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractGenericIDResponseModel(&response),
+		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err
@@ -234,7 +234,7 @@ func RevokeDistributorCoupon(urls configuration.Url, accessToken string, distrib
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		extractDistributorCouponCodeResponseModel(&response),
+		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err

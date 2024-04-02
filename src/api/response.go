@@ -60,7 +60,6 @@ type Tenant struct {
 	OwnerID     string          `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
 	CreatedAt   time.Time       `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
 	DeletedAt   *time.Time      `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
-	ImageUrl    *string         `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
 	Settings    *TenantSettings `json:"settings"`
 	CouponID    *string         `json:"coupon_id" example:"9OPADNOEJFNO"`
 }
@@ -149,7 +148,7 @@ type Operator struct {
 }
 
 type OperatorList struct {
-	Operators []Operator `json:"operators"`
+	Operators []*Operator `json:"operators"`
 }
 type OperatorEmail struct {
 	ID        string    `json:"id" example:"5ff281ee-75e7-4543-a304-ca861521f2a7"`
@@ -289,4 +288,146 @@ type UpdateTenantProjectRequestBody struct {
 	Name        *string `json:"name" example:"CubbitCloud"`
 	Description *string `json:"description" example:"Cloud storage made easy"`
 	ImageUrl    *string `json:"image_url" example:"https://s3.cubbit.io/my-new-test-bucket/Screenshot.png"`
+}
+
+type CreateNexusRequestBody struct {
+	Name        string `json:"name" `
+	Description string `json:"description,omitempty"`
+	Location    string `json:"location"`
+}
+
+type UpdateNexusRequestBody struct {
+	Name        string `json:"name,omitempty" `
+	Description string `json:"description,omitempty"`
+}
+
+type Nexus struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	Location     string    `json:"location"`
+	CreationDate time.Time `json:"creation_date"`
+	LastModified time.Time `json:"last_modified"`
+	SwarmID      string    `json:"swarm_id"`
+	Capacity     int       `json:"capacity"`
+	Used         int       `json:"used"`
+}
+
+type NexusList struct {
+	Nexuses  []*Nexus `json:"nexuses"`
+	Page     int      `json:"page"`
+	Count    int      `json:"count"`
+	NextPage *int     `json:"next_page"`
+}
+
+type CreateNodeBodyRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	NexusID     string `json:"nexus_id"`
+	SecretID    string `json:"secret_id"`
+}
+
+type UpdateNodeBodyRequest struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+type ProviderList struct {
+	Providers []Provider `json:"providers"`
+	Page      int        `json:"page"`
+	Count     int        `json:"count"`
+}
+
+type Provider struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	SwarmID string `json:"swarm_id"`
+	Email   string `json:"email"`
+}
+
+type Node struct {
+	ID           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description"`
+	Status       string                 `json:"status"`
+	CreationDate time.Time              `json:"creation_date"`
+	ProviderID   string                 `json:"provider_id"`
+	SecretID     string                 `json:"secret_id"`
+	NexusID      string                 `json:"nexus_id"`
+	Config       map[string]interface{} `json:"config"`
+}
+
+type NodeList struct {
+	Nodes []*Node `json:"nodes"`
+	Page  int     `json:"page"`
+	Count int     `json:"count"`
+}
+
+type CreateRedundancyClassRequestBody struct {
+	Name              string `json:"name"`
+	Description       string `json:"description,omitempty"`
+	InnerK            int    `json:"inner_k"`
+	InnerN            int    `json:"inner_n"`
+	OuterK            int    `json:"outer_k"`
+	OuterN            int    `json:"outer_n"`
+	AntiAffinityGroup int    `json:"anti_affinity_group"`
+}
+
+type RedundancyClass struct {
+	ID                string    `json:"id"`
+	Name              string    `json:"name"`
+	Description       string    `json:"description"`
+	InnerK            int       `json:"inner_k"`
+	InnerN            int       `json:"inner_n"`
+	OuterK            int       `json:"outer_k"`
+	OuterN            int       `json:"outer_n"`
+	AntiAffinityGroup int       `json:"anti_affinity_group"`
+	Capacity          int       `json:"capacity"`
+	CreationDate      time.Time `json:"creation_date"`
+	SwarmID           string    `json:"swarm_id"`
+}
+
+type RedundancyClassList struct {
+	Data []*RedundancyClass `json:"data"`
+	Page int                `json:"page"`
+}
+
+type RingBulk struct {
+	RedundancyClassID string   `json:"redundancy_class_id"`
+	Nexuses           []string `json:"nexuses"`
+	RingsNumber       *int     `json:"number_of_rings,omitempty"`
+	AntiAffinityGroup *int     `json:"anti_affinity_group,omitempty"`
+}
+
+type Ring struct {
+	ID           string      `json:"id"`
+	N            int         `json:"n"`
+	K            int         `json:"k"`
+	SwarmID      string      `json:"swarm_id"`
+	Capacity     int         `json:"capacity"`
+	Used         int         `json:"used"`
+	Status       string      `json:"status"`
+	CreationDate string      `json:"creation_date"`
+	Nexuses      []RingNexus `json:"nexuses,omitempty"`
+	Nodes        []RingNode  `json:"nodes,omitempty"`
+}
+
+type RingNode struct {
+	NodeID    string `json:"node_id"`
+	NexusID   string `json:"nexus_id"`
+	Sequence1 int    `json:"sequence1"`
+	Sequence2 int    `json:"sequence2"`
+}
+
+type RingNexus struct {
+	NexusID  string `json:"nexus_id"`
+	N        int    `json:"n"`
+	K        int    `json:"k"`
+	Sequence int    `json:"sequence"`
+}
+
+type RingList struct {
+	Data  []*Ring `json:"data"`
+	Page  int    `json:"page"`
+	Count int    `json:"count"`
 }

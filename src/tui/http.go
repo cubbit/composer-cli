@@ -68,7 +68,6 @@ func Send(cmd *cobra.Command, args []string, action func(cmd *cobra.Command, arg
 		for {
 			pause := time.Duration(rand.Int63n(899)+100) * time.Millisecond
 			time.Sleep(pause)
-			err = action(cmd, args)
 			p.Quit()
 		}
 	}()
@@ -78,5 +77,10 @@ func Send(cmd *cobra.Command, args []string, action func(cmd *cobra.Command, arg
 		os.Exit(1)
 	}
 
-	return err
+	err = action(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
