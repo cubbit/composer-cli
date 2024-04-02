@@ -18,7 +18,7 @@ func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator,
 		url,
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAccessToken(accessToken),
-		ExtractGenericModel(&operator),
+		extractOperatorResponseModel(&operator),
 	); err != nil {
 		return nil, err
 	}

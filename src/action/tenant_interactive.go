@@ -22,8 +22,6 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var choices []string
 	var choice string
-	var zones *api.ZoneMap
-	var settings api.TenantSettings
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -33,14 +31,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
 	}
 
-	if _, err = tui.TextInputs(
-		"Fill in the form below",
-		false,
-		tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name},
-		tui.Input{Placeholder: "Description", IsPassword: false, Value: &description},
-		tui.Input{Placeholder: "Coupon code*", IsPassword: false, Value: &couponCode},
-		tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
-
+	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Coupon code*", IsPassword: false, Value: &couponCode}, tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -54,11 +45,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if _, err = tui.TextAreas(
-		"Fill in the tenant settings",
-		false,
-		tui.TextArea{InitialValue: "{}", Value: &settingsString}); err != nil {
-
+	if _, err = tui.TextAreas("Fill in the tenant settings", false, tui.TextArea{InitialValue: "{}", Value: &settingsString}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 
 	}
@@ -67,10 +54,13 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		settingsString = "{}"
 	}
 
+	var settings api.TenantSettings
+
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
+	var zones *api.ZoneMap
 	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 	}
@@ -114,7 +104,6 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var challenge *api.ChallengeResponseModel
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var choices []string
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -133,6 +122,8 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
+	var choices []string
+
 	for _, tenant := range tenants.Data {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
 	}
@@ -142,7 +133,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if choice, err = tui.ChooseOne("Which tenant would you like to remove?", false, false, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which tenant would you like to delete?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenant, err)
 	}
 
@@ -150,7 +141,7 @@ func RemoveTenantInteractive(cmd *cobra.Command) error {
 	_, id, _ = strings.Cut(splits[0], " ")
 	_, name, _ := strings.Cut(splits[1], " ")
 
-	if _, err = tui.TextInputs(fmt.Sprintf("Confirm your login to remove the tenant %s - %s 🚮", utils.RedBg.Render(name), utils.RedBg.Render(id)), true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+	if _, err = tui.TextInputs(fmt.Sprintf("Confirm your login to delete the tenant %s - %s 🚮", utils.RedBg.Render(name), utils.RedBg.Render(id)), true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -177,9 +168,6 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 	var id, name, format, configPath string
 	var conf *configuration.Config
 	var tenant *api.Tenant
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -198,6 +186,10 @@ func DescribeTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -246,10 +238,6 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	var accessToken *string
 	var id, name, configPath, description string
 	var conf *configuration.Config
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -268,6 +256,10 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -290,17 +282,15 @@ func EditTenantDescriptionInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 		id = tenant.ID
 	}
 
-	if _, err = tui.TextInputs(
-		"Enter your new tenant description",
-		true,
-		tui.Input{Placeholder: "New Tenant Description", Value: &description}); err != nil {
-
+	if _, err = tui.TextInputs("Enter your new tenant description", true, tui.Input{Placeholder: "New Tenant Description", Value: &description}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -322,10 +312,6 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 	var accessToken *string
 	var id, name, configPath, image string
 	var conf *configuration.Config
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -343,6 +329,10 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -365,17 +355,15 @@ func EditTenantImageInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 		id = tenant.ID
 	}
 
-	if _, err = tui.TextInputs(
-		"Enter your new tenant image URL",
-		true,
-		tui.Input{Placeholder: "New Tenant Image", Value: &image}); err != nil {
-
+	if _, err = tui.TextInputs("Enter your new tenant image URL", true, tui.Input{Placeholder: "New Tenant Image", Value: &image}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -441,10 +429,6 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var swarms *api.SwarmList
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -463,6 +447,9 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
@@ -486,6 +473,8 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -521,13 +510,9 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, role, email, first_name, last_name, configPath string
+	var id, name, role, email, first_name, last_name, configPath, choice string
 	var conf *configuration.Config
 	var policies *api.PolicyList
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -546,6 +531,10 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
@@ -568,6 +557,8 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -582,7 +573,7 @@ func AddOperatorToTenantInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingPoliciesRequest, err)
 	}
 
-	choices = []string{}
+	var choices []string
 
 	for _, policy := range policies.Policies {
 		choices = append(choices, fmt.Sprintf("• %s", policy.Name))
@@ -619,10 +610,6 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 	var id, name, configPath string
 	var conf *configuration.Config
 	var operators *api.OperatorList
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -641,6 +628,10 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -663,6 +654,8 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -694,14 +687,10 @@ func ListTenantOperatorsInteractive(cmd *cobra.Command) error {
 func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, operatorID string
+	var id, name, configPath, choice, operatorID string
 	var conf *configuration.Config
 	var operators *api.OperatorList
 	var operator *api.Operator
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -720,6 +709,10 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
@@ -742,6 +735,8 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -762,7 +757,7 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	choices = []string{}
+	var choices []string
 
 	for _, op := range operators.Operators {
 		if op.ID != operator.ID {
@@ -799,15 +794,11 @@ func RemoveTenantOperatorInteractive(cmd *cobra.Command) error {
 func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, swarm string
+	var id, name, configPath, choice, swarm string
 	var conf *configuration.Config
 	var operator *api.Operator
-	var swarms []*api.Swarm
+	var swarms []api.Swarm
 	var swarms1 *api.SwarmList
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -830,6 +821,10 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
@@ -853,6 +848,8 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -872,7 +869,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 
 	for _, swarm := range swarms {
 
-		mergedSwarms[swarm.ID] = *swarm
+		mergedSwarms[swarm.ID] = swarm
 	}
 
 	for _, swarm := range swarms1.Swarms {
@@ -887,7 +884,7 @@ func ConnectSwarmInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	choices = []string{}
+	var choices []string
 
 	for _, sw := range mergedSwarms {
 		choices = append(choices, fmt.Sprintf("• %s, %s, %s", sw.ID, sw.Name, sw.Description))
@@ -915,10 +912,6 @@ func EditTenantSettingsInteractive(cmd *cobra.Command) error {
 	var id, name, configPath, settingsString string
 	var conf *configuration.Config
 	var tenant *api.Tenant
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var settings api.TenantSettings
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -937,6 +930,10 @@ func EditTenantSettingsInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -993,6 +990,8 @@ func EditTenantSettingsInteractive(cmd *cobra.Command) error {
 		settingsString = "{}"
 	}
 
+	var settings api.TenantSettings
+
 	if err = json.Unmarshal([]byte(settingsString), &settings); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
@@ -1009,13 +1008,10 @@ func EditTenantSettingsInteractive(cmd *cobra.Command) error {
 func DescribeTenantOperatorInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, operatorID, format string
+	var id, name, configPath, choice, operatorID, format string
 	var conf *configuration.Config
 	var operators *api.OperatorList
 	var operator *api.Operator
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -1034,6 +1030,10 @@ func DescribeTenantOperatorInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
@@ -1078,7 +1078,7 @@ func DescribeTenantOperatorInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	choices = []string{}
+	var choices []string
 
 	for _, op := range operators.Operators {
 		if op.ID != operator.ID {
@@ -1120,15 +1120,11 @@ func DescribeTenantOperatorInteractive(cmd *cobra.Command) error {
 func EditTenantOperatorRoleInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, role, operatorID, configPath string
+	var id, name, role, operatorID, configPath, choice string
 	var conf *configuration.Config
 	var policies *api.PolicyList
 	var operators *api.OperatorList
 	var operator *api.Operator
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -1147,6 +1143,10 @@ func EditTenantOperatorRoleInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
+		var choice string
+		var choices []string
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 		}
@@ -1169,6 +1169,8 @@ func EditTenantOperatorRoleInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -1188,7 +1190,7 @@ func EditTenantOperatorRoleInteractive(cmd *cobra.Command) error {
 		return nil
 	}
 
-	choices = []string{}
+	var choices []string
 	for _, op := range operators.Operators {
 		if op.ID != operator.ID {
 			choices = append(choices, fmt.Sprintf("• %s, %s, %s %s", op.ID, op.Email, op.FirstName, op.LastName))

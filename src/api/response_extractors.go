@@ -16,6 +16,27 @@ import (
 	"github.com/cubbit/cubbit/client/cli/utils"
 )
 
+func extractChallengeResponseModel(response *ChallengeResponseModel) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
 func extractRefreshCookie(response *string) request_utils.RequestModifier {
 	return func(opt *request_utils.RequestOptions, res *http.Response) error {
 		if res == nil {
@@ -34,6 +55,279 @@ func extractRefreshCookie(response *string) request_utils.RequestModifier {
 		}
 
 		*response = refreshTokenCookie.Value
+		return nil
+	}
+}
+
+func extractTokenExpirationModel(response *TokenAndExpirationResponseModel) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractGenericIDResponseModel(response *GenericIDResponseModel) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractOperatorResponseModel(response *Operator) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractSwarmListModel(response *SwarmList) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+
+		var body []byte
+		var err error
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractSwarmResponseModel(response *Swarm) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractSwarmListResponseModel(response *[]Swarm) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+
+		var body []byte
+		var err error
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractPolicyListModel(response *PolicyList) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+
+		var body []byte
+		var err error
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractOperatorListModel(response *OperatorList) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+
+		var body []byte
+		var err error
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractTenantResponseModel(response *Tenant) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractDistributorListModel(response *DistributorList) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractDistributorCouponResponseModel(response *DistributorCoupon) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractDistributorCouponListModel(response *DistributorCouponList) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func extractDistributorCouponCodeResponseModel(response *DistributorCouponCodeResponseModel) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
 		return nil
 	}
 }
@@ -96,6 +390,27 @@ func DownloadReport(output string, downloadedFile *string) request_utils.Request
 		}
 
 		*downloadedFile = filename
+		return nil
+	}
+}
+
+func extractZoneMapModel(response *ZoneMap) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		var err error
+		var body []byte
+
+		if res == nil {
+			return nil
+		}
+
+		if body, err = ioutil.ReadAll(res.Body); err != nil {
+			return err
+		}
+
+		if err = json.Unmarshal(body, &response); err != nil {
+			return err
+		}
+
 		return nil
 	}
 }

@@ -7,14 +7,10 @@ go_library(
         "filter.go",
         "formatter.go",
         "printer.go",
-        "secret.go",
         "slices.go",
         "string.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/utils",
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_charmbracelet_lipgloss//:lipgloss",
-        "@org_golang_x_crypto//ssh/terminal",
-    ],
+    deps = ["@com_github_charmbracelet_lipgloss//:lipgloss"],
 )

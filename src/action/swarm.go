@@ -58,13 +58,13 @@ func CreateSwarm(cmd *cobra.Command, args []string) error {
 }
 
 func DescribeSwarm(cmd *cobra.Command, args []string) error {
+
 	var err error
 	var id, name, format, configPath string
 	var accessToken *string
 	var config *configuration.Config
 	var operator *api.Operator
 	var swarm *api.Swarm
-	var swarms []*api.Swarm
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -91,6 +91,8 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 	}
 
 	if name != "" {
+		var swarms []api.Swarm
+
 		if swarms, err = api.ListSwarms(config.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -118,8 +120,7 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var config *configuration.Config
 	var operator *api.Operator
-	var swarms []*api.Swarm
-	var verbose, l bool
+	var swarms []api.Swarm
 
 	if config, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -136,11 +137,9 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
+	var verbose bool
 
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -151,15 +150,11 @@ func ListSwarms(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if verbose {
-		utils.PrintVerbose(swarms, l)
-		return nil
-	}
-
 	for _, swarm := range swarms {
-		fmt.Printf(" • %s\n", swarm.Name)
-		if l {
-			fmt.Println()
+		if verbose {
+			fmt.Printf(" • %s, %s, %s\n", swarm.ID, swarm.Name, swarm.Description)
+		} else {
+			fmt.Printf(" • %s\n", swarm.Name)
 		}
 	}
 
@@ -427,14 +422,12 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if verbose {
-		utils.PrintVerbose(operators.Operators, l)
-		return nil
-	}
-
 	for _, operator := range operators.Operators {
-		fmt.Printf(" • %s\n", operator.Email)
-
+		if verbose {
+			fmt.Printf(" • %s, %s, %s %s, %s\n", operator.ID, operator.Email, operator.FirstName, operator.LastName, operator.Status)
+		} else {
+			fmt.Printf(" • %s\n", operator.Email)
+		}
 		if l {
 			fmt.Println()
 		}
@@ -489,7 +482,7 @@ func RemoveSwarmOperator(cmd *cobra.Command, args []string) error {
 func getSwarmByNameOrId(conf *configuration.Config, accessToken string, swarm string) (string, error) {
 	var err error
 	var operator *api.Operator
-	var swarms []*api.Swarm
+	var swarms []api.Swarm
 	var id string
 
 	if operator, err = api.GetOperatorSelf(conf.Urls, accessToken); err != nil {
@@ -522,7 +515,7 @@ func getSwarmOperatorByEmailOrId(conf *configuration.Config, accessToken string,
 	}
 	for _, op := range operators.Operators {
 		if operator == op.Email || operator == op.ID {
-			return op, nil
+			return &op, nil
 		}
 	}
 
@@ -534,7 +527,6 @@ func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath, format string
 	var conf *configuration.Config
-	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -558,6 +550,7 @@ func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	var operator *api.Operator
 	operatorID := args[0]
 	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
@@ -579,7 +572,6 @@ func EditSwarmOperatorRole(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var policies *api.PolicyList
 	var found bool
-	var operator *api.Operator
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -608,6 +600,7 @@ func EditSwarmOperatorRole(cmd *cobra.Command, args []string) error {
 	}
 
 	operatorID := args[0]
+	var operator *api.Operator
 	if operator, err = getSwarmOperatorByEmailOrId(conf, *accessToken, id, operatorID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
@@ -635,218 +628,6 @@ func EditSwarmOperatorRole(cmd *cobra.Command, args []string) error {
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("operator %s role updated successfully", operatorID))
-
-	return nil
-}
-
-func CreateSwarmNexus(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, nexusName, description, location, configPath string
-	var conf *configuration.Config
-	var nexus *api.Nexus
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if nexusName, err = cmd.Flags().GetString("nexus-name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if description, err = cmd.Flags().GetString("description"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if location, err = cmd.Flags().GetString("location"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	nexusBodyRequest := api.CreateNexusRequestBody{
-		Name:        nexusName,
-		Description: description,
-		Location:    location,
-	}
-
-	if nexus, err = api.CreateNexus(conf.Urls, *accessToken, id, nexusBodyRequest); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingNexusRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("nexus %s created successfully", nexus.ID))
-
-	return nil
-}
-
-func DescribeSwarmNexus(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var configPath, format string
-	var conf *configuration.Config
-	var nexus *api.Nexus
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	nexusID := args[0]
-	if nexus, err = api.GetNexus(conf.Urls, *accessToken, nexusID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNexusRequest, err)
-	}
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	utils.PrintFormattedData(*nexus, format)
-
-	return nil
-}
-
-func EditSwarmNexus(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var nexusName, description, configPath string
-	var conf *configuration.Config
-
-	if nexusName, err = cmd.Flags().GetString("nexus-name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if description, err = cmd.Flags().GetString("description"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	nexusID := args[0]
-
-	nexusBodyRequest := api.UpdateNexusRequestBody{
-		Name:        nexusName,
-		Description: description,
-	}
-
-	if err = api.UpdateNexus(conf.Urls, *accessToken, nexusID, nexusBodyRequest); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingNexusRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("nexus %s updated successfully", nexusID))
-
-	return nil
-}
-
-func ListSwarmNexuses(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath string
-	var conf *configuration.Config
-	var nexuses *api.NexusList
-	var verbose, l bool
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
-	}
-
-	utils.PrintList("Your Swarm Nexuses List")
-
-	if len(nexuses.Nexuses) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if verbose {
-		utils.PrintVerbose(nexuses.Nexuses, l)
-		return nil
-	}
-
-	for _, nexus := range nexuses.Nexuses {
-		fmt.Printf(" • %s\n", nexus.Name)
-		if l {
-			fmt.Println()
-		}
-	}
-
-	return nil
-}
-
-func RemoveSwarmNexus(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var configPath string
-	var conf *configuration.Config
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	nexusID := args[0]
-
-	if err = api.DeleteNexus(conf.Urls, *accessToken, nexusID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingNexusRequest, err)
-	}
-
-	utils.PrintDelete(fmt.Sprintf("nexus %s removed successfully", nexusID))
 
 	return nil
 }

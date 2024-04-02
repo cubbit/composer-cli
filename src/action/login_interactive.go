@@ -18,10 +18,7 @@ func SignInOperatorInteractive(cmd *cobra.Command) error {
 	var urls *configuration.Url
 	var conf = configuration.NewConfig(configuration.SessionTypeOperator, "", configuration.Url{}, "")
 
-	if _, err = tui.TextInputs(
-		"Enter your API server URL",
-		false, tui.Input{Placeholder: "Enter the api server url: (default https://api.cubbit.eu)", IsPassword: false, Value: &apiServerUrl}); err != nil {
-
+	if _, err = tui.TextInputs("Enter your API server URL", false, tui.Input{Placeholder: "Enter the api server url: (default https://api.cubbit.eu)", IsPassword: false, Value: &apiServerUrl}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -117,12 +114,7 @@ func SignInAccountInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	if _, err = tui.TextInputs(
-		"",
-		true,
-		tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath},
-		tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
-
+	if _, err = tui.TextInputs("", true, tui.Input{Placeholder: fmt.Sprintf("Enter the config file path to load (default: %s)", defaultConfigPath), Value: &configPath}, tui.Input{Placeholder: "Enter the configuration profile (default: default)", Value: &profile}); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 

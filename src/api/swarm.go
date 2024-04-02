@@ -3,12 +3,10 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
-	"github.com/cubbit/cubbit/client/cli/utils"
 )
 
 func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name string, description string, swarmConfig map[string]interface{}) (*GenericIDResponseModel, error) {
@@ -28,7 +26,7 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		ExtractGenericModel(&response),
+		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err
@@ -37,16 +35,16 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 	return &response, nil
 }
 
-func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]*Swarm, error) {
+func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]Swarm, error) {
 	var err error
 	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
-	var response []*Swarm
+	var response []Swarm
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractSwarmListResponseModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -62,7 +60,7 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractSwarmResponseModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -101,7 +99,6 @@ func EditSwarmDescription(urls configuration.Url, accessToken, swarmID, descript
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(nil),
 	); err != nil {
 		return err
 	}
@@ -124,7 +121,6 @@ func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) er
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(nil),
 	); err != nil {
 		return err
 	}
@@ -141,7 +137,7 @@ func ListSwarmPolicies(urls configuration.Url, accessToken, swarmID string) (*Po
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractPolicyListModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -181,7 +177,7 @@ func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*O
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractOperatorListModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -210,7 +206,7 @@ func EditOperatorRoleInSwarm(urls configuration.Url, accessToken, tenantID, oper
 	requestBody := map[string]interface{}{
 		"policy_id": role,
 	}
-
+	
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPut),
@@ -222,66 +218,4 @@ func EditOperatorRoleInSwarm(urls configuration.Url, accessToken, tenantID, oper
 	}
 
 	return nil
-}
-
-func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*ProviderList, error) {
-
-	var err error
-	var finalResponse ProviderList
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/providers"
-
-	page := 0
-	resultsPerPage := 1000
-
-	for {
-		var response ProviderList
-		if err = request_utils.DoRequest(
-			url+"?start_page="+strconv.Itoa(page)+"&results_per_page="+strconv.Itoa(resultsPerPage),
-			request_utils.WithAccessToken(accessToken),
-			request_utils.WithExpectedStatusCode(http.StatusOK),
-			ExtractGenericModel(&response),
-		); err != nil {
-			return nil, err
-		}
-
-		finalResponse.Providers = append(finalResponse.Providers, response.Providers...)
-		finalResponse.Count = response.Count
-
-		if len(response.Providers) == 0 {
-			break
-		}
-		page++
-	}
-
-	return &finalResponse, nil
-}
-
-func CreateSwarmSecret(urls configuration.Url, accessToken, swarmID, providerID string) (*GenericIDResponseModel, error) {
-	var err error
-	var secret string
-	var ID GenericIDResponseModel
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/secrets"
-
-	secret, err = utils.GenerateSecret()
-	if err != nil {
-		return nil, err
-	}
-
-	requestBody := map[string]interface{}{
-		"provider_id": providerID,
-		"secret":      secret,
-	}
-
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBody(requestBody),
-		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		request_utils.WithAccessToken(accessToken),
-		ExtractGenericModel(&ID),
-	); err != nil {
-		return nil, err
-	}
-
-	return &ID, nil
 }

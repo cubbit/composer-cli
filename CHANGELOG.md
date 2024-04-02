@@ -1,22 +1,3 @@
-## 0.19.0 (2024-03-22)
-
-### Feat
-
-- **cli**: manage redundancy classes and rings
-
-## 0.18.0 (2024-03-15)
-
-### Feat
-
-- **cli**: manage swarm nodes
-
-## 0.17.0 (2024-03-15)
-
-### Feat
-
-- **cli**: manage nexuses
-- **cli**: add a custom server to handle token requests
-
 ## 0.16.1 (2024-03-11)
 
 ### Fix

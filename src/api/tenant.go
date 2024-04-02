@@ -39,7 +39,7 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		ExtractGenericModel(&response),
+		extractGenericIDResponseModel(&response),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID str
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractSwarmListModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func ListTenantPolicies(urls configuration.Url, accessToken, tenantID string) (*
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractPolicyListModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func ListTenantOperators(urls configuration.Url, accessToken, tenantID string) (
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractOperatorListModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func GetTenant(urls configuration.Url, accessToken, tenantID string) (*Tenant, e
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractTenantResponseModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string)
 		url,
 		request_utils.WithAccessToken(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractSwarmListModel(&response),
 	); err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func GetGatwayZones(urls configuration.Url) (*ZoneMap, error) {
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
+		extractZoneMapModel(&response),
 	); err != nil {
 		return nil, err
 	}

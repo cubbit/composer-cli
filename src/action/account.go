@@ -58,8 +58,6 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 	var id, name, configPath, sort, filter string
 	var conf *configuration.Config
 	var accounts *api.GenericPaginatedResponse[*api.Account]
-	var tenant *api.Tenant
-	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -82,6 +80,8 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -100,12 +100,14 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Users List")
+	utils.PrintList("Your Tenant Accounts List")
 
 	if len(accounts.Data) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
+
+	var verbose, l bool
 
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -115,13 +117,12 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if verbose {
-		utils.PrintVerbose(accounts.Data, l)
-		return nil
-	}
-
 	for _, account := range accounts.Data {
-		fmt.Printf("• %s\n", account.ID)
+		if verbose {
+			fmt.Printf(" • %s, %s %s\n", account.ID, account.FirstName, account.LastName)
+		} else {
+			fmt.Printf(" • %s\n", account.ID)
+		}
 		if l {
 			fmt.Println()
 		}
@@ -135,8 +136,6 @@ func DescribeTenantAccount(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath, format string
 	var conf *configuration.Config
-	var tenant *api.Tenant
-	var account *api.Account
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -155,6 +154,8 @@ func DescribeTenantAccount(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenant *api.Tenant
+
 		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
@@ -162,6 +163,7 @@ func DescribeTenantAccount(cmd *cobra.Command, args []string) error {
 		id = tenant.ID
 	}
 
+	var account *api.Account
 	accountID := args[0]
 	if account, err = getTenantAccountById(conf, *accessToken, id, accountID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantAccountRequest, err)
@@ -182,7 +184,6 @@ func RemoveTenantAccount(cmd *cobra.Command, args []string) error {
 	var id, name, email, password, code, configPath, deleteTenantAccountToken string
 	var conf *configuration.Config
 	var challenge *api.ChallengeResponseModel
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -213,6 +214,8 @@ func RemoveTenantAccount(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -242,7 +245,7 @@ func RemoveTenantAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantAccountRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("user %s removed successfully", accountID))
+	utils.PrintDelete(fmt.Sprintf("account %s removed successfully", accountID))
 
 	return nil
 }
@@ -252,7 +255,6 @@ func BanTenantAccount(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -271,6 +273,8 @@ func BanTenantAccount(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -293,7 +297,7 @@ func BanTenantAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorFreezingTenantAccountRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("user %s banned successfully", accountID))
+	utils.PrintSuccess(fmt.Sprintf("account %s banned successfully", accountID))
 
 	return nil
 }
@@ -303,7 +307,6 @@ func UnbanTenantAccount(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -322,6 +325,8 @@ func UnbanTenantAccount(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -344,7 +349,7 @@ func UnbanTenantAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorUnfreezingTenantAccountRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("user %s unbanned successfully", accountID))
+	utils.PrintSuccess(fmt.Sprintf("account %s unbanned successfully", accountID))
 
 	return nil
 }
@@ -354,7 +359,6 @@ func RestoreTenantAccount(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -373,6 +377,8 @@ func RestoreTenantAccount(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -395,7 +401,7 @@ func RestoreTenantAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRestoringTenantAccountRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("user %s restored successfully", accountID))
+	utils.PrintSuccess(fmt.Sprintf("account %s restored successfully", accountID))
 
 	return nil
 }
@@ -405,7 +411,6 @@ func DeleteTenantAccountSessions(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -424,6 +429,8 @@ func DeleteTenantAccountSessions(cmd *cobra.Command, args []string) error {
 	}
 
 	if id == "" {
+		var tenants *api.GenericPaginatedResponse[*api.Tenant]
+
 		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 		}
@@ -446,7 +453,7 @@ func DeleteTenantAccountSessions(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantAccountSessionsRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("user %s sessions deleted successfully", accountID))
+	utils.PrintSuccess(fmt.Sprintf("account %s sessions deleted successfully", accountID))
 
 	return nil
 }
