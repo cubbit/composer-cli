@@ -11,10 +11,10 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings TenantSettings, couponCode, zone string) (*GenericIDResponseModel, error) {
+func CreateTenant(urls configuration.Url, accessToken, name string, description *string, settings TenantSettings, couponCode, zone string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Tenants
+	url := urls.IamUrl + constants.TenantsV2
 
 	requestBody := map[string]interface{}{
 		"name":        name,
@@ -24,10 +24,6 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 
 	if description != nil {
 		requestBody["description"] = *description
-	}
-
-	if imageUrl != nil {
-		requestBody["image_url"] = *imageUrl
 	}
 
 	if zone != "" {

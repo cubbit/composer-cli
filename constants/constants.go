@@ -43,6 +43,7 @@ const (
 	RefreshAccountAccessToken = "/v1/auth/refresh/access"
 
 	Tenants     = "/v1/tenants"
+	TenantsV2   = "/v2/tenants"
 	ListTenants = "/v1/tenants?owner="
 
 	Swarms                        = "/v1/swarms"

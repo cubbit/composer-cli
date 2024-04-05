@@ -15,7 +15,7 @@ import (
 func CreateTenant(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var name, description, imageUrl, settingsString, couponCode, configPath, zone string
+	var name, description, settingsString, couponCode, configPath, zone string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 	var zones *api.ZoneMap
@@ -41,16 +41,6 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
-	if imageUrl, err = cmd.Flags().GetString("image-url"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if imageUrl != "" {
-		if _, err := url.ParseRequestURI(imageUrl); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
-		}
-	}
-
 	if settingsString, err = cmd.Flags().GetString("settings"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -59,7 +49,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		settingsString = "{}"
 	}
 
-	if couponCode, err = cmd.Flags().GetString("coupon-code"); err != nil {
+	if couponCode, err = cmd.Flags().GetString("distributor-code"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -80,7 +70,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorParsingJsonSettings, err)
 	}
 
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode, zone); err != nil {
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, settings, couponCode, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 
