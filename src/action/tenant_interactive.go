@@ -38,20 +38,14 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		false,
 		tui.Input{Placeholder: "Name*", IsPassword: false, Value: &name},
 		tui.Input{Placeholder: "Description", IsPassword: false, Value: &description},
-		tui.Input{Placeholder: "Coupon code*", IsPassword: false, Value: &couponCode},
-		tui.Input{Placeholder: "Image URL", IsPassword: false, Value: &imageUrl}); err != nil {
+		tui.Input{Placeholder: "Distributor code*", IsPassword: false, Value: &couponCode},
+	); err != nil {
 
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
 	if len(description) > 200 {
 		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
-	}
-
-	if imageUrl != "" {
-		if _, err := url.ParseRequestURI(imageUrl); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
-		}
 	}
 
 	if _, err = tui.TextAreas(
@@ -98,7 +92,7 @@ func CreateTenantInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, &imageUrl, settings, couponCode, zone); err != nil {
+	if response, err = api.CreateTenant(conf.Urls, *accessToken, name, &description, settings, couponCode, zone); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 
