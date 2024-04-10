@@ -210,9 +210,9 @@ type TenantReport struct {
 	ExternalID string        `json:"external_id"`
 	TenantName string        `json:"tenant_name"`
 	Code       int           `json:"string"`
-	StorageBH  int64         `json:"storage_bh"`
-	StorageGB  int64         `json:"storage_gb"`
-	EngressGB  int64         `json:"engress_gb"`
+	StorageBH  string        `json:"storage_bh"`
+	StorageGB  string        `json:"storage_gb"`
+	EngressGB  string        `json:"engress_gb"`
 	FromTime   string        `json:"from_time"`
 	ToTime     string        `json:"to_time"`
 	Status     string        `json:"status"`
@@ -428,6 +428,6 @@ type RingNexus struct {
 
 type RingList struct {
 	Data  []*Ring `json:"data"`
-	Page  int    `json:"page"`
-	Count int    `json:"count"`
+	Page  int     `json:"page"`
+	Count int     `json:"count"`
 }
