@@ -44,7 +44,7 @@ func CreateProject(urls configuration.Url, accessToken, name string, description
 
 func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*ProjectItem], error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/projects" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
 	var finalResponse GenericPaginatedResponse[*ProjectItem]
 
 	var nextPage *int
@@ -77,7 +77,7 @@ func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort, fil
 func RemoveTenantProject(urls configuration.Url, accessToken, tenantID, projectID, deleteTenantProjectToken string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "?token=" + deleteTenantProjectToken
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "?token=" + deleteTenantProjectToken
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -96,7 +96,7 @@ func ToggleBanProject(urls configuration.Url, accessToken, tenantID string, proj
 	if !banned {
 		banUrl = "unban"
 	}
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/" + banUrl
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/" + banUrl
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
@@ -112,7 +112,7 @@ func ToggleBanProject(urls configuration.Url, accessToken, tenantID string, proj
 func RestoreTenantProject(urls configuration.Url, accessToken, tenantID, projectID string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/restore"
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/restore"
 
 	if err = request_utils.DoRequest(
 		url,
@@ -127,7 +127,7 @@ func RestoreTenantProject(urls configuration.Url, accessToken, tenantID, project
 
 func UpdateProject(urls configuration.Url, accessToken, tenantID, projectID string, projectBody UpdateTenantProjectRequestBody) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
 
 	requestBody, err := json.Marshal(projectBody)
 	if err != nil {
@@ -151,7 +151,7 @@ func GetTenantProject(urls configuration.Url, accessToken, tenantID, projectID s
 	var err error
 	var response ProjectItem
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithAccessToken(accessToken),

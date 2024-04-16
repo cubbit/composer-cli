@@ -11,7 +11,7 @@ import (
 func CreateDistributor(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, swarmIDs []string, email, firstName, lastName string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Distributors
+	url := urls.ChUrl + constants.Distributors
 
 	requestBody := map[string]interface{}{
 		"name":   name,
@@ -47,7 +47,7 @@ func CreateDistributor(urls configuration.Url, accessToken, name string, descrip
 
 func ListDistributors(urls configuration.Url, accessToken string) (*DistributorList, error) {
 	var err error
-	url := urls.IamUrl + constants.Distributors
+	url := urls.ChUrl + constants.Distributors
 	var response DistributorList
 
 	if err = request_utils.DoRequest(
@@ -63,7 +63,7 @@ func ListDistributors(urls configuration.Url, accessToken string) (*DistributorL
 
 func RemoveDistributor(urls configuration.Url, accessToken, distributorId, deleteDistributorToken string) error {
 	var err error
-	url := urls.IamUrl + constants.Distributors + "/" + distributorId + "?token=" + deleteDistributorToken
+	url := urls.ChUrl + constants.Distributors + "/" + distributorId + "?token=" + deleteDistributorToken
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -130,7 +130,7 @@ func DownloadDistributorReport(urls configuration.Url, accessToken, distributorI
 func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID, name string, description *string, swarmIDs []string, maxRedemptions int, zone string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons"
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons"
 
 	requestBody := map[string]interface{}{
 		"name":            name,
@@ -162,7 +162,7 @@ func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID,
 
 func ListDistributorCoupons(urls configuration.Url, accessToken, distributorID string) (*DistributorCouponList, error) {
 	var err error
-	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons"
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons"
 	var response DistributorCouponList
 
 	if err = request_utils.DoRequest(
@@ -178,7 +178,7 @@ func ListDistributorCoupons(urls configuration.Url, accessToken, distributorID s
 
 func GetDistributorCoupon(urls configuration.Url, accessToken, distributorID, couponID string) (*DistributorCoupon, error) {
 	var err error
-	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
 	var response DistributorCoupon
 
 	if err = request_utils.DoRequest(
@@ -195,7 +195,7 @@ func GetDistributorCoupon(urls configuration.Url, accessToken, distributorID, co
 func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string, name, description *string, maxRedemption *int) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
 
 	requestBody := map[string]interface{}{}
 
@@ -227,7 +227,7 @@ func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distrib
 func RevokeDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string) (*DistributorCouponCodeResponseModel, error) {
 	var err error
 	var response DistributorCouponCodeResponseModel
-	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID + "/revoke"
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID + "/revoke"
 
 	if err = request_utils.DoRequest(
 		url,
@@ -244,7 +244,7 @@ func RevokeDistributorCoupon(urls configuration.Url, accessToken string, distrib
 
 func RemoveDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string) error {
 	var err error
-	url := urls.IamUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
 
 	if err = request_utils.DoRequest(
 		url,

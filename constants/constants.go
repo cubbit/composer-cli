@@ -26,6 +26,7 @@ const (
 	BaseIamURI      = "/iam"
 	BaseHiveURI     = "/hive"
 	BaseDashURI     = "/api"
+	BaseChURI       = "/composer-hub"
 
 	Invites = "/invites"
 

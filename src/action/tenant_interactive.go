@@ -17,7 +17,7 @@ import (
 func CreateTenantInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var name, description, imageUrl, settingsString, couponCode, configPath, zone string
+	var name, description, settingsString, couponCode, configPath, zone string
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
 	var choices []string

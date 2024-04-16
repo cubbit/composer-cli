@@ -58,6 +58,7 @@ const (
 	ErrorTokenConfigNotFound       = "refresh token is not defined in configuration file"
 	ErrorNameConfigNotFound        = "name is not defined in configuration file"
 	ErrorDashConfigNotFound        = "dash api server url is not defined in configuration"
+	ErrorChConfigNotFound          = "ch api server url is not defined in configuration"
 	ErrorSessionTypeConfigNotFound = "session type is not defined in configuration"
 	ErrorSessionTypeConfigInvalid  = "session type is invalid for this request"
 

@@ -14,7 +14,7 @@ import (
 func CreateTenant(urls configuration.Url, accessToken, name string, description *string, settings TenantSettings, couponCode, zone string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.TenantsV2
+	url := urls.ChUrl + constants.TenantsV2
 
 	requestBody := map[string]interface{}{
 		"name":        name,
@@ -48,7 +48,7 @@ func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*Gen
 	var err error
 	var finalResponse GenericPaginatedResponse[*Tenant]
 
-	url := urls.IamUrl + constants.Tenants + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
+	url := urls.ChUrl + constants.Tenants + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
 
 	var nextPage *int
 	page := 1
@@ -79,7 +79,7 @@ func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*Gen
 
 func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantToken string) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantId + "?token=" + deleteTenantToken
+	url := urls.ChUrl + constants.Tenants + "/" + tenantId + "?token=" + deleteTenantToken
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -99,7 +99,7 @@ func EditTenantDescription(urls configuration.Url, accessToken, tenantID, descri
 		"description": description,
 	}
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -121,7 +121,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 		"image_url": imageUrl,
 	}
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -138,7 +138,7 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 
 func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/swarms"
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/swarms"
 	var response SwarmList
 
 	if err = request_utils.DoRequest(
@@ -225,7 +225,7 @@ func RemoveTenantOperator(urls configuration.Url, accessToken, tenantID, operato
 
 func GetTenant(urls configuration.Url, accessToken, tenantID string) (*Tenant, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID
 	var response Tenant
 
 	if err = request_utils.DoRequest(
@@ -242,7 +242,7 @@ func GetTenant(urls configuration.Url, accessToken, tenantID string) (*Tenant, e
 func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/swarms/" + swarmID
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/swarms/" + swarmID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -259,7 +259,7 @@ func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string)
 func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/coupons/default/swarms"
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/coupons/default/swarms"
 
 	var response SwarmList
 
@@ -294,7 +294,7 @@ func GetGatwayZones(urls configuration.Url) (*ZoneMap, error) {
 func AssignTenantToCoupon(urls configuration.Url, accessToken, tenantID, CouponCode string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/coupon"
+	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/coupon"
 
 	requestBody := map[string]interface{}{
 		"coupon_code": CouponCode,
@@ -320,7 +320,7 @@ func EditTenantSettings(urls configuration.Url, accessToken string, tenantID str
 		"settings": settings,
 	}
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+	url := urls.ChUrl + constants.TenantsV2 + "/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
