@@ -57,6 +57,7 @@ func StartServer(conf *configuration.Config, configPath string, port string) err
 				http.Error(w, constants.ErrorGeneratingToken, http.StatusInternalServerError)
 				return
 			} else {
+				fmt.Printf("[get] Handling token request for session %s\n", conf.Name)
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte(*accessToken))
 			}
@@ -66,7 +67,19 @@ func StartServer(conf *configuration.Config, configPath string, port string) err
 		}
 	})
 
-	fmt.Printf("Server starting on port %s\n", port)
+	fmt.Printf(`Add in bruno an header named "Authorization" containing:
+
+Bearer {{token}}
+
+Configure bruno script section with the following script:
+
+const axios = require('axios');
+const tokenUrl = 'http://127.0.0.1:%s/token?session_type=operator';
+let resp = await axios({method: 'GET', url: tokenUrl});
+bru.setVar('token', resp.data);
+
+`, port)
+	fmt.Printf("Server for session %s starting on localhost:%s\n", conf.Name, port)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("Server error: %v", err)
 	}
