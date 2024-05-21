@@ -127,7 +127,7 @@ func DownloadDistributorReport(urls configuration.Url, accessToken, distributorI
 	return &response, nil
 }
 
-func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID, name string, description *string, swarmIDs []string, maxRedemptions int, zone string) (*GenericIDResponseModel, error) {
+func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID, name string, description *string, swarmIDs []string, maxRedemptions int, zone string, externalID string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
 	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons"
@@ -136,6 +136,7 @@ func CreateDistributorCoupon(urls configuration.Url, accessToken, distributorID,
 		"name":            name,
 		"swarms":          swarmIDs,
 		"max_redemptions": maxRedemptions,
+		"external_id":     externalID,
 	}
 
 	if description != nil {
@@ -192,7 +193,7 @@ func GetDistributorCoupon(urls configuration.Url, accessToken, distributorID, co
 	return &response, nil
 }
 
-func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string, name, description *string, maxRedemption *int) (*GenericIDResponseModel, error) {
+func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distributorID, couponID string, name, description *string, maxRedemption *int, externalID *string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
 	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID
@@ -209,6 +210,10 @@ func UpdateDistributorCoupon(urls configuration.Url, accessToken string, distrib
 
 	if maxRedemption != nil && *maxRedemption != 0 {
 		requestBody["max_redemptions"] = *maxRedemption
+	}
+
+	if externalID != nil && *externalID != "" {
+		requestBody["external_id"] = *externalID
 	}
 
 	if err = request_utils.DoRequest(

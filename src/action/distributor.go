@@ -198,7 +198,7 @@ func RemoveDistributor(cmd *cobra.Command, args []string) error {
 func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, description, configPath, zone string
+	var id, name, couponName, description, configPath, zone, externalID string
 	var maxRedemptions int
 	var swarmIDs []string
 	var response *api.GenericIDResponseModel
@@ -238,6 +238,10 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if externalID, err = cmd.Flags().GetString("external-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if swarmIDs, err = cmd.Flags().GetStringSlice("swarms"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -264,7 +268,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		id = distributor.ID
 	}
 
-	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions, zone); err != nil {
+	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions, zone, externalID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
@@ -388,7 +392,7 @@ func DescribeDistributorCoupon(cmd *cobra.Command, args []string) error {
 func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, description, configPath string
+	var id, name, couponName, description, configPath, externalID string
 	var maxRedemptions int
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
@@ -419,6 +423,10 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if externalID, err = cmd.Flags().GetString("external-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -442,7 +450,7 @@ func EditDistributorCoupon(cmd *cobra.Command, args []string) error {
 
 	couponID := distributorCoupon.ID
 
-	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions); err != nil {
+	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions, &externalID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCouponRequest, err)
 	}
 

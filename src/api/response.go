@@ -195,6 +195,7 @@ type DistributorCoupon struct {
 	Code           string    `json:"code"`
 	Zone           string    `json:"zone"`
 	CreatedAt      time.Time `json:"created_at"`
+	ExternalID     string    `json:"external_id"`
 }
 
 type DistributorCouponList struct {
@@ -209,7 +210,7 @@ type TenantReport struct {
 	ID         string        `json:"id"`
 	ExternalID string        `json:"external_id"`
 	TenantName string        `json:"tenant_name"`
-	Code       int           `json:"string"`
+	Code       string        `json:"code"`
 	StorageBH  string        `json:"storage_bh"`
 	StorageGB  string        `json:"storage_gb"`
 	EngressGB  string        `json:"engress_gb"`

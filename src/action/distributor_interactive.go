@@ -201,7 +201,7 @@ func ListDistributorInteractive(cmd *cobra.Command) error {
 func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, description, redemptionCount, configPath, zone string
+	var id, name, couponName, description, redemptionCount, configPath, zone, externalID string
 	var maxRedemptions int
 	var swarmIDs []string
 	var response *api.GenericIDResponseModel
@@ -263,7 +263,14 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		id = distributor.ID
 	}
 
-	if _, err = tui.TextInputs("Fill in the form below", false, tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}, tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
+	if _, err = tui.TextInputs(
+		"Fill in the form below",
+		false,
+		tui.Input{Placeholder: "Name*", IsPassword: false, Value: &couponName},
+		tui.Input{Placeholder: "Description", IsPassword: false, Value: &description},
+		tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount},
+		tui.Input{Placeholder: "External ID", IsPassword: false, Value: &externalID},
+	); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
@@ -280,6 +287,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		maxRedemptions = -1
 	}
 
+	choices = []string{}
 	if zones, err = api.GetGatwayZones(conf.Urls); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingZonesRequest, err)
 	}
@@ -332,7 +340,7 @@ func CreateDistributorCouponInteractive(cmd *cobra.Command) error {
 		swarmIDs = append(swarmIDs, delId)
 	}
 
-	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions, zone); err != nil {
+	if response, err = api.CreateDistributorCoupon(conf.Urls, *accessToken, id, couponName, &description, swarmIDs, maxRedemptions, zone, externalID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
@@ -513,7 +521,7 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, couponName, couponID, description, redemptionCount, configPath string
+	var id, name, couponName, couponID, description, redemptionCount, configPath, externalID string
 	var maxRedemptions int
 	var response *api.GenericIDResponseModel
 	var conf *configuration.Config
@@ -595,7 +603,8 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 		true,
 		tui.Input{Placeholder: "Name", IsPassword: false, Value: &couponName},
 		tui.Input{Placeholder: "Description", IsPassword: false, Value: &description},
-		tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount}); err != nil {
+		tui.Input{Placeholder: "Redemption Count", IsPassword: false, Value: &redemptionCount},
+		tui.Input{Placeholder: "External ID", IsPassword: false, Value: &externalID}); err != nil {
 
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
@@ -611,7 +620,7 @@ func EditDistributorCouponInteractive(cmd *cobra.Command) error {
 		}
 	}
 
-	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions); err != nil {
+	if response, err = api.UpdateDistributorCoupon(conf.Urls, *accessToken, id, couponID, &couponName, &description, &maxRedemptions, &externalID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingDistributorCouponRequest, err)
 	}
 

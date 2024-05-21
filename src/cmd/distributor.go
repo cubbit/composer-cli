@@ -304,7 +304,7 @@ var removeDistributorCouponSubCmd = &cobra.Command{
 	},
 }
 
-var reportDistributSubCmd = &cobra.Command{
+var reportDistributorSubCmd = &cobra.Command{
 	Use:   "report",
 	Short: "downloads/prints a full report for the distributor",
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -365,12 +365,12 @@ func init() {
 	removeDistributorSubCmd.Flags().String("password", "", "Password")
 	removeDistributorSubCmd.Flags().String("code", "", "Two factor authentication code")
 
-	distributorCmd.AddCommand(reportDistributSubCmd)
-	reportDistributSubCmd.Flags().String("from", "", "Start date and time in DD/MM/YYYY+HH:mm:ss format")
-	reportDistributSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
-	reportDistributSubCmd.Flags().String("distributor-code", "", "The distributor code")
-	reportDistributSubCmd.Flags().String("format", "json", "Formats the result")
-	reportDistributSubCmd.Flags().StringP("output", "o", "", "Specify the output file or directory.Use a dot (.) to indicate the current directory.")
+	distributorCmd.AddCommand(reportDistributorSubCmd)
+	reportDistributorSubCmd.Flags().String("from", "", "Start date and time in DD/MM/YYYY+HH:mm:ss format")
+	reportDistributorSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
+	reportDistributorSubCmd.Flags().String("distributor-code", "", "The distributor code")
+	reportDistributorSubCmd.Flags().String("format", "json", "Formats the result")
+	reportDistributorSubCmd.Flags().StringP("output", "o", "", "Specify the output file or directory.Use a dot (.) to indicate the current directory.")
 
 	distributorCmd.AddCommand(createDistributorCouponSubCmd)
 	createDistributorCouponSubCmd.Flags().String("distributor-code-name", "", "Name of the distributor code")
@@ -378,6 +378,7 @@ func init() {
 	createDistributorCouponSubCmd.Flags().Int("redemption-count", -1, "Max redemptions of the distributor code")
 	createDistributorCouponSubCmd.Flags().StringSlice("swarms", []string{}, "List of swarm ids associated to the distributor code")
 	createDistributorCouponSubCmd.Flags().String("zone", "", "Zone of the distributor code creation")
+	createDistributorCouponSubCmd.Flags().String("external-id", "", "External ID of the distributor code")
 
 	distributorCmd.AddCommand(listDistributorCouponsSubCmd)
 	listDistributorCouponsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for distributor codes")
@@ -390,6 +391,7 @@ func init() {
 	editDistributorCouponSubCmd.Flags().String("distributor-code-name", "", "New name of the distributor code")
 	editDistributorCouponSubCmd.Flags().String("description", "", "New description of the distributor code")
 	editDistributorCouponSubCmd.Flags().Int("redemption-count", 0, "New max redemptions of the distributor code")
+	editDistributorCouponSubCmd.Flags().String("external-id", "", "New external ID of the distributor code")
 
 	distributorCmd.AddCommand(revokeDistributorCouponSubCmd)
 
