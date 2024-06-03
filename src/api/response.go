@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -431,4 +432,35 @@ type RingList struct {
 	Data  []*Ring `json:"data"`
 	Page  int     `json:"page"`
 	Count int     `json:"count"`
+}
+
+type HumanReadableDistributorCoupon struct {
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	Redemptions    int       `json:"redemptions"`
+	MaxRedemptions string    `json:"max_redemptions"`
+	Code           string    `json:"code"`
+	Zone           string    `json:"zone"`
+	CreatedAt      time.Time `json:"created_at"`
+	ExternalID     string    `json:"external_id"`
+}
+
+func (c *DistributorCoupon) ToHumanReadableDistributorCode() *HumanReadableDistributorCoupon {
+	maxRedemptions := fmt.Sprintf("%d", c.MaxRedemptions)
+	if c.MaxRedemptions == -1 {
+		maxRedemptions = "unlimited"
+	}
+
+	return &HumanReadableDistributorCoupon{
+		ID:             c.ID,
+		Name:           c.Name,
+		Description:    c.Description,
+		Redemptions:    c.Redemptions,
+		MaxRedemptions: maxRedemptions,
+		Code:           c.Code,
+		Zone:           c.Zone,
+		CreatedAt:      c.CreatedAt,
+		ExternalID:     c.ExternalID,
+	}
 }

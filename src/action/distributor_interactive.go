@@ -510,6 +510,11 @@ func DescribeDistributorCouponInteractive(cmd *cobra.Command) error {
 
 	for _, coupon := range distributorCoupons.Coupons {
 		if id == coupon.ID {
+			if coupon.MaxRedemptions == -1 {
+				utils.PrintFormattedData(*coupon.ToHumanReadableDistributorCode(), format)
+				return nil
+			}
+
 			utils.PrintFormattedData(*coupon, format)
 			return nil
 		}

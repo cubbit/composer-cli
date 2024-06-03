@@ -285,6 +285,7 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 	var distributorCoupons *api.DistributorCouponList
 	var distributor *api.Distributor
 	var verbose, l bool
+	var HumanReadableDistributorCoupons []*api.HumanReadableDistributorCoupon
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -329,8 +330,12 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	for _, coupon := range distributorCoupons.Coupons {
+		HumanReadableDistributorCoupons = append(HumanReadableDistributorCoupons, coupon.ToHumanReadableDistributorCode())
+	}
+
 	if verbose {
-		utils.PrintVerbose(distributorCoupons.Coupons, l)
+		utils.PrintVerbose(HumanReadableDistributorCoupons, l)
 		return nil
 	}
 
