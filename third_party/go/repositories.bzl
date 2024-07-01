@@ -5134,8 +5134,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/rs/zerolog",
-        sum = "h1:keLypqrlIjaFsbmJOBdB/qvyF8KEtCWHwobLp5l/mQ0=",
-        version = "v1.32.0",
+        sum = "h1:1cU2KZkvPxNyfgEmhHAz/1A9Bz+llsdYzklWFzgp0r8=",
+        version = "v1.33.0",
     )
     go_repository(
         name = "com_github_rueian_rueidis",
