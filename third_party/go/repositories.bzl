@@ -1518,8 +1518,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/DataDog/datadog-go",
-        sum = "h1:qbcKSx29aBLD+5QLvlQZlGmRMF/FfGqFLFev/1TDzRo=",
-        version = "v4.8.2+incompatible",
+        sum = "h1:fNGaYSuObuQb5nzeTQqowRAd9bpDIRRV4/gUtIBjh8Q=",
+        version = "v4.8.3+incompatible",
     )
     go_repository(
         name = "com_github_datadog_datadog_go_v5",
