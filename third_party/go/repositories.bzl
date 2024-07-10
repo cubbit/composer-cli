@@ -342,16 +342,16 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2",
-        sum = "h1:5554eUqIYVWpU0YmeeYZ0wU64H2VLBs8TlhRB2L+EkA=",
-        version = "v1.26.1",
+        sum = "h1:4y/5Dvfrhd1MxRDD77SrfsDaj8kUkkljU7XE83NPV+o=",
+        version = "v1.30.1",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_aws_protocol_eventstream",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream",
-        sum = "h1:x6xsQXGSmW6frevwDA+vi/wqhp1ct18mVXYN08/93to=",
-        version = "v1.6.2",
+        sum = "h1:tW1/Rkad38LA15X4UQtjXZXNKsCgkshC3EbmcUmghTg=",
+        version = "v1.6.3",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_config",
@@ -382,16 +382,16 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/internal/configsources",
-        sum = "h1:aw39xVGeRWlWx9EzGVnhOR4yOjQDHPQ6o6NmBlscyQg=",
-        version = "v1.3.5",
+        sum = "h1:5SAoZ4jYpGH4721ZNoS1znQrhOfZinOhc4XuTXx/nVc=",
+        version = "v1.3.13",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_internal_endpoints_v2",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2",
-        sum = "h1:PG1F3OD1szkuQPzDw3CIQsRIrtTlUC3lP84taWzHlq0=",
-        version = "v2.6.5",
+        sum = "h1:WIijqeaAO7TYFLbhsZmi2rgLEAtWOC1LhxCAVTJlSKw=",
+        version = "v2.6.13",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_internal_ini",
@@ -406,8 +406,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/internal/v4a",
-        sum = "h1:mDnFOE2sVkyphMWtTH+stv0eW3k0OTx94K63xpxHty4=",
-        version = "v1.3.3",
+        sum = "h1:THZJJ6TU/FOiM7DZFnisYV9d49oxXWUzsVIMTuf3VNU=",
+        version = "v1.3.13",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_cloudwatchlogs",
@@ -446,16 +446,16 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding",
-        sum = "h1:EyBZibRTVAs6ECHZOw5/wlylS9OcTzwyjeQMudmREjE=",
-        version = "v1.11.1",
+        sum = "h1:dT3MqvGhSoaIhRseqw2I0yH81l7wiR2vjs57O51EAm8=",
+        version = "v1.11.3",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_internal_checksum",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
-        sum = "h1:mbWNpfRUTT6bnacmvOTKXZjR/HycibdWzNpfbrbLDIs=",
-        version = "v1.3.5",
+        sum = "h1:2jyRZ9rVIMisyQRnhSS/SqlckveoxXneIumECVFP91Y=",
+        version = "v1.3.15",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_internal_endpoint_discovery",
@@ -470,16 +470,16 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url",
-        sum = "h1:K/NXvIftOlX+oGgWGIa3jDyYLDNsdVhsjHmsBH2GLAQ=",
-        version = "v1.11.5",
+        sum = "h1:I9zMeF107l0rJrpnHpjEiiTSCKYAIw8mALiXcPsGBiA=",
+        version = "v1.11.15",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_internal_s3shared",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
-        sum = "h1:4t+QEX7BsXz98W8W1lNvMAG+NX8qHz2CjLBxQKku40g=",
-        version = "v1.17.3",
+        sum = "h1:Eq2THzHt6P41mpjS2sUzz/3dJYFRqdWZ+vQaEMm98EM=",
+        version = "v1.17.13",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_kinesis",
@@ -494,8 +494,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/s3",
-        sum = "h1:lW5xUzOPGAMY7HPuNF4FdyBwRc3UJ/e8KsapbesVeNU=",
-        version = "v1.51.4",
+        sum = "h1:aHPtNY87GZ214N4rShgIo+5JQz7ICrJ50i17JbueUTw=",
+        version = "v1.57.1",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_sfn",
@@ -550,8 +550,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/smithy-go",
-        sum = "h1:tbp628ireGtzcHDDmLT/6ADHidqnwgF57XOXZe6tp4Q=",
-        version = "v1.20.2",
+        sum = "h1:ryHwveWzPV5BIof6fyDvor6V3iUL7nTfiTKXHiW05nE=",
+        version = "v1.20.3",
     )
     go_repository(
         name = "com_github_aymanbagabas_go_osc52_v2",
