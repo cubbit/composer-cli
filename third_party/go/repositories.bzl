@@ -342,8 +342,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2",
-        sum = "h1:4y/5Dvfrhd1MxRDD77SrfsDaj8kUkkljU7XE83NPV+o=",
-        version = "v1.30.1",
+        sum = "h1:jUeBtG0Ih+ZIFH0F4UkmL9w3cSpaMv9tYYDbzILP8dY=",
+        version = "v1.30.3",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_aws_protocol_eventstream",
@@ -382,16 +382,16 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/internal/configsources",
-        sum = "h1:5SAoZ4jYpGH4721ZNoS1znQrhOfZinOhc4XuTXx/nVc=",
-        version = "v1.3.13",
+        sum = "h1:SoNJ4RlFEQEbtDcCEt+QG56MY4fm4W8rYirAmq+/DdU=",
+        version = "v1.3.15",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_internal_endpoints_v2",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2",
-        sum = "h1:WIijqeaAO7TYFLbhsZmi2rgLEAtWOC1LhxCAVTJlSKw=",
-        version = "v2.6.13",
+        sum = "h1:C6WHdGnTDIYETAm5iErQUiVNsclNx9qbJVPIt03B6bI=",
+        version = "v2.6.15",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_internal_ini",
@@ -406,8 +406,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/internal/v4a",
-        sum = "h1:THZJJ6TU/FOiM7DZFnisYV9d49oxXWUzsVIMTuf3VNU=",
-        version = "v1.3.13",
+        sum = "h1:Z5r7SycxmSllHYmaAZPpmN8GviDrSGhMS6bldqtXZPw=",
+        version = "v1.3.15",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_cloudwatchlogs",
@@ -454,8 +454,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
-        sum = "h1:2jyRZ9rVIMisyQRnhSS/SqlckveoxXneIumECVFP91Y=",
-        version = "v1.3.15",
+        sum = "h1:YPYe6ZmvUfDDDELqEKtAd6bo8zxhkm+XEFEzQisqUIE=",
+        version = "v1.3.17",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_internal_endpoint_discovery",
@@ -470,16 +470,16 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url",
-        sum = "h1:I9zMeF107l0rJrpnHpjEiiTSCKYAIw8mALiXcPsGBiA=",
-        version = "v1.11.15",
+        sum = "h1:HGErhhrxZlQ044RiM+WdoZxp0p+EGM62y3L6pwA4olE=",
+        version = "v1.11.17",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_internal_s3shared",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
-        sum = "h1:Eq2THzHt6P41mpjS2sUzz/3dJYFRqdWZ+vQaEMm98EM=",
-        version = "v1.17.13",
+        sum = "h1:246A4lSTXWJw/rmlQI+TT2OcqeDMKBdyjEQrafMaQdA=",
+        version = "v1.17.15",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_kinesis",
@@ -494,8 +494,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/aws/aws-sdk-go-v2/service/s3",
-        sum = "h1:aHPtNY87GZ214N4rShgIo+5JQz7ICrJ50i17JbueUTw=",
-        version = "v1.57.1",
+        sum = "h1:sZXIzO38GZOU+O0C+INqbH7C2yALwfMWpd64tONS/NE=",
+        version = "v1.58.2",
     )
     go_repository(
         name = "com_github_aws_aws_sdk_go_v2_service_sfn",
