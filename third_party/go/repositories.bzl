@@ -6030,8 +6030,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/zeebo/assert",
-        sum = "h1:vukIABvugfNMZMQO1ABsyQDJDTVQbn+LWSMy1ol1h6A=",
-        version = "v1.3.1",
+        sum = "h1:g7C04CbJuIDKNPFHmsk4hwZDO5O+kntRxzaUoNXj+IQ=",
+        version = "v1.3.0",
     )
     go_repository(
         name = "com_github_zeebo_xxh3",
