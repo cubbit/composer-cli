@@ -16,7 +16,7 @@ Keyword file example
 
 ```bash
 iam: http://localhost:8181
-hive: http://localhost:9151
+hive: http://localhost:8480
 dash:  http://localhost:3000
 ```
 
@@ -263,7 +263,7 @@ cubbit-operator-cli tenant list-available-swarms --interactive
 ### Create a distributor
 
 ```bash
-cubbit-operator-cli distributor create/new --name <name> --description <description> --first-name <first-name> --image-url <image-url> --owner <owner> --swarms <swarm-ids> 
+cubbit-operator-cli distributor create/new --name <name> --description <description> --first-name <first-name> --image-url <image-url> --owner <owner> --swarms <swarm-ids>
 ```
 
 Interactively
@@ -405,7 +405,7 @@ go build -o build/cubbit github.com/cubbit/cubbit/client/cli
 Edit tenant settings:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  edit-settings {settings} 
+cubbit-operator-cli tenant --name <name> --id <id>  edit-settings {settings}
 ```
 
 List users registered under a tenant:
@@ -479,7 +479,7 @@ Edit the role of an operator inside a tenant:
 ```bash
 cubbit-operator-cli tenant --name <name> --id <id> edit-operator <operator-id> --role <role>
 ```
-  
+
 List projects registered under a tenant:
 
 ```bash
