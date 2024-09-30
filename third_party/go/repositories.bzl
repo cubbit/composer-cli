@@ -3774,8 +3774,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/jung-kurt/gofpdf",
-        sum = "h1:PJr+ZMXIecYc1Ey2zucXdR73SMBtgjPgwa31099IMv0=",
-        version = "v1.0.3-0.20190309125859-24315acbbda5",
+        sum = "h1:jgbatWHfRlPYiK85qgevsZTHviWXKwB1TTiKdz5PtRc=",
+        version = "v1.16.2",
     )
     go_repository(
         name = "com_github_kballard_go_shellquote",
