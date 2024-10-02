@@ -144,6 +144,10 @@ func (c *Config) StoreSession(path string) error {
 		return err
 	}
 
+	if err = os.MkdirAll(path, 0750); err != nil {
+		return err
+	}
+
 	if file, err = os.Create(filepath.Join(path, constants.DefaultConfigFileName)); err != nil {
 		return err
 	}

@@ -994,6 +994,13 @@ def go_repositories():
         version = "v0.11.0",
     )
     go_repository(
+        name = "com_github_charmbracelet_x_ansi",
+        build_file_proto_mode = "disable",
+        importpath = "github.com/charmbracelet/x/ansi",
+        sum = "h1:CGAduulr6egay/YVbGc8Hsu8deMg1xZ/bkaXTPi1JDk=",
+        version = "v0.1.1",
+    )
+    go_repository(
         name = "com_github_checkpoint_restore_go_criu_v4",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
