@@ -995,6 +995,7 @@ def go_repositories():
     )
     go_repository(
         name = "com_github_charmbracelet_x_ansi",
+        build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/charmbracelet/x/ansi",
         sum = "h1:CGAduulr6egay/YVbGc8Hsu8deMg1xZ/bkaXTPi1JDk=",
