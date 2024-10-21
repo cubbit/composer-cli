@@ -54,7 +54,6 @@ const (
 	ErrorEditingOperatorRoleRequest = "failed request to edit operator role"
 
 	ErrorIamConfigNotFound         = "iam api server url is not defined in configuration"
-	ErrorHiveConfigNotFound        = "hive api server url is not defined in configuration"
 	ErrorTokenConfigNotFound       = "refresh token is not defined in configuration file"
 	ErrorNameConfigNotFound        = "name is not defined in configuration file"
 	ErrorDashConfigNotFound        = "dash api server url is not defined in configuration"

@@ -25,7 +25,6 @@ const (
 
 type Url struct {
 	IamUrl  string `yaml:"iam"`
-	HiveUrl string `yaml:"hive"`
 	DashUrl string `yaml:"dash"`
 	ChUrl   string `yaml:"ch"`
 }
@@ -69,10 +68,6 @@ func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
 		return nil, fmt.Errorf(constants.ErrorIamConfigNotFound)
 	}
 
-	if urls.HiveUrl == "" {
-		return nil, fmt.Errorf(constants.ErrorHiveConfigNotFound)
-	}
-
 	if urls.DashUrl == "" {
 		return nil, fmt.Errorf(constants.ErrorDashConfigNotFound)
 	}
@@ -99,10 +94,6 @@ func (c *Config) LoadAndCheckSession(filePath string, name string, expectedSessi
 
 	if config.Urls.IamUrl == "" {
 		return fmt.Errorf(constants.ErrorIamConfigNotFound)
-	}
-
-	if config.Urls.HiveUrl == "" {
-		return fmt.Errorf(constants.ErrorHiveConfigNotFound)
 	}
 
 	if config.Urls.DashUrl == "" {
@@ -252,7 +243,6 @@ func composeURL(apiServerUrl string) *Url {
 
 	url := &Url{
 		IamUrl:  apiServerUrl + constants.BaseIamURI,
-		HiveUrl: apiServerUrl + constants.BaseHiveURI,
 		DashUrl: constants.BaseDashURL,
 		ChUrl:   apiServerUrl + constants.BaseChURI,
 	}

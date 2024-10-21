@@ -13,7 +13,7 @@ import (
 func CreateRedundancyClass(urls configuration.Url, accessToken, swamID string, redundancyClass CreateRedundancyClassRequestBody) (*RedundancyClass, error) {
 	var err error
 	var response RedundancyClass
-	url := urls.HiveUrl + constants.Swarms + "/" + swamID + "/redundancy_class"
+	url := urls.ChUrl + constants.Swarms + "/" + swamID + "/redundancy_class"
 
 	requestBody, err := json.Marshal(redundancyClass)
 	if err != nil {
@@ -36,7 +36,7 @@ func CreateRedundancyClass(urls configuration.Url, accessToken, swamID string, r
 func ListRedundancyClasses(urls configuration.Url, accessToken, swamID string) (*RedundancyClassList, error) {
 	var err error
 	var finalResponse RedundancyClassList
-	url := urls.HiveUrl + constants.RedundancyClasses + "?swarm_id=" + swamID
+	url := urls.ChUrl + constants.RedundancyClasses + "?swarm_id=" + swamID
 
 	page := 0
 	resultsPerPage := 1000
@@ -66,7 +66,7 @@ func ListRedundancyClasses(urls configuration.Url, accessToken, swamID string) (
 func GetRedundancyClass(urls configuration.Url, accessToken, redundancyClassID string) (*RedundancyClass, error) {
 	var err error
 	var response RedundancyClass
-	url := urls.HiveUrl + constants.RedundancyClasses + "/" + redundancyClassID
+	url := urls.ChUrl + constants.RedundancyClasses + "/" + redundancyClassID
 
 	if err = request_utils.DoRequest(
 		url,

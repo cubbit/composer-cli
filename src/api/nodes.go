@@ -13,7 +13,7 @@ import (
 func CreateNode(urls configuration.Url, accessToken string, nodeBody CreateNodeBodyRequest) (*Node, error) {
 	var err error
 	var response Node
-	url := urls.HiveUrl + constants.NodesV2
+	url := urls.ChUrl + constants.NodesV2
 
 	bodyRequest, err := json.Marshal(nodeBody)
 	if err != nil {
@@ -37,7 +37,7 @@ func CreateNode(urls configuration.Url, accessToken string, nodeBody CreateNodeB
 func GetNode(urls configuration.Url, accessToken string, nodeID string) (*Node, error) {
 	var err error
 	var response Node
-	url := urls.HiveUrl + constants.Nodes + "/" + nodeID
+	url := urls.ChUrl + constants.Nodes + "/" + nodeID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -53,7 +53,7 @@ func GetNode(urls configuration.Url, accessToken string, nodeID string) (*Node, 
 
 func UpdateNode(urls configuration.Url, accessToken string, nodeID string, nodeBody UpdateNodeBodyRequest) error {
 	var err error
-	url := urls.HiveUrl + constants.Nodes + "/" + nodeID
+	url := urls.ChUrl + constants.Nodes + "/" + nodeID
 
 	bodyRequest, err := json.Marshal(nodeBody)
 	if err != nil {
@@ -76,7 +76,7 @@ func UpdateNode(urls configuration.Url, accessToken string, nodeID string, nodeB
 
 func DeleteNode(urls configuration.Url, accessToken string, nodeID string) error {
 	var err error
-	url := urls.HiveUrl + constants.Nodes + "/" + nodeID
+	url := urls.ChUrl + constants.Nodes + "/" + nodeID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -94,7 +94,7 @@ func ListNodes(urls configuration.Url, accessToken string, swarmID string, nexus
 
 	var err error
 	var finalResponse NodeList
-	url := urls.HiveUrl + constants.Nodes + "?swarm_id=" + swarmID
+	url := urls.ChUrl + constants.Nodes + "?swarm_id=" + swarmID
 
 	if nexusID != "" {
 		url += "&nexus_id=" + nexusID

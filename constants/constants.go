@@ -24,7 +24,6 @@ const (
 	// API URIS
 	BaseKeyvaultURI = "keyvault"
 	BaseIamURI      = "/iam"
-	BaseHiveURI     = "/hive"
 	BaseDashURI     = "/api"
 	BaseChURI       = "/composer-hub"
 

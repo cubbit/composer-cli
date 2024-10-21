@@ -16,7 +16,7 @@ Keyword file example
 
 ```bash
 iam: http://localhost:8181
-hive: http://localhost:8480
+ch: http://localhost:8480
 dash:  http://localhost:3000
 ```
 
@@ -29,19 +29,19 @@ cubbit-operator-cli operator signup --interactive
 ### Signin an operator
 
 ```bash
-cubbit-operator-cli signin/login --interactive
+cubbit-operator-cli operator signin/login --interactive
 ```
 
 Interactively
 
 ```bash
-cubbit-operator-cli signin/login --api-server-url <api-server-url> --email <email> --password <password> --code <code> --profile <profile> --config <config>
+cubbit-operator-cli operator signin/login --api-server-url <api-server-url> --email <email> --password <password> --code <code> --profile <profile> --config <config>
 ```
 
 ### sign out an operator
 
 ```bash
-cubbit-operator-cli logout --profile default
+cubbit-operator-cli operator logout --profile default
 ```
 
 ### Create a tenant

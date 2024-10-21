@@ -15,7 +15,7 @@ func ListRings(urls configuration.Url, accessToken string, swarmID string, redun
 	var err error
 	var finalResponse RingList
 
-	url := urls.HiveUrl + constants.Rings + "?swarm_id=" + swarmID 
+	url := urls.ChUrl + constants.Rings + "?swarm_id=" + swarmID
 
 	if redundancyClassID != "" {
 		url += "&redundancy_class_id=" + redundancyClassID
@@ -50,7 +50,7 @@ func ListRings(urls configuration.Url, accessToken string, swarmID string, redun
 func CreateRing(urls configuration.Url, accessToken, swarmID, redundancyClassID string, ringBulk RingBulk, dryRun bool) (*RingList, error) {
 	var err error
 	var response RingList
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/rings" + "/bulks"
+	url := urls.ChUrl + constants.Swarms + "/" + swarmID + "/rings" + "/bulks"
 
 	if dryRun {
 		url += "?dry_run=true"

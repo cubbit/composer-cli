@@ -14,7 +14,7 @@ import (
 func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name string, description string, swarmConfig map[string]interface{}) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
+	url := fmt.Sprintf("%s%s", urls.ChUrl, constants.Swarms)
 
 	requestBody := map[string]interface{}{
 		"name":          name,
@@ -39,7 +39,7 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 
 func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]*Swarm, error) {
 	var err error
-	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
+	url := fmt.Sprintf("%s%s", urls.ChUrl, constants.Swarms)
 	var response []*Swarm
 
 	if err = request_utils.DoRequest(
@@ -55,7 +55,7 @@ func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]*Swarm, 
 
 func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID string) (*Swarm, error) {
 	var err error
-	url := fmt.Sprintf("%s%s/%s", urls.HiveUrl, constants.Swarms, swarmID)
+	url := fmt.Sprintf("%s%s/%s", urls.ChUrl, constants.Swarms, swarmID)
 	var response Swarm
 
 	if err = request_utils.DoRequest(
@@ -72,7 +72,7 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 func RemoveSwarm(urls configuration.Url, accessToken, swarmId, deleteSwarmToken string) error {
 	var err error
 
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmId + "?token=" + deleteSwarmToken
+	url := urls.ChUrl + constants.Swarms + "/" + swarmId + "?token=" + deleteSwarmToken
 
 	if err = request_utils.DoRequest(
 		url,
@@ -93,7 +93,7 @@ func EditSwarmDescription(urls configuration.Url, accessToken, swarmID, descript
 		"description": description,
 	}
 
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID
+	url := urls.ChUrl + constants.Swarms + "/" + swarmID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -116,7 +116,7 @@ func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) er
 		"name": name,
 	}
 
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID
+	url := urls.ChUrl + constants.Swarms + "/" + swarmID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -228,7 +228,7 @@ func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*P
 
 	var err error
 	var finalResponse ProviderList
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/providers"
+	url := urls.ChUrl + constants.Swarms + "/" + swarmID + "/providers"
 
 	page := 0
 	resultsPerPage := 1000
@@ -260,7 +260,7 @@ func CreateSwarmSecret(urls configuration.Url, accessToken, swarmID, providerID 
 	var err error
 	var secret string
 	var ID GenericIDResponseModel
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/secrets"
+	url := urls.ChUrl + constants.Swarms + "/" + swarmID + "/secrets"
 
 	secret, err = utils.GenerateSecret()
 	if err != nil {

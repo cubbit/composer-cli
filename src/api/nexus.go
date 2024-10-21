@@ -13,7 +13,7 @@ import (
 func CreateNexus(urls configuration.Url, accessToken string, swarmID string, nexusBody CreateNexusRequestBody) (*Nexus, error) {
 	var err error
 	var response Nexus
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/nexuses"
+	url := urls.ChUrl + constants.Swarms + "/" + swarmID + "/nexuses"
 
 	requestBody, err := json.Marshal(nexusBody)
 	if err != nil {
@@ -36,7 +36,7 @@ func CreateNexus(urls configuration.Url, accessToken string, swarmID string, nex
 
 func UpdateNexus(urls configuration.Url, accessToken string, nexusID string, nexusBody UpdateNexusRequestBody) error {
 	var err error
-	url := urls.HiveUrl + constants.Nexuses + "/" + nexusID
+	url := urls.ChUrl + constants.Nexuses + "/" + nexusID
 
 	requestBody, err := json.Marshal(nexusBody)
 	if err != nil {
@@ -59,7 +59,7 @@ func UpdateNexus(urls configuration.Url, accessToken string, nexusID string, nex
 func GetNexus(urls configuration.Url, accessToken string, nexusID string) (*Nexus, error) {
 	var err error
 	var response Nexus
-	url := urls.HiveUrl + constants.Nexuses + "/" + nexusID
+	url := urls.ChUrl + constants.Nexuses + "/" + nexusID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -76,7 +76,7 @@ func GetNexus(urls configuration.Url, accessToken string, nexusID string) (*Nexu
 func ListNexuses(urls configuration.Url, accessToken string, swarmID string) (*NexusList, error) {
 	var err error
 	var finalResponse NexusList
-	url := urls.HiveUrl + constants.Nexuses + "?swarm_id=" + swarmID
+	url := urls.ChUrl + constants.Nexuses + "?swarm_id=" + swarmID
 
 	page := 0
 	resultsPerPage := 1000
@@ -107,7 +107,7 @@ func ListNexuses(urls configuration.Url, accessToken string, swarmID string) (*N
 
 func DeleteNexus(urls configuration.Url, accessToken string, nexusID string) error {
 	var err error
-	url := urls.HiveUrl + constants.Nexuses + "/" + nexusID
+	url := urls.ChUrl + constants.Nexuses + "/" + nexusID
 
 	if err = request_utils.DoRequest(
 		url,
