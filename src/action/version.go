@@ -1,29 +1,32 @@
 package action
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-type commitizen struct {
+type data struct {
 	Version string `json:"version"`
-}
-
-type cz struct {
-	Commitizen commitizen `json:"commitizen"`
 }
 
 func GetCliVersion(cmd *cobra.Command, args []string) error {
 	var err error
 
-	versionFile, err := os.ReadFile("VERSION")
+	jsonFile, err := os.ReadFile("package.json")
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(versionFile))
+	var dv data
+	err = json.Unmarshal(jsonFile, &dv)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(dv.Version)
 
 	return nil
 }
