@@ -1,3 +1,15 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [0.19.1](https://github.com/cubbit/cubbit/compare/cli-v0.19.0...cli-v0.19.1) (2024-11-14)
+
+
+### Bug Fixes
+
+* **cli:** fix the version bump ([#14023](https://github.com/cubbit/cubbit/issues/14023)) ([15034c3](https://github.com/cubbit/cubbit/commit/15034c338bd66968a3b273d0667b5b0411944f89))
+* **cli:** update changelog generation ([#14017](https://github.com/cubbit/cubbit/issues/14017)) ([d187175](https://github.com/cubbit/cubbit/commit/d187175c8347c936581c186ebc578b9a625ff897))
+
 ## 0.19.0 (2024-03-22)
 
 ### Feat
