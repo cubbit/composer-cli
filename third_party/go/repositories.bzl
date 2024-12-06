@@ -4286,8 +4286,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/jackc/pgservicefile",
-        sum = "h1:bbPeKD0xmW/Y25WS6cokEszi5g+S0QxI/d45PkRi7Nk=",
-        version = "v0.0.0-20221227161230-091c0ba34f0a",
+        sum = "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+        version = "v0.0.0-20240606120523-5a60cdf6a761",
     )
     go_repository(
         name = "com_github_jackc_pgtype",
@@ -4310,8 +4310,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/jackc/pgx/v5",
-        sum = "h1:amBjrZVmksIdNjxGW/IiIMzxMKZFelXbUoPNb+8sjQw=",
-        version = "v5.5.5",
+        sum = "h1:x7SYsPBYDkHDksogeSmZZ5xzThcTgRz++I5E+ePFUcs=",
+        version = "v5.7.1",
     )
     go_repository(
         name = "com_github_jackc_puddle",
@@ -4326,8 +4326,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/jackc/puddle/v2",
-        sum = "h1:RhxXJtFG022u4ibrCSMSiu5aOq1i77R3OHKNJj77OAk=",
-        version = "v2.2.1",
+        sum = "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+        version = "v2.2.2",
     )
     go_repository(
         name = "com_github_jarcoal_httpmock",
@@ -9622,8 +9622,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/crypto",
-        sum = "h1:RrRspgV4mU+YwB4FYnuBoKsUapNIL5cohGAmSH3azsw=",
-        version = "v0.26.0",
+        sum = "h1:GXm2NjJrPaiv/h1tb2UH8QfgC/hOf/+z0p6PT8o1w7A=",
+        version = "v0.27.0",
     )
     go_repository(
         name = "org_golang_x_exp",
@@ -9702,24 +9702,24 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/sys",
-        sum = "h1:Twjiwq9dn6R1fQcyiK+wQyHWfaz/BJB+YIpzU/Cv3Xg=",
-        version = "v0.24.0",
+        sum = "h1:r+8e+loiHxRqhXVl6ML1nO3l1+oFoWbnlu2Ehimmi34=",
+        version = "v0.25.0",
     )
     go_repository(
         name = "org_golang_x_term",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/term",
-        sum = "h1:F6D4vR+EHoL9/sWAWgAR1H2DcHr4PareCbAaCo1RpuU=",
-        version = "v0.23.0",
+        sum = "h1:Mh5cbb+Zk2hqqXNO7S1iTjEphVL+jb8ZWaqh/g+JWkM=",
+        version = "v0.24.0",
     )
     go_repository(
         name = "org_golang_x_text",
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "golang.org/x/text",
-        sum = "h1:XtiM5bkSOt+ewxlOE/aE/AKEHibwj/6gvWMl9Rsh0Qc=",
-        version = "v0.17.0",
+        sum = "h1:XvMDiNzPAl0jr17s6W9lcaIhGUfUORdGCNsuLmPG224=",
+        version = "v0.18.0",
     )
     go_repository(
         name = "org_golang_x_time",
