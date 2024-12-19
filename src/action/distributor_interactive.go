@@ -937,3 +937,125 @@ func GetDistributorReportInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func InviteDistributorCouponInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, couponID, configPath string
+	var conf *configuration.Config
+	var choice string
+	var choices []string
+	var distributors *api.DistributorList
+	var distributorCoupons *api.DistributorCouponList
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		if distributors, err = api.ListDistributors(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingDistributorsRequest, err)
+		}
+
+		for _, distributor := range distributors.Distributors {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", distributor.ID, distributor.Name, distributor.Description))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No distributor found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Which distributor would you like to choose?", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorList, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		var distributor *api.Distributor
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributor, err)
+		}
+		id = distributor.ID
+	}
+
+	choices = []string{}
+
+	if distributorCoupons, err = api.ListDistributorCoupons(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingDistributorCouponsRequest, err)
+	}
+
+	for _, coupon := range distributorCoupons.Coupons {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", coupon.ID, coupon.Name, coupon.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No distributor code found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which distributor code would you like to use?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponList, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	couponID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	var emailsString string
+
+	if _, err = tui.EmailBulkTextAreas(
+		"Fill in with the list of emails",
+		false,
+		tui.EmailBulkTextArea{
+			Placeholder: "email1,email2,email3...",
+			Value:       &emailsString,
+		}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+
+	}
+
+	emails := strings.Split(emailsString, ",")
+	for i, email := range emails {
+		emails[i] = strings.TrimSpace(email)
+	}
+
+	choices = []string{}
+
+	for _, p := range []string{"create-tenant", "create-swarm"} {
+		choices = append(choices, fmt.Sprintf("• %s", p))
+	}
+
+	if choices, err = tui.ChooseMany("Which base policies would you like to associate to the distributor code invite?", true, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponBasePolicyList, err)
+	}
+
+	var basePolicies []string
+	for _, c := range choices {
+		_, withoutPrefix, _ := strings.Cut(c, " ")
+		delId, _, _ := strings.Cut(withoutPrefix, ",")
+		basePolicies = append(basePolicies, delId)
+	}
+
+	if err = api.InviteDistributorCoupon(conf.Urls, *accessToken, id, couponID, emails, basePolicies); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorInvitingDistributorCouponRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("distributor code %s invites sent successfully", couponID))
+
+	return nil
+}

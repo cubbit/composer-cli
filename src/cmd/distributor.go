@@ -304,6 +304,61 @@ var removeDistributorCouponSubCmd = &cobra.Command{
 	},
 }
 
+var inviteDistributorCouponSubCmd = &cobra.Command{
+	Use:   "invite-distributor-code",
+	Short: "invite distributor code",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if len(args) == 0 {
+				fmt.Println("Error: no distributor code id/name argument provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("emails")
+
+			emails, _ := cmd.Flags().GetStringSlice("emails")
+			if len(emails) == 0 {
+				fmt.Println("Error: no emails provided")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			basePolicies, _ := cmd.Flags().GetStringSlice("base-policies")
+			if len(basePolicies) > 0 {
+				for _, policy := range basePolicies {
+					if policy != "create-tenant" && policy != "create-swarm" {
+						fmt.Println("invalid value '%s' for --base-policies; allowed values are: create-tenant, create-swarm", policy)
+						cmd.Usage()
+						os.Exit(1)
+					}
+				}
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.InviteDistributorCoupon); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.InviteDistributorCouponInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 var reportDistributorSubCmd = &cobra.Command{
 	Use:   "report",
 	Short: "downloads/prints a full report for the distributor",
@@ -396,6 +451,10 @@ func init() {
 	distributorCmd.AddCommand(revokeDistributorCouponSubCmd)
 
 	distributorCmd.AddCommand(removeDistributorCouponSubCmd)
+
+	distributorCmd.AddCommand(inviteDistributorCouponSubCmd)
+	inviteDistributorCouponSubCmd.Flags().StringSlice("emails", []string{}, "list of emails to invite")
+	inviteDistributorCouponSubCmd.Flags().StringSlice("base-policies", []string{}, "list of base policies to invite, allowed values are: create-tenant, create-swarm")
 
 	rootCmd.AddCommand(distributorCmd)
 	distributorCmd.PersistentFlags().String("name", "", "Name of the distributor")

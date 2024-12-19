@@ -560,6 +560,63 @@ func RemoveDistributorCoupon(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func InviteDistributorCoupon(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath string
+	var conf *configuration.Config
+	var distributor *api.Distributor
+	var distributorCoupon *api.DistributorCoupon
+	var emails []string
+	var basePolicies []string
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if emails, err = cmd.Flags().GetStringSlice("emails"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if basePolicies, err = cmd.Flags().GetStringSlice("base-policies"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if distributor, err = getDistributorByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorRequest, err)
+
+		}
+		id = distributor.ID
+	}
+
+	if distributorCoupon, err = getDistributorCouponByNameOrId(conf, *accessToken, id, args[0]); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorCouponRequest, err)
+
+	}
+	couponID := distributorCoupon.ID
+
+	if err = api.InviteDistributorCoupon(conf.Urls, *accessToken, id, couponID, emails, basePolicies); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRevokingDistributorCouponRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("distributor code %s invites sent successfully", couponID))
+
+	return nil
+}
+
 func GetDistributorReport(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string

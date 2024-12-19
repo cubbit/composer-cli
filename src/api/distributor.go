@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -260,5 +261,30 @@ func RemoveDistributorCoupon(urls configuration.Url, accessToken string, distrib
 	); err != nil {
 		return err
 	}
+	return nil
+}
+
+func InviteDistributorCoupon(urls configuration.Url, accessToken, distributorID string, couponID string, emails []string, basePolicies []string) error {
+	var err error
+
+	url := urls.ChUrl + constants.Distributors + "/" + distributorID + "/coupons/" + couponID + constants.Invites
+
+	requestBody := map[string]interface{}{
+		"emails":        emails,
+		"base_policies": basePolicies,
+	}
+
+	postBody, _ := json.Marshal(requestBody)
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBodyByte(postBody),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+	); err != nil {
+		return err
+	}
+
 	return nil
 }
