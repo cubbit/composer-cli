@@ -614,8 +614,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/benbjohnson/clock",
-        sum = "h1:vkLuvpK4fmtSCuo60+yC63p7y0BmQ8gm5ZXGuBCJyXg=",
-        version = "v1.0.3",
+        sum = "h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=",
+        version = "v1.1.0",
     )
     go_repository(
         name = "com_github_beorn7_perks",
@@ -3790,8 +3790,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "github.com/mgutz/ansi",
-        sum = "h1:j7+1HpAFS1zy5+Q4qx1fWh90gTKwiN4QCGoY9TWyyO4=",
-        version = "v0.0.0-20170206155736-9520e82c474b",
+        sum = "h1:5PJl274Y63IEHC+7izoQE9x6ikvDFZS2mDVS3drnohI=",
+        version = "v0.0.0-20200706080929-d51e80ef957d",
     )
     go_repository(
         name = "com_github_microsoft_go_mssqldb",
@@ -7590,8 +7590,8 @@ def go_repositories():
         build_directives = ["\"gazelle:default_visibility //visibility:public\""],
         build_file_proto_mode = "disable",
         importpath = "go.uber.org/zap",
-        sum = "h1:MTjgFu6ZLKvY6Pvaqk97GlxNBuMpV4Hy/3P6tRGlI2U=",
-        version = "v1.17.0",
+        sum = "h1:WefMeulhovoZ2sYXz7st6K0sLj7bBhpiFaud4r4zST8=",
+        version = "v1.21.0",
     )
     go_repository(
         name = "st_wow_git_gmp_jni",
