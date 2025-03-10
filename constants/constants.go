@@ -16,7 +16,7 @@ const (
 	Bearer           = "Bearer"
 
 	// Base API URL
-	BaseAPIURL = "https://api.cubbit.eu"
+	BaseAPIURL = "https://api.eu00wi.cubbit.services"
 
 	// Base DASH URL
 	BaseDashURL = "https://dashboard.cubbit.eu"
