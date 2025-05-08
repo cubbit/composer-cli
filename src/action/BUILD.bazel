@@ -19,8 +19,6 @@ go_library(
         "project_interactive.go",
         "redundancy_class_interactive.go",
         "redundency_class.go",
-        "ring.go",
-        "ring_interactive.go",
         "server.go",
         "swarm.go",
         "swarm_interactive.go",

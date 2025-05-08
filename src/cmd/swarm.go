@@ -713,67 +713,6 @@ var listRedundancyClassesSubCmd = &cobra.Command{
 	},
 }
 
-var createSwarmRingSubCmd = &cobra.Command{
-
-	Use:   "create-ring",
-	Short: "create a new ring",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if !interactive {
-			id, _ := cmd.Flags().GetString("id")
-			name, _ := cmd.Flags().GetString("name")
-			if id == "" && name == "" {
-				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
-				cmd.Usage()
-				os.Exit(1)
-			}
-
-			cmd.MarkFlagRequired("nexus-ids")
-			cmd.MarkFlagRequired("redundancy-class-id")
-
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		if !interactive {
-			if err = tui.Send(cmd, args, action.SetupSwarmRing); err != nil {
-				utils.PrintError(err)
-			}
-		} else {
-			if err = action.SetupSwarmRingInteractive(cmd); err != nil {
-				utils.PrintError(err)
-			}
-		}
-	},
-}
-
-var listSwarmRingsSubCmd = &cobra.Command{
-	Use:   "list-rings",
-	Short: "list rings",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if !interactive {
-			id, _ := cmd.Flags().GetString("id")
-			name, _ := cmd.Flags().GetString("name")
-			if id == "" && name == "" {
-				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
-				cmd.Usage()
-				os.Exit(1)
-			}
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarmRings); err != nil {
-				utils.PrintError(err)
-			}
-		} else {
-			if err = action.ListSwarmRingInteractive(cmd); err != nil {
-				utils.PrintError(err)
-			}
-		}
-	},
-}
-
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -867,16 +806,6 @@ func init() {
 	swarmCmd.AddCommand(listRedundancyClassesSubCmd)
 	listRedundancyClassesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for redundancy classes")
 	listRedundancyClassesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different redundancy classes")
-
-	swarmCmd.AddCommand(createSwarmRingSubCmd)
-	createSwarmRingSubCmd.Flags().StringSlice("nexus-ids", []string{}, "Comma separated list of nexus ids")
-	createSwarmRingSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
-	createSwarmRingSubCmd.Flags().Int("rings-number", 0, "Number of rings to create")
-
-	swarmCmd.AddCommand(listSwarmRingsSubCmd)
-	listSwarmRingsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for rings")
-	listSwarmRingsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different rings")
-	listSwarmRingsSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
 
 	rootCmd.AddCommand(swarmCmd)
 	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")

@@ -13,7 +13,6 @@ go_library(
         "redundancy_class.go",
         "response.go",
         "response_extractors.go",
-        "ring.go",
         "swarm.go",
         "tenant.go",
     ],
