@@ -562,11 +562,16 @@ var describeSwarmNodeSubCmd = &cobra.Command{
 	Short: "describe a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
-			if len(args) == 0 {
-				fmt.Println("Error: no node id argument provided")
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
 				cmd.Usage()
 				os.Exit(1)
 			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -588,11 +593,16 @@ var editSwarmNodeSubCmd = &cobra.Command{
 	Short: "edit a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
-			if len(args) == 0 {
-				fmt.Println("Error: no new name argument provided")
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
 				cmd.Usage()
 				os.Exit(1)
 			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -614,11 +624,18 @@ var removeSwarmNodeSubCmd = &cobra.Command{
 	Short: "remove a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if !interactive {
-			if len(args) == 0 {
-				fmt.Println("Error: no node id argument provided")
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
 				cmd.Usage()
 				os.Exit(1)
 			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -646,6 +663,26 @@ var listSwarmNodesSubCmd = &cobra.Command{
 				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
 				cmd.Usage()
 				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("nexus-id")
+
+			allowed_sorting_keys := []string{"id", "name", "label", "created_at", "deleted_at", "nexus_id"}
+			sort, _ := cmd.Flags().GetString("sort")
+
+			if sort != "" && !utils.Contains(allowed_sorting_keys, sort) {
+				fmt.Println("Error: invalid sort key provided, allowed keys are: id, name", "label", "created_at", "deleted_at", "nexus_id")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			filter, _ := cmd.Flags().GetString("filter")
+			if filter != "" {
+				if !utils.IsValidFilter(filter) {
+					fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
+					cmd.Usage()
+					os.Exit(1)
+				}
 			}
 		}
 	},
@@ -866,6 +903,7 @@ func init() {
 	swarmCmd.AddCommand(removeSwarmNexusSubCmd)
 
 	swarmCmd.AddCommand(listSwarmNexusesSubCmd)
+	listSwarmNexusesSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
 	listSwarmNexusesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for nexuses")
 	listSwarmNexusesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different nexuses")
 
@@ -883,15 +921,29 @@ func init() {
 	createSwarmNodeSubCmd.Flags().String("file", "", "Path to the JSON file containing node definitions")
 
 	swarmCmd.AddCommand(describeSwarmNodeSubCmd)
+	describeSwarmNodeSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	describeSwarmNodeSubCmd.Flags().String("node-id", "", "ID of the node")
 	describeSwarmNodeSubCmd.Flags().String("format", "default", "Format of the output")
 
 	swarmCmd.AddCommand(editSwarmNodeSubCmd)
+	editSwarmNodeSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	editSwarmNodeSubCmd.Flags().String("node-id", "", "ID of the node")
 	editSwarmNodeSubCmd.Flags().String("node-name", "", "Name of the node")
-	editSwarmNodeSubCmd.Flags().String("description", "", "Description of the node")
+	editSwarmNodeSubCmd.Flags().String("node-private-ip", "", "Private IP of the node")
+	editSwarmNodeSubCmd.Flags().String("node-public-ip", "", "Public IP of the node")
+	editSwarmNodeSubCmd.Flags().String("node-label", "", "Label of the node")
+	editSwarmNodeSubCmd.Flags().String("node-config", "", "Configuration of the node")
 
 	swarmCmd.AddCommand(removeSwarmNodeSubCmd)
+	removeSwarmNodeSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	removeSwarmNodeSubCmd.Flags().String("node-id", "", "ID of the node")
+	removeSwarmNodeSubCmd.Flags().String("email", "", "Email address")
+	removeSwarmNodeSubCmd.Flags().String("password", "", "Password")
+	removeSwarmNodeSubCmd.Flags().String("code", "", "Two factor authentication code")
 
 	swarmCmd.AddCommand(listSwarmNodesSubCmd)
+	listSwarmNodesSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listSwarmNodesSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
 	listSwarmNodesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for nodes")
 	listSwarmNodesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different nodes")
 	listSwarmNodesSubCmd.Flags().String("nexus-id", "", "ID of the nexus")

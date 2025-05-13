@@ -194,99 +194,8 @@ func DescribeSwarmNode(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var configPath, format string
 	var conf *configuration.Config
-	var node *api.Node
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	nodeID := args[0]
-
-	if node, err = api.GetNode(conf.Urls, *accessToken, nodeID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
-	}
-
-	utils.PrintFormattedData(*node, format)
-
-	return nil
-}
-
-func EditSwarmNode(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var name, description, configPath string
-	var conf *configuration.Config
-
-	if name, err = cmd.Flags().GetString("node-name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if description, err = cmd.Flags().GetString("description"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	nodeID := args[0]
-
-	nodeBodyRequest := api.UpdateNodeBodyRequest{
-		Name:        name,
-		Description: description,
-	}
-
-	if err = api.UpdateNode(conf.Urls, *accessToken, nodeID, nodeBodyRequest); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingNodeRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("Node %s edited successfully", nodeID))
-	return nil
-}
-
-func RemoveSwarmNode(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var configPath string
-	var conf *configuration.Config
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	nodeID := args[0]
-
-	if err = api.DeleteNode(conf.Urls, *accessToken, nodeID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
-	}
-
-	utils.PrintDelete(fmt.Sprintf("Node %s removed successfully", nodeID))
-	return nil
-}
-
-func ListSwarmNodes(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var name, id, nexusID, configPath string
-	var conf *configuration.Config
-	var nodes *api.NodeList
-	var verbose, l bool
+	var node *api.NewNode
+	var id, name, nexusID, nodeID string
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -297,6 +206,14 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 	}
 
 	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeID, err = cmd.Flags().GetString("node-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -314,11 +231,225 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if nodes, err = api.ListNodes(conf.Urls, *accessToken, id, nexusID); err != nil {
+	if node, err = api.GetNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
+	}
+
+	utils.PrintFormattedData(*node, format)
+
+	return nil
+}
+
+func EditSwarmNode(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, nodeName, label, nodeID, nexusID, privateIP, publicIP, configPath, nodeConfigStr string
+	var nodeConfig map[string]interface{}
+	var conf *configuration.Config
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeID, err = cmd.Flags().GetString("node-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeName, err = cmd.Flags().GetString("node-name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if privateIP, err = cmd.Flags().GetString("node-private-ip"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if publicIP, err = cmd.Flags().GetString("node-public-ip"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if label, err = cmd.Flags().GetString("node-label"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeConfigStr, err = cmd.Flags().GetString("node-config"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeConfigStr != "" {
+		if err = json.Unmarshal([]byte(nodeConfigStr), &nodeConfig); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorParsingJsonConfiguration, err)
+		}
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	var nodeBodyRequest api.UpdateNewNodeRequestBody
+
+	if nodeName != "" {
+		nodeBodyRequest.Name = &nodeName
+	}
+
+	if privateIP != "" {
+		nodeBodyRequest.PrivateIP = &privateIP
+	}
+
+	if publicIP != "" {
+		nodeBodyRequest.PublicIP = &publicIP
+	}
+
+	if label != "" {
+		nodeBodyRequest.Label = &label
+	}
+
+	if nodeConfigStr != "" {
+		nodeBodyRequest.Configuration = nodeConfig
+	}
+
+	if err = api.UpdateNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID, nodeBodyRequest); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingNodeRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("Node %s edited successfully", nodeID))
+	return nil
+}
+
+func RemoveSwarmNode(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var configPath string
+	var conf *configuration.Config
+	var id, name, nexusID, nodeID, email, password, code, deleteNodeToken string
+	var challenge *api.ChallengeResponseModel
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeID, err = cmd.Flags().GetString("node-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if password, err = cmd.Flags().GetString("password"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if code, err = cmd.Flags().GetString("code"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
+	}
+
+	if deleteNodeToken, err = api.ForgeOperatorSwarmNodeToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, nodeID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorForgingTenantAccountDeleteTokenRequest, err)
+	}
+
+	if err = api.DeleteNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID, deleteNodeToken); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
+	}
+
+	utils.PrintDelete(fmt.Sprintf("Node %s removed successfully", nodeID))
+	return nil
+}
+
+func ListSwarmNodes(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var name, id, nexusID, configPath, sort, filter string
+	var conf *configuration.Config
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
+	var verbose, l bool
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if sort, err = cmd.Flags().GetString("sort"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter, err = cmd.Flags().GetString("filter"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter != "" {
+		filter = utils.BuildFilterQuery(filter)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 	}
 
-	if len(nodes.Nodes) == 0 {
+	if len(nodes.Data) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
@@ -332,11 +463,11 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 	}
 
 	if verbose {
-		utils.PrintVerbose(nodes.Nodes, l)
+		utils.PrintVerbose(nodes.Data, l)
 		return nil
 	}
 
-	for _, node := range nodes.Nodes {
+	for _, node := range nodes.Data {
 
 		fmt.Printf(" • %s\n", node.Name)
 

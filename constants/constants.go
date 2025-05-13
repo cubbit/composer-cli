@@ -60,6 +60,7 @@ const (
 
 	DeleteTenantAccountToken = "/v1/auth/operators/forge/token?capabilities=delete_account&account_id="
 	DeleteTenantProjectToken = "/v1/auth/operators/forge/token?capabilities=delete_project&project_id="
+	DeleteSwarmNodeToken     = "/v1/auth/operators/forge/token?capabilities=delete_node&node_id="
 
 	Nexuses = "/v1/nexuses"
 	Nodes   = "/v1/nodes"

@@ -520,3 +520,24 @@ type NewAgentResponse struct {
 	Volume   AgentVolume            `json:"volume"`
 	CRN      map[string]interface{} `json:"crn"`
 }
+
+type NewNode struct {
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Label         *string                `json:"label"`
+	Configuration map[string]interface{} `json:"config"`
+	CreatedAt     time.Time              `json:"created_at"`
+	DeletedAt     *time.Time             `json:"deleted_at"`
+	NexusID       string                 `json:"nexus_id"`
+	PrivateIP     string                 `json:"private_ip"`
+	PublicIP      string                 `json:"public_ip"`
+	CRN           map[string]interface{} `json:"crn"`
+}
+
+type UpdateNewNodeRequestBody struct {
+	Name          *string                `json:"name" binding:"omitempty,min=3,max=63" example:"cubbit"`
+	Label         *string                `json:"label" example:"cube"`
+	Configuration map[string]interface{} `json:"config" binding:"omitempty"`
+	PublicIP      *string                `json:"public_ip" binding:"omitempty"`
+	PrivateIP     *string                `json:"private_ip" binding:"omitempty"`
+}

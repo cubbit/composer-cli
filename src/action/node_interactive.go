@@ -154,7 +154,7 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
-	var nodes *api.NodeList
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
@@ -234,19 +234,19 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if nodes, err = api.ListNodes(conf.Urls, *accessToken, id, nexusID); err != nil {
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
 	}
 
-	if len(nodes.Nodes) == 0 {
+	if len(nodes.Data) == 0 {
 		utils.PrintNotFound("No nodes found")
 		return nil
 	}
 
 	choices = []string{}
 
-	for _, node := range nodes.Nodes {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", node.ID, node.Name, node.Description))
+	for _, node := range nodes.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s", node.ID, node.Name))
 	}
 
 	if choice, err = tui.ChooseOne("Which node would you like to describe?", false, false, choices); err != nil {
@@ -260,7 +260,7 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	for _, node := range nodes.Nodes {
+	for _, node := range nodes.Data {
 		if node.ID == nodeID {
 			utils.PrintFormattedData(node, format)
 		}
@@ -272,11 +272,11 @@ func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, nexusID, nodeName, description string
+	var id, name, configPath, nexusID, nodeName, label, publicIP, privateIP string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
-	var nodes *api.NodeList
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
@@ -356,19 +356,19 @@ func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if nodes, err = api.ListNodes(conf.Urls, *accessToken, id, nexusID); err != nil {
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 	}
 
-	if len(nodes.Nodes) == 0 {
+	if len(nodes.Data) == 0 {
 		utils.PrintNotFound("No nodes found")
 		return nil
 	}
 
 	choices = []string{}
 
-	for _, node := range nodes.Nodes {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", node.ID, node.Name, node.Description))
+	for _, node := range nodes.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s", node.ID, node.Name))
 	}
 
 	if choice, err = tui.ChooseOne("Which node would you like to edit?", false, false, choices); err != nil {
@@ -378,16 +378,33 @@ func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ = strings.Cut(choice, " ")
 	nodeID, _, _ := strings.Cut(withoutPrefix, ",")
 
-	if _, err = tui.TextInputs("Fill in the form below", true, tui.Input{Placeholder: "Name", IsPassword: false, Value: &nodeName}, tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}); err != nil {
+	if _, err = tui.TextInputs("Fill in the form below", true,
+		tui.Input{Placeholder: "Name", IsPassword: false, Value: &nodeName},
+		tui.Input{Placeholder: "Label", IsPassword: false, Value: &label},
+		tui.Input{Placeholder: "Public IP", IsPassword: false, Value: &publicIP},
+		tui.Input{Placeholder: "Private IP", IsPassword: false, Value: &privateIP},
+	); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
 	}
 
-	nodeBody := api.UpdateNodeBodyRequest{
-		Name:        nodeName,
-		Description: description,
+	var nodeBody api.UpdateNewNodeRequestBody
+	if nodeName != "" {
+		nodeBody.Name = &nodeName
 	}
 
-	if err = api.UpdateNode(conf.Urls, *accessToken, nodeID, nodeBody); err != nil {
+	if label != "" {
+		nodeBody.Label = &label
+	}
+
+	if publicIP != "" {
+		nodeBody.PublicIP = &publicIP
+	}
+
+	if privateIP != "" {
+		nodeBody.PrivateIP = &privateIP
+	}
+
+	if err = api.UpdateNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID, nodeBody); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingNodeRequest, err)
 	}
 
@@ -398,14 +415,15 @@ func EditSwarmNodeInteractive(cmd *cobra.Command) error {
 func RemoveSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, nexusID string
+	var id, name, configPath, nexusID, email, password, code, deleteSwarmNodeToken string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
-	var nodes *api.NodeList
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
+	var challenge *api.ChallengeResponseModel
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -482,29 +500,41 @@ func RemoveSwarmNodeInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if nodes, err = api.ListNodes(conf.Urls, *accessToken, id, nexusID); err != nil {
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
 	}
 
-	if len(nodes.Nodes) == 0 {
+	if len(nodes.Data) == 0 {
 		utils.PrintNotFound("No nodes found")
 		return nil
 	}
 
 	choices = []string{}
 
-	for _, node := range nodes.Nodes {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", node.ID, node.Name, node.Description))
+	for _, node := range nodes.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s", node.ID, node.Name))
 	}
 
-	if choice, err = tui.ChooseOne("Which node would you like to remove?", false, true, choices); err != nil {
+	if choice, err = tui.ChooseOne("Which node would you like to remove?", false, false, choices); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
 	}
 
 	_, withoutPrefix, _ = strings.Cut(choice, " ")
 	nodeID, _, _ := strings.Cut(withoutPrefix, ",")
 
-	if err = api.DeleteNode(conf.Urls, *accessToken, nodeID); err != nil {
+	if _, err = tui.TextInputs(fmt.Sprintf("Confirm your login to remove node %s 🚮", utils.RedBg.Render(nodeID)), true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
+	}
+
+	if deleteSwarmNodeToken, err = api.ForgeOperatorSwarmNodeToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, nodeID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteTokenRequest, err)
+	}
+
+	if err = api.DeleteNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID, deleteSwarmNodeToken); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
 	}
 
@@ -520,7 +550,7 @@ func ListSwarmNodesInteractive(cmd *cobra.Command) error {
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
-	var nodes *api.NodeList
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
@@ -600,20 +630,20 @@ func ListSwarmNodesInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
 
-	if nodes, err = api.ListNodes(conf.Urls, *accessToken, id, nexusID); err != nil {
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 	}
 
 	utils.PrintList("Your Swarm Nodes List")
 
-	if len(nodes.Nodes) == 0 {
+	if len(nodes.Data) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
 
 	var list []string
-	for _, node := range nodes.Nodes {
-		list = append(list, fmt.Sprintf("• %s, %s, %s", node.ID, node.Name, node.Description))
+	for _, node := range nodes.Data {
+		list = append(list, fmt.Sprintf("• %s, %s", node.ID, node.Name))
 	}
 
 	tui.List(list)
