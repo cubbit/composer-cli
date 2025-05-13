@@ -488,6 +488,22 @@ var createSwarmNodeSubCmd = &cobra.Command{
 	Use:   "create-node",
 	Short: "create a new node",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		batch, _ := cmd.Flags().GetBool("batch")
+		if batch {
+			file, _ := cmd.Flags().GetString("file")
+			if file == "" {
+				fmt.Println("Error: --file flag is required when using --batch mode.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				fmt.Println("Error: file does not exist:", file)
+				os.Exit(1)
+			}
+			return
+		}
+
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
 			name, _ := cmd.Flags().GetString("name")
@@ -497,13 +513,37 @@ var createSwarmNodeSubCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			cmd.MarkFlagRequired("node-name")
 			cmd.MarkFlagRequired("nexus-id")
-			cmd.MarkFlagRequired("provider-id")
+			cmd.MarkFlagRequired("node-name")
+			cmd.MarkFlagRequired("node-private-ip")
+			cmd.MarkFlagRequired("node-public-ip")
+
+			nodePrivateIP, _ := cmd.Flags().GetString("node-private-ip")
+			nodePublicIP, _ := cmd.Flags().GetString("node-public-ip")
+
+			if utils.IsValidIP(nodePrivateIP) == false {
+				fmt.Println("Error: invalid node private IP address")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if utils.IsValidIP(nodePublicIP) == false {
+				fmt.Println("Error: invalid node public IP address")
+				cmd.Usage()
+				os.Exit(1)
+			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+		batch, _ := cmd.Flags().GetBool("batch")
+		if batch {
+			if err = tui.Send(cmd, args, action.CreateSwarmNodeBatch); err != nil {
+				utils.PrintError(err)
+			}
+			return
+		}
+
 		if !interactive {
 			if err = tui.Send(cmd, args, action.CreateSwarmNode); err != nil {
 				utils.PrintError(err)
@@ -713,6 +753,67 @@ var listRedundancyClassesSubCmd = &cobra.Command{
 	},
 }
 
+var createSwarmAgentSubCmd = &cobra.Command{
+	Use:   "create-agent",
+	Short: "create a new agent",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		batch, _ := cmd.Flags().GetBool("batch")
+		if batch {
+			file, _ := cmd.Flags().GetString("file")
+			if file == "" {
+				fmt.Println("Error: --file flag is required when using --batch mode.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				fmt.Println("Error: file does not exist:", file)
+				os.Exit(1)
+			}
+			return
+		}
+
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
+			cmd.MarkFlagRequired("agent-port")
+			cmd.MarkFlagRequired("agent-disk")
+			cmd.MarkFlagRequired("agent-mount-point")
+
+			agentPort := cmd.Flags().Lookup("agent-port")
+			if agentPort != nil && !agentPort.Changed {
+				fmt.Println("Error: --agent-port must be explicitly provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		batch, _ := cmd.Flags().GetBool("batch")
+		if batch {
+			if err = tui.Send(cmd, args, action.CreateSwarmAgentBatch); err != nil {
+				utils.PrintError(err)
+			}
+			return
+		}
+
+		if !interactive {
+			if err = tui.Send(cmd, args, action.CreateSwarmAgent); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -772,10 +873,14 @@ func init() {
 	describeSwarmNexusSubCmd.Flags().String("format", "default", "Format of the output")
 
 	swarmCmd.AddCommand(createSwarmNodeSubCmd)
-	createSwarmNodeSubCmd.Flags().String("node-name", "", "Name of the node")
 	createSwarmNodeSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
-	createSwarmNodeSubCmd.Flags().String("description", "", "Description of the node")
-	createSwarmNodeSubCmd.Flags().String("provider-id", "", "ID of the provider")
+	createSwarmNodeSubCmd.Flags().String("node-name", "", "Name of the node")
+	createSwarmNodeSubCmd.Flags().String("node-private-ip", "", "Private IP of the node")
+	createSwarmNodeSubCmd.Flags().String("node-public-ip", "", "Public IP of the node")
+	createSwarmNodeSubCmd.Flags().String("node-label", "", "Label of the node")
+	createSwarmNodeSubCmd.Flags().String("node-config", "", "Configuration of the node")
+	createSwarmNodeSubCmd.Flags().Bool("batch", false, "Create multiple nodes from a batch file")
+	createSwarmNodeSubCmd.Flags().String("file", "", "Path to the JSON file containing node definitions")
 
 	swarmCmd.AddCommand(describeSwarmNodeSubCmd)
 	describeSwarmNodeSubCmd.Flags().String("format", "default", "Format of the output")
@@ -806,6 +911,16 @@ func init() {
 	swarmCmd.AddCommand(listRedundancyClassesSubCmd)
 	listRedundancyClassesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for redundancy classes")
 	listRedundancyClassesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different redundancy classes")
+
+	swarmCmd.AddCommand(createSwarmAgentSubCmd)
+	createSwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	createSwarmAgentSubCmd.Flags().String("node-id", "", "ID of the node")
+	createSwarmAgentSubCmd.Flags().Int("agent-port", 0, "Port of the agent")
+	createSwarmAgentSubCmd.Flags().String("agent-disk", "", "Disk of the agent")
+	createSwarmAgentSubCmd.Flags().String("agent-mount-point", "", "Mount point of the agent")
+	createSwarmAgentSubCmd.Flags().String("agent-features", "", "Features of the agent")
+	createSwarmAgentSubCmd.Flags().Bool("batch", false, "Create multiple agents from a batch file")
+	createSwarmAgentSubCmd.Flags().String("file", "", "Path to the JSON file containing agent definitions")
 
 	rootCmd.AddCommand(swarmCmd)
 	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")

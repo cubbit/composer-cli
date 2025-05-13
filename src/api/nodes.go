@@ -125,3 +125,27 @@ func ListNodes(urls configuration.Url, accessToken string, swarmID string, nexus
 
 	return &finalResponse, nil
 }
+
+func CreateNodeV4(urls configuration.Url, accessToken string, swarmID string, nexusID string, nodesBody BulkInsertNewNodeRequestBody) (*NewNodesResponse, error) {
+	var err error
+	var response NewNodesResponse
+	url := urls.ChUrl + "/v4/swarms/" + swarmID + "/nexuses/" + nexusID + "/nodes"
+
+	bodyRequest, err := json.Marshal(nodesBody)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBodyByte(bodyRequest),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}

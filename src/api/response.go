@@ -464,3 +464,59 @@ func (c *DistributorCoupon) ToHumanReadableDistributorCode() *HumanReadableDistr
 		ExternalID:     c.ExternalID,
 	}
 }
+
+type BulkInsertNewNodeRequestBody struct {
+	Nodes []CreateNewNodeRequestBody `json:"nodes" binding:"required,dive"`
+}
+
+type BulkInsertNewAgentRequestBody struct {
+	Agents []CreateNewAgentRequestBody `json:"agents" binding:"required,dive"`
+}
+
+type CreateNewNodeRequestBody struct {
+	Name          string                      `json:"name" binding:"required,min=3,max=63" example:"cubbit"`
+	Label         *string                     `json:"label" example:"cubbit"`
+	Configuration map[string]interface{}      `json:"config" swaggertype:"object,string" example:"{\"key\":\"value\"}"`
+	PublicIP      string                      `json:"public_ip" binding:"required"`
+	PrivateIP     string                      `json:"private_ip" binding:"required"`
+	Agents        []CreateNewAgentRequestBody `json:"agents" binding:"dive"`
+}
+
+type CreateNewAgentRequestBody struct {
+	Port     int                    `json:"port" binding:"required"`
+	Features map[string]interface{} `json:"features" swaggertype:"object,string" example:"{\"key\":\"value\"}"`
+	Volume   AgentVolume            `json:"volume" binding:"required,dive"`
+}
+
+type AgentVolume struct {
+	MountPoint string `json:"mount_point" binding:"required,min=1" example:"/mnt/cubbit"`
+	Disk       string `json:"disk" binding:"required,min=1" example:"sda"`
+}
+
+type NewNodesResponse struct {
+	Nodes []NewNodeResponseItem `json:"nodes"`
+}
+
+type NewAgentsResponse struct {
+	Agents []NewAgentResponse `json:"agents"`
+}
+
+type NewNodeResponseItem struct {
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name" example:"cubbit"`
+	Label         *string                `json:"label" example:"cubbit"`
+	Configuration map[string]interface{} `json:"config" swaggertype:"object,string" example:"{\"key\":\"value\"}"`
+	PublicIP      string                 `json:"public_ip"`
+	PrivateIP     string                 `json:"private_ip"`
+	Agents        []NewAgentResponse     `json:"agents"`
+	CRN           map[string]interface{} `json:"crn"`
+}
+
+type NewAgentResponse struct {
+	ID       string                 `json:"id"`
+	Secret   string                 `json:"secret"`
+	Port     int                    `json:"port"`
+	Features map[string]interface{} `json:"features" swaggertype:"object,string" example:"{\"key\":\"value\"}"`
+	Volume   AgentVolume            `json:"volume"`
+	CRN      map[string]interface{} `json:"crn"`
+}

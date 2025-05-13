@@ -10,6 +10,7 @@ go_library(
         "secret.go",
         "slices.go",
         "string.go",
+        "ip.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/utils",
     visibility = ["//visibility:public"],

@@ -27,6 +27,7 @@ go_library(
         "token.go",
         "token_interactive.go",
         "version.go",
+        "agent.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/src/action",
     visibility = ["//visibility:public"],

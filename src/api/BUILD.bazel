@@ -15,6 +15,7 @@ go_library(
         "response_extractors.go",
         "swarm.go",
         "tenant.go",
+        "agents.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/src/api",
     visibility = ["//visibility:public"],

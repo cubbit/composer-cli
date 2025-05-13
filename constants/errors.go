@@ -172,4 +172,6 @@ const (
 	ErrorNotEnoughNexuses    = "not enough nexuses"
 	ErrorCreatingRingRequest = "failed request to create ring"
 	ErrorListingRingsRequest = "failed request to list rings"
+
+	ErrorParsingJsonConfiguration = "error while parsing json configuration"
 )
