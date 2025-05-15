@@ -17,6 +17,7 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 	var innerK, innerN, outerK, outerN, antiAffinityGroup int
 	var conf *configuration.Config
 	var redundancyClass *api.RedundancyClass
+	var nexuses []string
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -54,6 +55,10 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if nexuses, err = cmd.Flags().GetStringSlice("nexuses"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -76,9 +81,10 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		OuterK:            outerK,
 		OuterN:            outerN,
 		AntiAffinityGroup: antiAffinityGroup,
+		Nexuses:           nexuses,
 	}
 
-	if redundancyClass, err = api.CreateRedundancyClass(conf.Urls, *accessToken, id, bodyRequest); err != nil {
+	if redundancyClass, err = api.CreateRedundancyClassV4(conf.Urls, *accessToken, id, bodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingRedundancyClassRequest, err)
 	}
 

@@ -366,13 +366,14 @@ type NodeList struct {
 }
 
 type CreateRedundancyClassRequestBody struct {
-	Name              string `json:"name"`
-	Description       string `json:"description,omitempty"`
-	InnerK            int    `json:"inner_k"`
-	InnerN            int    `json:"inner_n"`
-	OuterK            int    `json:"outer_k"`
-	OuterN            int    `json:"outer_n"`
-	AntiAffinityGroup int    `json:"anti_affinity_group"`
+	Name              string   `json:"name"`
+	Description       string   `json:"description,omitempty"`
+	InnerK            int      `json:"inner_k"`
+	InnerN            int      `json:"inner_n"`
+	OuterK            int      `json:"outer_k"`
+	OuterN            int      `json:"outer_n"`
+	AntiAffinityGroup int      `json:"anti_affinity_group"`
+	Nexuses           []string `json:"nexuses"`
 }
 
 type RedundancyClass struct {
@@ -540,4 +541,46 @@ type UpdateNewNodeRequestBody struct {
 	Configuration map[string]interface{} `json:"config" binding:"omitempty"`
 	PublicIP      *string                `json:"public_ip" binding:"omitempty"`
 	PrivateIP     *string                `json:"private_ip" binding:"omitempty"`
+}
+
+type NewAgent struct {
+	ID                 string                 `json:"id"`
+	NodeID             string                 `json:"node_id"`
+	PublicKey          *string                `json:"public_key"`
+	Features           map[string]interface{} `json:"features"`
+	CreatedAt          time.Time              `json:"created"`
+	DeletedAt          *time.Time             `json:"deleted"`
+	LastStatusUpdateAt time.Time              `json:"last_status_update_at"`
+	Secret             string                 `json:"secret"`
+	Online             bool                   `json:"online"`
+	ConnectedOn        *time.Time             `json:"connected_on,omitempty"`
+	Model              AgentModel             `json:"model"`
+	Serial             *string                `json:"serial,omitempty"`
+	Version            *string                `json:"version"`
+	Port               int                    `json:"cccp_port,omitempty"`
+	TotalStorage       int64                  `json:"total_storage"`
+	UsedStorage        int64                  `json:"used_storage"`
+	Volume             AgentVolume            `json:"volume"`
+	CRN                map[string]interface{} `json:"crn"`
+	AnnouncedPrivateIP *string                `json:"announced_private_ip"`
+	AnnouncedPublicIP  *string                `json:"announced_public_ip"`
+}
+
+type AgentModel string
+
+const (
+	UnknownAgentModel AgentModel = "unknown"
+	CellAgentModel    AgentModel = "cell"
+	VirtualAgentModel AgentModel = "virtual"
+)
+
+type UpdateNewAgentRequestBody struct {
+	Port     *int                      `json:"port"`
+	Features map[string]interface{}    `json:"features" swaggertype:"object,string" example:"{\"key\":\"value\"}"`
+	Volume   *UpdateAgentVolumeRequest `json:"volume" binding:"omitempty,dive"`
+}
+
+type UpdateAgentVolumeRequest struct {
+	MountPoint *string `json:"mount_point" binding:"omitempty,min=1" example:"/mnt/cubbit"`
+	Disk       *string `json:"disk" binding:"omitempty,min=1" example:"sda"`
 }

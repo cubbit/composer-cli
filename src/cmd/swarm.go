@@ -719,6 +719,16 @@ var CreateSwarmRedundancyClassSubCmd = &cobra.Command{
 			cmd.MarkFlagRequired("outer-k")
 			cmd.MarkFlagRequired("outer-n")
 			cmd.MarkFlagRequired("anti-affinity-group")
+			cmd.MarkFlagRequired("nexuses")
+
+			outerK, _ := cmd.Flags().GetInt("outer-k")
+			outerN, _ := cmd.Flags().GetInt("outer-n")
+			nexuses, _ := cmd.Flags().GetStringSlice("nexuses")
+			if len(nexuses) == 0 || len(nexuses) != outerK+outerN {
+				fmt.Println("Error: invalid number of nexuses provided, expected", outerK+outerN)
+				cmd.Usage()
+				os.Exit(1)
+			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -851,6 +861,178 @@ var createSwarmAgentSubCmd = &cobra.Command{
 	},
 }
 
+var editSwarmAgentSubCmd = &cobra.Command{
+	Use:   "edit-agent",
+	Short: "edit an agent",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		batch, _ := cmd.Flags().GetBool("batch")
+		if batch {
+			file, _ := cmd.Flags().GetString("file")
+			if file == "" {
+				fmt.Println("Error: --file flag is required when using --batch mode.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				fmt.Println("Error: file does not exist:", file)
+				os.Exit(1)
+			}
+			return
+		}
+
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
+			cmd.MarkFlagRequired("agent-id")
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.EditSwarmAgent); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.EditSwarmAgentInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeSwarmAgentSubCmd = &cobra.Command{
+	Use:   "describe-agent",
+	Short: "describe an agent",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
+			cmd.MarkFlagRequired("agent-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.DescribeSwarmAgent); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeSwarmAgentInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listSwarmAgentsSubCmd = &cobra.Command{
+	Use:   "list-agents",
+	Short: "list agents",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			nexusID, _ := cmd.Flags().GetString("nexus-id")
+			nodeID, _ := cmd.Flags().GetString("node-id")
+			rcID, _ := cmd.Flags().GetString("redundancy-class-id")
+
+			if nexusID == "" && nodeID == "" && rcID == "" {
+				fmt.Println("Error: at least one of the three required flags --nexus-id, --node-id or --redundancy-class-id should be provided.\n")
+				fmt.Println("Note: --nexus-id and --node-id are to be used together.")
+				fmt.Println("Note: --redundancy-class-id is to be used alone.")
+
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			allowed_sorting_keys := []string{"id", "node_id", "port", "created_at"}
+			sort, _ := cmd.Flags().GetString("sort")
+
+			if sort != "" && !utils.Contains(allowed_sorting_keys, sort) {
+				fmt.Println("Error: invalid sort key provided, allowed keys are: id, node_id", "port", "created_at")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			filter, _ := cmd.Flags().GetString("filter")
+			if filter != "" {
+				if !utils.IsValidFilter(filter) {
+					fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
+					cmd.Usage()
+					os.Exit(1)
+				}
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ListSwarmAgents); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListSwarmAgentsInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeSwarmAgentSubCmd = &cobra.Command{
+	Use:   "remove-agent",
+	Short: "remove an agent",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("node-id")
+			cmd.MarkFlagRequired("agent-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RemoveSwarmAgent); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveSwarmAgentInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -956,6 +1138,7 @@ func init() {
 	CreateSwarmRedundancyClassSubCmd.Flags().Int("outer-n", 1, "Outer N")
 	CreateSwarmRedundancyClassSubCmd.Flags().Int("outer-k", 0, "Outer K")
 	CreateSwarmRedundancyClassSubCmd.Flags().Int("anti-affinity-group", 1, "Anti affinity group")
+	CreateSwarmRedundancyClassSubCmd.Flags().StringSlice("nexuses", []string{}, "List of nexuses IDs")
 
 	swarmCmd.AddCommand(DescribeRedundancyClassesInteractiveSubCmd)
 	DescribeRedundancyClassesInteractiveSubCmd.Flags().String("format", "default", "Format of the output")
@@ -973,6 +1156,35 @@ func init() {
 	createSwarmAgentSubCmd.Flags().String("agent-features", "", "Features of the agent")
 	createSwarmAgentSubCmd.Flags().Bool("batch", false, "Create multiple agents from a batch file")
 	createSwarmAgentSubCmd.Flags().String("file", "", "Path to the JSON file containing agent definitions")
+
+	swarmCmd.AddCommand(describeSwarmAgentSubCmd)
+	describeSwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	describeSwarmAgentSubCmd.Flags().String("node-id", "", "ID of the node")
+	describeSwarmAgentSubCmd.Flags().String("agent-id", "", "ID of the agent")
+	describeSwarmAgentSubCmd.Flags().String("format", "default", "Format of the output")
+
+	swarmCmd.AddCommand(listSwarmAgentsSubCmd)
+	listSwarmAgentsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listSwarmAgentsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listSwarmAgentsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for agents")
+	listSwarmAgentsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different agents")
+	listSwarmAgentsSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	listSwarmAgentsSubCmd.Flags().String("node-id", "", "ID of the node")
+	listSwarmAgentsSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
+
+	swarmCmd.AddCommand(editSwarmAgentSubCmd)
+	editSwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	editSwarmAgentSubCmd.Flags().String("node-id", "", "ID of the node")
+	editSwarmAgentSubCmd.Flags().String("agent-id", "", "ID of the agent")
+	editSwarmAgentSubCmd.Flags().Int("agent-port", 0, "Port of the agent")
+	editSwarmAgentSubCmd.Flags().String("agent-disk", "", "Disk of the agent")
+	editSwarmAgentSubCmd.Flags().String("agent-mount-point", "", "Mount point of the agent")
+	editSwarmAgentSubCmd.Flags().String("agent-features", "", "Features of the agent")
+
+	swarmCmd.AddCommand(removeSwarmAgentSubCmd)
+	removeSwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	removeSwarmAgentSubCmd.Flags().String("node-id", "", "ID of the node")
+	removeSwarmAgentSubCmd.Flags().String("agent-id", "", "ID of the agent")
 
 	rootCmd.AddCommand(swarmCmd)
 	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")

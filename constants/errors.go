@@ -174,4 +174,8 @@ const (
 	ErrorListingRingsRequest = "failed request to list rings"
 
 	ErrorParsingJsonConfiguration = "error while parsing json configuration"
+
+	ErrorRetrievingAgentRequest = "failed request to retrieve agent"
+	ErrorEditingAgentRequest    = "failed request to edit agent"
+	ErrorListingAgentsRequest   = "failed request to list agents"
 )

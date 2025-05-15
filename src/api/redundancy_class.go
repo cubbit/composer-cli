@@ -79,3 +79,26 @@ func GetRedundancyClass(urls configuration.Url, accessToken, redundancyClassID s
 
 	return &response, nil
 }
+
+func CreateRedundancyClassV4(urls configuration.Url, accessToken, swamID string, redundancyClass CreateRedundancyClassRequestBody) (*RedundancyClass, error) {
+	var err error
+	var response RedundancyClass
+	url := urls.ChUrl + constants.Swarms + "/" + swamID + "/redundancy_class"
+
+	requestBody, err := json.Marshal(redundancyClass)
+	if err != nil {
+		return nil, err
+	}
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithRequestBodyByte(requestBody),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithAccessToken(accessToken),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
