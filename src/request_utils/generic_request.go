@@ -23,10 +23,20 @@ type RequestOptions struct {
 }
 type RequestModifier = func(*RequestOptions, *http.Response) error
 
+type Data struct {
+	Params          []string      `json:"params" example:"param1,param2"`
+	ActionsRequired []string      `json:"actions_required" example:"iam:AttachUserPolicy,iam:DetachUserPolicy"`
+	Reason          string        `json:"reason" example:"policy_id"`
+	IssueFound      []interface{} `json:"issue_found"`
+}
+
 type Error struct {
 	Message         string   `json:"message"`
 	ActionsRequired []string `json:"actions_required"`
 	Reason          string   `json:"reason"`
+	Data            Data     `json:"data"`
+	Params          []string `json:"params"`
+	Param           string   `json:"param"`
 }
 
 func DoRequest(url string, opts ...RequestModifier) error {
@@ -101,9 +111,40 @@ func DoRequest(url string, opts ...RequestModifier) error {
 			formattedError += keyStyle.Render("INF ") + "actions required [" + valueStyle.Render(strings.Join(err.ActionsRequired, ", ")) + "]\n"
 		}
 
+		if len(err.Data.ActionsRequired) > 0 {
+			formattedError += keyStyle.Render("INF ") + "actions required [" + valueStyle.Render(strings.Join(err.Data.ActionsRequired, ", ")) + "]\n"
+		}
+
 		if err.Reason != "" {
 			formattedError += keyStyle.Render("INF ") + "reason" + valueStyle.Render(err.Reason) + "\n"
 		}
+
+		if len(err.Params) > 0 {
+			formattedError += keyStyle.Render("INF ") + "params [" + valueStyle.Render(strings.Join(err.Params, ", ")) + "]\n"
+		}
+
+		if len(err.Data.IssueFound) > 0 {
+			var issues []string
+			for _, issue := range err.Data.IssueFound {
+				switch v := issue.(type) {
+				case map[string]interface{}:
+					var parts []string
+					for k, val := range v {
+						parts = append(parts, fmt.Sprintf("%s: %v", k, val))
+					}
+					issues = append(issues, strings.Join(parts, ", "))
+				default:
+					issues = append(issues, fmt.Sprintf("%v", v))
+				}
+			}
+
+			formattedError += fmt.Sprintf(
+				"%sissue found [%s]\n",
+				keyStyle.Render("INF "),
+				valueStyle.Render(strings.Join(issues, ", ")),
+			)
+		}
+
 		return fmt.Errorf(fmt.Sprintf("\n%s", formattedError))
 	}
 

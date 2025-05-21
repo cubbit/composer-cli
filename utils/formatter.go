@@ -16,8 +16,10 @@ func PrintFormattedData(data interface{}, format string) {
 		printJSON(data)
 	case "csv":
 		printCSV(data)
-	default:
+	case "semantic":
 		printSemantic(data, 0)
+	default:
+		printJSON(data)
 	}
 }
 

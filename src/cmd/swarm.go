@@ -745,7 +745,7 @@ var CreateSwarmRedundancyClassSubCmd = &cobra.Command{
 	},
 }
 
-var DescribeRedundancyClassesInteractiveSubCmd = &cobra.Command{
+var DescribeRedundancyClassesSubCmd = &cobra.Command{
 	Use:   "describe-redundancy-class",
 	Short: "describe a redundancy class",
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -766,6 +766,126 @@ var DescribeRedundancyClassesInteractiveSubCmd = &cobra.Command{
 			}
 		} else {
 			if err = action.DescribeSwarmRedundancyClassInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var CheckRedundancyClassStatusSubCmd = &cobra.Command{
+	Use:   "check-redundancy-class",
+	Short: "check redundancy class status",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("redundancy-class-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.CheckSwarmRedundancyClassStatus); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.CheckSwarmRedundancyClassStatusInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var CheckRedundancyClassRecoveryStatusSubCmd = &cobra.Command{
+	Use:   "check-redundancy-recovery",
+	Short: "check redundancy class recovery status",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("redundancy-class-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.CheckSwarmRedundancyClassRecoveryStatus); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.CheckSwarmRedundancyClassStatusInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var ExpandRedundancyClassSubCmd = &cobra.Command{
+	Use:   "expand-redundancy-class",
+	Short: "expand a redundancy class",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("redundancy-class-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.ExpandSwarmRedundancyClass); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ExpandSwarmRedundancyClassInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var RecoverRedundancyClassSubCmd = &cobra.Command{
+	Use:   "recover-redundancy-class",
+	Short: "recover a redundancy class",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("redundancy-class-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.RecoverSwarmRedundancyClass); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RecoverSwarmRedundancyClassInteractive(cmd); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -1140,12 +1260,32 @@ func init() {
 	CreateSwarmRedundancyClassSubCmd.Flags().Int("anti-affinity-group", 1, "Anti affinity group")
 	CreateSwarmRedundancyClassSubCmd.Flags().StringSlice("nexuses", []string{}, "List of nexuses IDs")
 
-	swarmCmd.AddCommand(DescribeRedundancyClassesInteractiveSubCmd)
-	DescribeRedundancyClassesInteractiveSubCmd.Flags().String("format", "default", "Format of the output")
+	swarmCmd.AddCommand(DescribeRedundancyClassesSubCmd)
+	DescribeRedundancyClassesSubCmd.Flags().String("format", "default", "Format of the output")
 
 	swarmCmd.AddCommand(listRedundancyClassesSubCmd)
 	listRedundancyClassesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for redundancy classes")
 	listRedundancyClassesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different redundancy classes")
+	listRedundancyClassesSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listRedundancyClassesSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+
+	swarmCmd.AddCommand(CheckRedundancyClassStatusSubCmd)
+	CheckRedundancyClassStatusSubCmd.Flags().String("format", "default", "Format of the output")
+	CheckRedundancyClassStatusSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
+
+	swarmCmd.AddCommand(CheckRedundancyClassRecoveryStatusSubCmd)
+	CheckRedundancyClassRecoveryStatusSubCmd.Flags().String("format", "default", "Format of the output")
+	CheckRedundancyClassRecoveryStatusSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
+
+	swarmCmd.AddCommand(ExpandRedundancyClassSubCmd)
+	ExpandRedundancyClassSubCmd.Flags().String("format", "default", "Format of the output")
+	ExpandRedundancyClassSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
+	ExpandRedundancyClassSubCmd.Flags().Bool("dry-run", false, "Dry run mode")
+
+	swarmCmd.AddCommand(RecoverRedundancyClassSubCmd)
+	RecoverRedundancyClassSubCmd.Flags().String("format", "default", "Format of the output")
+	RecoverRedundancyClassSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
+	RecoverRedundancyClassSubCmd.Flags().Bool("dry-run", false, "Dry run mode")
 
 	swarmCmd.AddCommand(createSwarmAgentSubCmd)
 	createSwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")

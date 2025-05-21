@@ -175,7 +175,11 @@ const (
 
 	ErrorParsingJsonConfiguration = "error while parsing json configuration"
 
-	ErrorRetrievingAgentRequest = "failed request to retrieve agent"
-	ErrorEditingAgentRequest    = "failed request to edit agent"
-	ErrorListingAgentsRequest   = "failed request to list agents"
+	ErrorRetrievingAgentRequest                       = "failed request to retrieve agent"
+	ErrorEditingAgentRequest                          = "failed request to edit agent"
+	ErrorListingAgentsRequest                         = "failed request to list agents"
+	ErrorCheckingRedundancyClassStatusRequest         = "failed request to check redundancy class status"
+	ErrorCheckingRedundancyClassRecoveryStatusRequest = "failed request to check redundancy class recovery status"
+	ErrorRecoveringRedundancyClassRequest             = "failed request to recover redundancy class"
+	ErrorExpandingRedundancyClassRequest              = "failed request to expand redundancy class"
 )

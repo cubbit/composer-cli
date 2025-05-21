@@ -96,9 +96,9 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var name, id, configPath string
+	var name, id, configPath, sort, filter string
 	var conf *configuration.Config
-	var redundancyClasses *api.RedundancyClassList
+	var redundancyClasses *api.GenericPaginatedResponse[*api.RedundancyClass]
 	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
@@ -107,6 +107,18 @@ func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 
 	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if sort, err = cmd.Flags().GetString("sort"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter, err = cmd.Flags().GetString("filter"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter != "" {
+		filter = utils.BuildFilterQuery(filter)
 	}
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
@@ -123,7 +135,7 @@ func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if redundancyClasses, err = api.ListRedundancyClasses(conf.Urls, *accessToken, id); err != nil {
+	if redundancyClasses, err = api.ListRedundancyClasses(conf.Urls, *accessToken, id, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingRedundancyClassesRequest, err)
 	}
 
@@ -183,5 +195,195 @@ func DescribeSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 
 	utils.PrintFormattedData(*redundancyClass, format)
 
+	return nil
+}
+
+func CheckSwarmRedundancyClassStatus(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, redundancyClassID, format, configPath string
+	var conf *configuration.Config
+	var redundancyClassStatus *api.SummaryDetailsWithStatusNullable
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if redundancyClassStatus, err = api.CheckRedundancyClassStatus(conf.Urls, *accessToken, id, redundancyClassID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCheckingRedundancyClassStatusRequest, err)
+	}
+
+	utils.PrintFormattedData(*redundancyClassStatus, format)
+	return nil
+}
+
+func CheckSwarmRedundancyClassRecoveryStatus(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, redundancyClassID, format, configPath string
+	var conf *configuration.Config
+	var redundancyClassStatus *api.RedundancyClassRecoveryStatus
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if redundancyClassStatus, err = api.CheckRedundancyClassRecoveryStatus(conf.Urls, *accessToken, id, redundancyClassID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCheckingRedundancyClassRecoveryStatusRequest, err)
+	}
+
+	utils.PrintFormattedData(*redundancyClassStatus, format)
+	return nil
+}
+
+func ExpandSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, redundancyClassID, format, configPath string
+	var conf *configuration.Config
+	var redundancyClassExpanded *api.RedundancyClassExpanded
+	var dryRun bool
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if dryRun, err = cmd.Flags().GetBool("dry-run"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if redundancyClassExpanded, err = api.ExpandRedundancyClass(conf.Urls, *accessToken, id, redundancyClassID, dryRun); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorExpandingRedundancyClassRequest, err)
+	}
+
+	utils.PrintFormattedData(*redundancyClassExpanded, format)
+	return nil
+}
+
+func RecoverSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, redundancyClassID, format, configPath string
+	var conf *configuration.Config
+	var redundancyClassRecover *api.RedundancyClassRecovery
+	var dryRun bool
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if dryRun, err = cmd.Flags().GetBool("dry-run"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if redundancyClassRecover, err = api.RecoverRedundancyClass(conf.Urls, *accessToken, id, redundancyClassID, dryRun); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRecoveringRedundancyClassRequest, err)
+	}
+
+	utils.PrintFormattedData(*redundancyClassRecover, format)
 	return nil
 }

@@ -480,7 +480,7 @@ func ListSwarmAgentsInteractive(cmd *cobra.Command) error {
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
-	var RedundancyClassList *api.RedundancyClassList
+	var RedundancyClassList *api.GenericPaginatedResponse[*api.RedundancyClass]
 	var listType string
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
@@ -605,7 +605,7 @@ func ListSwarmAgentsInteractive(cmd *cobra.Command) error {
 
 		tui.List(list)
 	} else {
-		if RedundancyClassList, err = api.ListRedundancyClasses(conf.Urls, *accessToken, id); err != nil {
+		if RedundancyClassList, err = api.ListRedundancyClasses(conf.Urls, *accessToken, id, "", ""); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingRedundancyClassesRequest, err)
 		}
 

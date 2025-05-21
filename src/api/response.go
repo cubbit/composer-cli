@@ -584,3 +584,60 @@ type UpdateAgentVolumeRequest struct {
 	MountPoint *string `json:"mount_point" binding:"omitempty,min=1" example:"/mnt/cubbit"`
 	Disk       *string `json:"disk" binding:"omitempty,min=1" example:"sda"`
 }
+
+type ExpansionStatus string
+type RecoveryStatus string
+
+const (
+	ExpansionStatusSuccess  ExpansionStatus = "success"
+	ExpansionStatusPossible ExpansionStatus = "possible"
+	ExpansionStatusError    ExpansionStatus = "error"
+
+	RecoveryStatusCompleted RecoveryStatus = "completed"
+	RecoveryStatusOngoing   RecoveryStatus = "ongoing"
+	RecoveryStatusErrored   RecoveryStatus = "errored"
+)
+
+type RedundancyClassExpanded struct {
+	Status         ExpansionStatus `json:"status"`
+	Message        string          `json:"message"`
+	ExpandedSize   int64           `json:"expanded_size"`
+	AgentsInvolved []string        `json:"agents_involved"`
+}
+
+type RedundancyClassRecoveryStatus struct {
+	Status      RecoveryStatus      `json:"status"`
+	Message     string              `json:"message"`
+	Errored     int                 `json:"errored"`
+	Total       int                 `json:"total"`
+	RecoveryIds []string            `json:"recovery_ids"`
+	IssueFound  []map[string]string `json:"issue_found"`
+}
+
+type RedundancyClassErrorData struct {
+	IssueFound []interface{} `json:"issue_found"`
+}
+
+type RedundancyClassRecovery struct {
+	Message string `json:"message"`
+}
+
+type SummaryDetailsWithStatusNullable struct {
+	Details *SummaryDetails `json:"details"`
+	SummaryStatusNullable
+}
+
+type EvaluatedStatusType string
+
+type SummaryStatusNullable struct {
+	EvaluatedStatus              *EvaluatedStatusType `json:"evaluated_status"`
+	EvaluatedStatusLastUpdatedAt *time.Time           `json:"evaluated_status_last_updated_at"`
+}
+
+type SummaryDetails struct {
+	Pending int `json:"pending"`
+	Online  int `json:"online"`
+	Offline int `json:"offline"`
+	Warning int `json:"warning"`
+	Error   int `json:"error"`
+}
