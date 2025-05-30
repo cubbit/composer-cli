@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.19.3](https://github.com/cubbit/cubbit/compare/cli-v0.19.0...cli-v0.19.3) (2025-05-30)
+
+
+### Features
+
+* **composer-hub:** add more logs to ring creation ([#14316](https://github.com/cubbit/cubbit/issues/14316)) ([c7b7be7](https://github.com/cubbit/cubbit/commit/c7b7be7adc636da69dbbabf9ea829e1ea08476a8))
+* **gods3:** make GODS3 fetch keys from Secret File and test the Diplomat flow in 'new_db_schema' e2e tests THOR-1754 ([#14465](https://github.com/cubbit/cubbit/issues/14465)) ([cea6386](https://github.com/cubbit/cubbit/commit/cea638671ed31ca15dd5c2c350578abf5324ed8a))
+* **repo:** fix go mods ([c6cbc9d](https://github.com/cubbit/cubbit/commit/c6cbc9da1c59de982794a2859e8c7e541323e6fa))
+
+
+### Bug Fixes
+
+* **cli:** fix the version bump ([#14023](https://github.com/cubbit/cubbit/issues/14023)) ([15034c3](https://github.com/cubbit/cubbit/commit/15034c338bd66968a3b273d0667b5b0411944f89))
+* **cli:** update changelog generation ([#14017](https://github.com/cubbit/cubbit/issues/14017)) ([d187175](https://github.com/cubbit/cubbit/commit/d187175c8347c936581c186ebc578b9a625ff897))
+* **composer-hub:** enforce n+k nexus over ring creation ([#14323](https://github.com/cubbit/cubbit/issues/14323)) ([2ae82c5](https://github.com/cubbit/cubbit/commit/2ae82c51a559fab4d675eed1de37544c53517271))
+* **network:** e2e tests offloader ([#15167](https://github.com/cubbit/cubbit/issues/15167)) ([d422370](https://github.com/cubbit/cubbit/commit/d422370e7106bb52df4ceb6616e802943569f207))
+* **repo:** fix repo problems ([#14447](https://github.com/cubbit/cubbit/issues/14447)) ([c5f723e](https://github.com/cubbit/cubbit/commit/c5f723ec358f23c779e57f81bf756ec19a58eb5e))
+
 ### [0.19.2](https://github.com/cubbit/cubbit/compare/cli-v0.19.0...cli-v0.19.2) (2024-12-19)
 
 
