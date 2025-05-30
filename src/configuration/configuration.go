@@ -24,9 +24,11 @@ const (
 )
 
 type Url struct {
-	IamUrl  string `yaml:"iam"`
-	DashUrl string `yaml:"dash"`
-	ChUrl   string `yaml:"ch"`
+	IamUrl          string `yaml:"iam"`
+	DashUrl         string `yaml:"dash"`
+	ChUrl           string `yaml:"ch"`
+	MetricsUrl      string `yaml:"metrics"`
+	SwarmGatewayUrl string `yaml:"swarm_gateway"`
 }
 
 type Config struct {
@@ -76,6 +78,14 @@ func (c *Config) LoadUrl(filePath string, envName string) (*Url, error) {
 		return nil, fmt.Errorf(constants.ErrorChConfigNotFound)
 	}
 
+	if urls.MetricsUrl == "" {
+		return nil, fmt.Errorf(constants.ErrorMetricsConfigNotFound)
+	}
+
+	if urls.SwarmGatewayUrl == "" {
+		return nil, fmt.Errorf(constants.ErrorSwarmGatewayConfigNotFound)
+	}
+
 	return &urls, nil
 }
 
@@ -102,6 +112,14 @@ func (c *Config) LoadAndCheckSession(filePath string, name string, expectedSessi
 
 	if config.Urls.ChUrl == "" {
 		return fmt.Errorf(constants.ErrorChConfigNotFound)
+	}
+
+	if config.Urls.MetricsUrl == "" {
+		return fmt.Errorf(constants.ErrorMetricsConfigNotFound)
+	}
+
+	if config.Urls.SwarmGatewayUrl == "" {
+		return fmt.Errorf(constants.ErrorSwarmGatewayConfigNotFound)
 	}
 
 	if config.RefreshToken == "" {
@@ -242,9 +260,11 @@ func composeURL(apiServerUrl string) *Url {
 	}
 
 	url := &Url{
-		IamUrl:  apiServerUrl + constants.BaseIamURI,
-		DashUrl: constants.BaseDashURL,
-		ChUrl:   apiServerUrl + constants.BaseChURI,
+		IamUrl:          apiServerUrl + constants.BaseIamURI,
+		DashUrl:         constants.BaseDashURL,
+		ChUrl:           apiServerUrl + constants.BaseChURI,
+		MetricsUrl:      constants.BaseMetricsURL,
+		SwarmGatewayUrl: constants.BaseSwarmGatewayURL,
 	}
 	return url
 }

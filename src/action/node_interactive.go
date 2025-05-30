@@ -1,7 +1,13 @@
 package action
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -10,18 +16,17 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
-func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
+func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
 	var err error
 	var accessToken *string
-	var id, name, configPath, nodeName, description, nexusID, providerID string
+	var id, name, configPath, nexusID, format string
 	var conf *configuration.Config
 	var operator *api.Operator
 	var nexuses *api.NexusList
-	var providers *api.ProviderList
-	var secret *api.GenericIDResponseModel
-	var node *api.Node
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
@@ -43,10 +48,6 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 	}
 
 	if id == "" && name == "" {
-		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
-		}
-
 		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 		}
@@ -57,144 +58,6 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 
 		if choice, err = tui.ChooseOne("Which swarm would you like to choose?", false, false, choices); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
-	}
-
-	if len(nexuses.Nexuses) == 0 {
-		utils.PrintNotFound("No nexuses found")
-		return nil
-	}
-
-	choices = []string{}
-
-	for _, nx := range nexuses.Nexuses {
-		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No nexuses found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which nexus would you like to create your node?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNexusRequest, err)
-	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	if _, err = tui.TextInputs(
-		"Fill in the form below",
-		false,
-		tui.Input{Placeholder: "Name", IsPassword: false, Value: &nodeName},
-		tui.Input{Placeholder: "Description", IsPassword: false, Value: &description}); err != nil {
-
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-	}
-
-	if providers, err = api.ListSwarmProviders(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingProvidersRequest, err)
-	}
-
-	if len(providers.Providers) == 0 {
-		utils.PrintNotFound("No providers found")
-		return nil
-	}
-
-	choices = []string{}
-
-	for _, provider := range providers.Providers {
-		choices = append(choices, fmt.Sprintf("• %s, %s", provider.ID, provider.Name))
-	}
-
-	if choice, err = tui.ChooseOne("Which provider would you like to use?", false, true, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingProvidersRequest, err)
-	}
-
-	_, withoutPrefix, _ = strings.Cut(choice, " ")
-	providerID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	if secret, err = api.CreateSwarmSecret(conf.Urls, *accessToken, id, providerID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingSwarmSecret, err)
-	}
-
-	nodeBody := api.CreateNodeBodyRequest{
-		Name:        nodeName,
-		Description: description,
-		NexusID:     nexusID,
-		SecretID:    secret.ID,
-	}
-
-	if node, err = api.CreateNode(conf.Urls, *accessToken, nodeBody); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("Node %s created successfully", node.ID))
-
-	return nil
-}
-
-func DescribeSwarmNodeInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath, nexusID, format string
-	var conf *configuration.Config
-	var operator *api.Operator
-	var nexuses *api.NexusList
-	var nodes *api.GenericPaginatedResponse[*api.NewNode]
-	var choice string
-	var choices []string
-	var swarms []*api.Swarm
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
-		}
-
-		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No swarms found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your swarm", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
 		}
 
 		_, withoutPrefix, _ := strings.Cut(choice, " ")
@@ -647,6 +510,525 @@ func ListSwarmNodesInteractive(cmd *cobra.Command) error {
 	}
 
 	tui.List(list)
+
+	return nil
+}
+
+func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, nexusID, configPath string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var swarms []*api.Swarm
+	var nexuses *api.NexusList
+	var choice string
+	var choices []string
+	var createdNodes *api.NewNodesResponse
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if choice, err = tui.ChooseOne("Which swarm would you like to choose?", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	choices = []string{}
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which nexus would you like to choose?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNexusRequest, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	nodeConfigs, err := collectNodeConfiguration()
+	if err != nil {
+		return fmt.Errorf("error collecting node configuration: %w", err)
+	}
+
+	if err = collectAgentConfiguration(&nodeConfigs); err != nil {
+		return fmt.Errorf("error collecting agent configuration: %w", err)
+	}
+
+	if createdNodes, err = createNodeWithAgents(conf, *accessToken, id, nexusID, nodeConfigs); err != nil {
+		return fmt.Errorf("error creating nodes with agents: %w %v", err, nodeConfigs)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("Nodes and agents created successfully in swarm %s", id))
+
+	var generateFilesChoice string
+	if generateFilesChoice, err = tui.ChooseOne("Would you like to generate Deployment files (Ansible, YAML)?", false, true, []string{"Yaml", "Ansible", "Both", "Skip"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	generateAnsible := generateFilesChoice == "Ansible"
+	generateYAML := generateFilesChoice == "Yaml"
+	generateBoth := generateFilesChoice == "Both"
+
+	var nodeConfigsCreated []api.NodeConfig
+	for _, node := range createdNodes.Nodes {
+		nodeConfig := api.NodeConfig{
+			ID:        node.ID,
+			Name:      node.Name,
+			PublicIP:  node.PublicIP,
+			PrivateIP: node.PrivateIP,
+			Agents:    make([]api.AgentConfig, len(node.Agents)),
+		}
+
+		for i, agent := range node.Agents {
+			nodeConfig.Agents[i] = api.AgentConfig{
+				ID:         agent.ID,
+				MountPoint: agent.Volume.MountPoint,
+				Disk:       agent.Volume.Disk,
+				Port:       agent.Port,
+				Secret:     agent.Secret,
+			}
+		}
+		nodeConfigsCreated = append(nodeConfigsCreated, nodeConfig)
+	}
+
+	basePath := "./cubbit-agent-playbook.tar"
+	outputPath := "./cubbit-agent-yaml.tar"
+
+	if generateAnsible {
+		if err = DownloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigsCreated, basePath); err != nil {
+			return fmt.Errorf("error downloading and generating Ansible tar: %w", err)
+		}
+
+		utils.PrintSuccess("Ansible files generated successfully")
+	}
+
+	if generateYAML {
+		if err := generateYAMLFiles(conf, nodeConfigsCreated, outputPath); err != nil {
+			return fmt.Errorf("error generating YAML file: %w", err)
+		}
+
+		utils.PrintSuccess("YAML file generated successfully")
+	}
+
+	if generateBoth {
+		if err = DownloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigsCreated, basePath); err != nil {
+			return fmt.Errorf("error downloading and generating Ansible tar: %w", err)
+		}
+
+		if err = generateYAMLFiles(conf, nodeConfigsCreated, outputPath); err != nil {
+			return fmt.Errorf("error generating YAML file: %w", err)
+		}
+
+		utils.PrintSuccess("Ansible and YAML files generated successfully")
+	}
+
+	return nil
+}
+
+func collectNodeConfiguration() ([]api.NodeConfig, error) {
+	var numNodesStr, publicIPs, privateIPs, nodeNames, label string
+	var err error
+
+	if _, err = tui.TextInputs(
+		"Node Configuration",
+		false,
+		tui.Input{Placeholder: "Number of nodes", IsPassword: false, Value: &numNodesStr},
+		tui.Input{Placeholder: "Public IPs (comma-separated)", IsPassword: false, Value: &publicIPs},
+		tui.Input{Placeholder: "Private IPs (optional, comma-separated)", IsPassword: false, Value: &privateIPs},
+		tui.Input{Placeholder: "Node names (optional, comma-separated)", IsPassword: false, Value: &nodeNames},
+		tui.Input{Placeholder: "Label for all nodes (optional)", IsPassword: false, Value: &label},
+	); err != nil {
+		return nil, err
+	}
+
+	if privateIPs == "" {
+		privateIPs = publicIPs
+	}
+
+	numNodes, err := strconv.Atoi(numNodesStr)
+	if err != nil || numNodes <= 0 {
+		return nil, fmt.Errorf("invalid number of nodes: %s", numNodesStr)
+	}
+
+	if err = utils.ValidateIPsInput(publicIPs, numNodes); err != nil {
+		return nil, fmt.Errorf("error validating public IPs: %w", err)
+	}
+
+	if err = utils.ValidateIPsInput(privateIPs, numNodes); err != nil {
+		return nil, fmt.Errorf("error validating private IPs: %w", err)
+	}
+
+	if err = utils.ValidateNamesInput(nodeNames, numNodes); err != nil {
+		return nil, fmt.Errorf("error validating node names: %w", err)
+	}
+
+	computedPublicIPs, err := utils.ComputeIPsArray(publicIPs, numNodes)
+	if err != nil {
+		return nil, fmt.Errorf("error computing public IPs: %w", err)
+	}
+
+	computedPrivateIPs, err := utils.ComputeIPsArray(privateIPs, numNodes)
+	if err != nil {
+		return nil, fmt.Errorf("error computing private IPs: %w", err)
+	}
+
+	computedNames := utils.ComputeNamesArray(nodeNames, numNodes)
+
+	nodeConfigs := make([]api.NodeConfig, numNodes)
+	for i := 0; i < numNodes; i++ {
+		nodeConfigs[i] = api.NodeConfig{
+			Name:      computedNames[i],
+			PublicIP:  computedPublicIPs[i],
+			PrivateIP: computedPrivateIPs[i],
+			Label:     strings.TrimSpace(label),
+		}
+	}
+
+	return nodeConfigs, nil
+}
+
+func collectAgentConfiguration(nodeConfigs *[]api.NodeConfig) error {
+	var numDisksStr, mountPoints, diskIdentifiers, ports string
+	var err error
+
+	if _, err = tui.TextInputs(
+		"Agent Configuration",
+		false,
+		tui.Input{Placeholder: "Number of disks per node", IsPassword: false, Value: &numDisksStr},
+		tui.Input{Placeholder: "Disk identifiers (comma-separated)", IsPassword: false, Value: &diskIdentifiers},
+		tui.Input{Placeholder: "Ports (comma-separated)", IsPassword: false, Value: &ports},
+		tui.Input{Placeholder: "Mountpoints (optional, comma-separated)", IsPassword: false, Value: &mountPoints},
+	); err != nil {
+		return err
+	}
+
+	numDisks, err := strconv.Atoi(numDisksStr)
+	if err != nil || numDisks <= 0 {
+		return fmt.Errorf("invalid number of disks: %s", numDisksStr)
+	}
+
+	computedMountPoints, err := utils.ComputeMountPointsArray(mountPoints, numDisks)
+	if err != nil {
+		return fmt.Errorf("error computing mount points: %w", err)
+	}
+
+	computedDisks, err := utils.ComputeDisksArray(diskIdentifiers, numDisks)
+	if err != nil {
+		return fmt.Errorf("error computing disk identifiers: %w", err)
+	}
+
+	computedPorts, err := utils.ComputePortsArray(ports, numDisks)
+	if err != nil {
+		return fmt.Errorf("error computing ports: %w", err)
+	}
+
+	for i := range *nodeConfigs {
+		(*nodeConfigs)[i].Agents = make([]api.AgentConfig, numDisks)
+		for j := 0; j < numDisks; j++ {
+			(*nodeConfigs)[i].Agents[j] = api.AgentConfig{
+				MountPoint: computedMountPoints[j],
+				Disk:       computedDisks[j],
+				Port:       computedPorts[j],
+			}
+		}
+	}
+
+	return nil
+}
+
+func createNodeWithAgents(conf *configuration.Config, accessToken, swarmID string, nexusID string, nodeConfigs []api.NodeConfig) (*api.NewNodesResponse, error) {
+	var err error
+	req := api.BulkInsertNewNodeRequestBody{
+		Nodes: make([]api.CreateNewNodeRequestBody, len(nodeConfigs)),
+	}
+	for i, nodeConfig := range nodeConfigs {
+		nodeBody := api.CreateNewNodeRequestBody{
+			Name:      nodeConfig.Name,
+			Label:     &nodeConfig.Label,
+			PublicIP:  nodeConfig.PublicIP,
+			PrivateIP: nodeConfig.PrivateIP,
+		}
+
+		agents := make([]api.CreateNewAgentRequestBody, len(nodeConfig.Agents))
+		for j, agentConfig := range nodeConfig.Agents {
+			agents[j] = api.CreateNewAgentRequestBody{
+				Port: agentConfig.Port,
+				Volume: api.AgentVolume{
+					MountPoint: agentConfig.MountPoint,
+					Disk:       agentConfig.Disk,
+				},
+			}
+		}
+
+		nodeBody.Agents = agents
+		req.Nodes[i] = nodeBody
+	}
+
+	var createdNodes *api.NewNodesResponse
+	if createdNodes, err = api.CreateNodeV4(conf.Urls, accessToken, swarmID, nexusID, req); err != nil {
+		return nil, fmt.Errorf("error creating nodes and agents: %w", err)
+	}
+
+	return createdNodes, nil
+}
+
+func generateInventoryContent(nodeConfigs []api.NodeConfig) string {
+	var content strings.Builder
+	for _, nodeConfig := range nodeConfigs {
+		content.WriteString(fmt.Sprintf("[%s]\n%s\n", nodeConfig.Name, nodeConfig.PublicIP))
+	}
+	return content.String()
+}
+
+func generateHostNamesContent(nodeConfigs []api.NodeConfig) string {
+	var content strings.Builder
+	for _, nodeConfig := range nodeConfigs {
+		content.WriteString(fmt.Sprintf("%s\n", nodeConfig.Name))
+	}
+	return content.String()
+}
+
+func generateAgentSecretsContent(nodeConfig api.NodeConfig) map[string]interface{} {
+	agentsMap := make(map[string]interface{})
+
+	for i, agent := range nodeConfig.Agents {
+		agentsMap[strconv.Itoa(i)] = map[string]interface{}{
+			"agent_secret":         agent.Secret,
+			"mount_point":          agent.MountPoint,
+			"disk":                 agent.Disk,
+			"cccp_server_port":     agent.Port,
+			"cccp_server_local_ip": nodeConfig.PrivateIP,
+			"machine_id":           nodeConfig.ID,
+		}
+	}
+
+	return agentsMap
+}
+
+func generateYAMLFiles(conf *configuration.Config, nodeConfigs []api.NodeConfig, outputPath string) error {
+	envs := api.YAMLGenerationEnvs{
+		HiveURL:                  conf.Urls.ChUrl,
+		MetricsURL:               conf.Urls.MetricsUrl,
+		MetricsRoutesSend:        constants.MetricsSender,
+		CCCPSwarmGatewayEndpoint: conf.Urls.SwarmGatewayUrl,
+		CCCPSwarmGatewayPort:     "",
+		CCCPSwarmGatewaySecure:   "false",
+	}
+
+	tmpDir, err := os.MkdirTemp("", "ansible-tar")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	for _, nodeConfig := range nodeConfigs {
+		yamlContent, err := generateClusterYAMLFiles(nodeConfig, envs)
+		if err != nil {
+			return fmt.Errorf("error generating YAML for node %s: %w", nodeConfig.Name, err)
+		}
+
+		filename := fmt.Sprintf("cluster-%s.yaml", nodeConfig.Name)
+		if err := utils.WriteFile(filepath.Join(tmpDir, filename), []byte(yamlContent)); err != nil {
+			return fmt.Errorf("error writing YAML file for node %s: %w", nodeConfig.Name, err)
+		}
+	}
+
+	if err := utils.CreateTar(outputPath, tmpDir); err != nil {
+		return fmt.Errorf("failed to repack tarball: %w", err)
+	}
+
+	return nil
+}
+
+func generateClusterYAMLFiles(nodeConfig api.NodeConfig, envs api.YAMLGenerationEnvs) (string, error) {
+	secretData := make(map[string]string)
+	agentsDetail := make(map[string]api.AgentDetail)
+
+	for i, agent := range nodeConfig.Agents {
+		agentName := fmt.Sprintf("%s-agent%02d", nodeConfig.Name, i)
+
+		agentSecret := api.AgentSecret{
+			AgentSecret: agent.Secret,
+			AgentUUID:   agent.ID,
+		}
+
+		secretJSON, err := json.Marshal(agentSecret)
+		if err != nil {
+			return "", fmt.Errorf("error marshaling agent secret: %w", err)
+		}
+		secretData[agentName] = base64.StdEncoding.EncodeToString(secretJSON)
+
+		agentsDetail[agentName] = api.AgentDetail{
+			LocalPath:        agent.MountPoint,
+			NodeNameSelector: nodeConfig.PublicIP,
+		}
+	}
+
+	secretYAML := api.SecretYAML{
+		APIVersion: "v1",
+		Kind:       "Secret",
+		Metadata: api.SecretMetadata{
+			Name: fmt.Sprintf("%s-secret", nodeConfig.Name),
+		},
+		Type: "Opaque",
+		Data: secretData,
+	}
+
+	clusterAgentYAML := api.ClusterAgentYAML{
+		APIVersion: "agent.cubbit.io/v1alpha1",
+		Kind:       "ClusterAgent",
+		Metadata: api.ClusterAgentMetadata{
+			Name: fmt.Sprintf("cluster-%s", nodeConfig.Name),
+		},
+		Spec: api.ClusterAgentSpec{
+			InstancesCounter: len(nodeConfig.Agents),
+			BaseName:         fmt.Sprintf("%s-agent", nodeConfig.Name),
+			SecretName:       fmt.Sprintf("%s-secret", nodeConfig.Name),
+			AgentImage:       "cubbit/agent:latest",
+			AdditionalEnvVars: []api.EnvVar{
+				{Name: "HIVE_URL", Value: envs.HiveURL},
+				{Name: "METRICS_URL", Value: envs.MetricsURL},
+				{Name: "METRICS_ROUTES_SEND", Value: envs.MetricsRoutesSend},
+				{Name: "CCCP_SWARM_GATEWAY_ENDPOINT", Value: envs.CCCPSwarmGatewayEndpoint},
+				{Name: "CCCP_SWARM_GATEWAY_PORT", Value: envs.CCCPSwarmGatewayPort},
+				{Name: "CCCP_SWARM_GATEWAY_SECURE", Value: envs.CCCPSwarmGatewaySecure},
+			},
+			Volume: api.VolumeSpec{
+				Type:    "local-storage",
+				PVCSize: "1Ti",
+			},
+			AgentsDetail: agentsDetail,
+		},
+	}
+
+	secretYAMLBytes, err := yaml.Marshal(&secretYAML)
+	if err != nil {
+		return "", fmt.Errorf("error marshaling secret YAML: %w", err)
+	}
+
+	clusterAgentYAMLBytes, err := yaml.Marshal(&clusterAgentYAML)
+	if err != nil {
+		return "", fmt.Errorf("error marshaling cluster agent YAML: %w", err)
+	}
+
+	return string(secretYAMLBytes) + "\n---\n" + string(clusterAgentYAMLBytes), nil
+}
+
+func DownloadAndGenerateAnsibleTar(tarURL string, nodeConfigs []api.NodeConfig, outputPath string) error {
+	resp, err := http.Get(tarURL)
+	if err != nil {
+		return fmt.Errorf("failed to download tarball: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download tarball: %s", resp.Status)
+	}
+
+	tmpDir, err := os.MkdirTemp("", "ansible-tar")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := utils.ExtractTar(resp.Body, tmpDir); err != nil {
+		return fmt.Errorf("failed to extract tarball: %w", err)
+	}
+
+	if err := injectAnsibleFiles(tmpDir+"/cubbit-agent-playbook", nodeConfigs); err != nil {
+		return fmt.Errorf("failed to inject generated files: %w", err)
+	}
+
+	if err := utils.CreateTar(outputPath, tmpDir); err != nil {
+		return fmt.Errorf("failed to repack tarball: %w", err)
+	}
+
+	return nil
+}
+
+func injectAnsibleFiles(root string, nodes []api.NodeConfig) error {
+	filesDir := filepath.Join(root, "files")
+	invDir := filepath.Join(root, "inventory")
+
+	if err := os.MkdirAll(filesDir, 0755); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(invDir, 0755); err != nil {
+		return err
+	}
+
+	invPath := filepath.Join(invDir, "hosts.ini")
+	if err := os.WriteFile(invPath, []byte(generateInventoryContent(nodes)), 0644); err != nil {
+		return err
+	}
+
+	hostNamesPath := filepath.Join(filesDir, "host-names")
+	if err := os.WriteFile(hostNamesPath, []byte(generateHostNamesContent(nodes)), 0644); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(filepath.Join(filesDir, "ssh-public-keys"), []byte(""), 0644); err != nil {
+		return err
+	}
+
+	for _, node := range nodes {
+		path := filepath.Join(filesDir, fmt.Sprintf("%s-agent-secrets.json", node.Name))
+		data, _ := json.MarshalIndent(generateAgentSecretsContent(node), "", "  ")
+		if err := os.WriteFile(path, data, 0644); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

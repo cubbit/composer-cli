@@ -641,3 +641,86 @@ type SummaryDetails struct {
 	Warning int `json:"warning"`
 	Error   int `json:"error"`
 }
+
+type NodeConfig struct {
+	ID        string        `json:"id,omitempty"`
+	Name      string        `json:"name"`
+	PublicIP  string        `json:"public_ip"`
+	PrivateIP string        `json:"private_ip"`
+	Label     string        `json:"label,omitempty"`
+	Agents    []AgentConfig `json:"agents"`
+}
+
+type AgentConfig struct {
+	ID         string `json:"id"`
+	MountPoint string `json:"mount_point"`
+	Disk       string `json:"disk"`
+	Port       int    `json:"port"`
+	Secret     string `json:"secret"`
+}
+
+type AnsibleConfig struct {
+	Nodes []NodeConfig `json:"nodes"`
+}
+
+type YAMLGenerationEnvs struct {
+	HiveURL                  string `yaml:"hive_url"`
+	MetricsURL               string `yaml:"metrics_url"`
+	MetricsRoutesSend        string `yaml:"metrics_routes_send"`
+	CCCPSwarmGatewayEndpoint string `yaml:"cccp_swarm_gateway_endpoint"`
+	CCCPSwarmGatewayPort     string `yaml:"cccp_swarm_gateway_port"`
+	CCCPSwarmGatewaySecure   string `yaml:"cccp_swarm_gateway_secure"`
+}
+
+type SecretYAML struct {
+	APIVersion string            `yaml:"apiVersion"`
+	Kind       string            `yaml:"kind"`
+	Metadata   SecretMetadata    `yaml:"metadata"`
+	Type       string            `yaml:"type"`
+	Data       map[string]string `yaml:"data"`
+}
+
+type SecretMetadata struct {
+	Name string `yaml:"name"`
+}
+
+type ClusterAgentYAML struct {
+	APIVersion string               `yaml:"apiVersion"`
+	Kind       string               `yaml:"kind"`
+	Metadata   ClusterAgentMetadata `yaml:"metadata"`
+	Spec       ClusterAgentSpec     `yaml:"spec"`
+}
+
+type ClusterAgentMetadata struct {
+	Name string `yaml:"name"`
+}
+
+type ClusterAgentSpec struct {
+	InstancesCounter  int                    `yaml:"instancesCounter"`
+	BaseName          string                 `yaml:"baseName"`
+	SecretName        string                 `yaml:"secretName"`
+	AgentImage        string                 `yaml:"agentImage"`
+	AdditionalEnvVars []EnvVar               `yaml:"additionalEnvVars"`
+	Volume            VolumeSpec             `yaml:"volume"`
+	AgentsDetail      map[string]AgentDetail `yaml:"agentsDetail"`
+}
+
+type EnvVar struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value,omitempty"`
+}
+
+type VolumeSpec struct {
+	Type    string `yaml:"type"`
+	PVCSize string `yaml:"pvcSize"`
+}
+
+type AgentDetail struct {
+	LocalPath        string `yaml:"localPath"`
+	NodeNameSelector string `yaml:"nodeNameSelector"`
+}
+
+type AgentSecret struct {
+	AgentSecret string `json:"agentSecret"`
+	AgentUUID   string `json:"agentUUID"`
+}

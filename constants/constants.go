@@ -21,6 +21,12 @@ const (
 	// Base DASH URL
 	BaseDashURL = "https://dashboard.cubbit.eu"
 
+	// Base Metrics URL
+	BaseMetricsURL = "https://metrics.cubbit.io"
+
+	// Base Swarm Gateway URL
+	BaseSwarmGatewayURL = "https://swarm-gateway.cubbit.io"
+
 	// API URIS
 	BaseKeyvaultURI = "keyvault"
 	BaseIamURI      = "/iam"
@@ -68,4 +74,7 @@ const (
 
 	RedundancyClasses = "/v1/redundancy_class"
 	Rings             = "/v1/rings"
+
+	AnsibleTarUrl = "https://cubbit-public.s3.cubbit.eu/agent/cubbit-agent-playbook.tar"
+	MetricsSender = "/composer-hub/v2/agent/metrics"
 )
