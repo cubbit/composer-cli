@@ -646,7 +646,7 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 	outputPath := "./cubbit-agent-yaml.tar"
 
 	if generateAnsible {
-		if err = DownloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigsCreated, basePath); err != nil {
+		if err = downloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigsCreated, basePath); err != nil {
 			return fmt.Errorf("error downloading and generating Ansible tar: %w", err)
 		}
 
@@ -662,7 +662,7 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 	}
 
 	if generateBoth {
-		if err = DownloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigsCreated, basePath); err != nil {
+		if err = downloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigsCreated, basePath); err != nil {
 			return fmt.Errorf("error downloading and generating Ansible tar: %w", err)
 		}
 
@@ -671,6 +671,203 @@ func CreateSwarmNodeInteractive(cmd *cobra.Command) error {
 		}
 
 		utils.PrintSuccess("Ansible and YAML files generated successfully")
+	}
+
+	return nil
+}
+
+func GenerateSwarmNodeDeployFilesInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, nexusID, nodeID, configPath string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var swarms []*api.Swarm
+	var nexuses *api.NexusList
+	var choice string
+	var choices []string
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if choice, err = tui.ChooseOne("Which swarm would you like to choose?", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	choices = []string{}
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which nexus would you like to choose?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNexusRequest, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nodes.Data) == 0 {
+		utils.PrintNotFound("No nodes found")
+		return nil
+	}
+
+	choices = []string{}
+
+	for _, node := range nodes.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s", node.ID, node.Name))
+	}
+
+	if choice, err = tui.ChooseOne("Which node would you like to choose?", true, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
+	}
+
+	_, withoutPrefix, _ = strings.Cut(choice, " ")
+	nodeID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	var generateFilesChoice string
+	if generateFilesChoice, err = tui.ChooseOne("Would you like to generate Deployment files (Ansible, YAML)?", false, true, []string{"yaml", "ansible", "both", "skip"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	var nodeConfigs []api.NodeConfig
+	if nodeID != "" {
+		var node *api.NewNode
+		for _, n := range nodes.Data {
+			if n.ID == nodeID {
+				node = n
+				break
+			}
+		}
+
+		if node == nil {
+			utils.PrintNotFound("Node not found")
+			return nil
+		}
+
+		var agents *api.GenericPaginatedResponse[*api.NewAgent]
+		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, nodeID, "", ""); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+		}
+
+		if len(agents.Data) == 0 {
+			utils.PrintNotFound("No agents found for the selected node")
+			return nil
+		}
+
+		nodeConfigs = make([]api.NodeConfig, 0, len(agents.Data))
+		for _, agent := range agents.Data {
+			nodeConfig := api.NodeConfig{
+				ID:        node.ID,
+				Name:      node.Name,
+				PublicIP:  node.PublicIP,
+				PrivateIP: node.PrivateIP,
+				Agents: []api.AgentConfig{
+					{
+						ID:         agent.ID,
+						MountPoint: agent.Volume.MountPoint,
+						Disk:       agent.Volume.Disk,
+						Port:       agent.Port,
+						Secret:     agent.Secret,
+					},
+				},
+			}
+			nodeConfigs = append(nodeConfigs, nodeConfig)
+		}
+	} else {
+
+		nodeConfigs = make([]api.NodeConfig, 0, len(nodes.Data))
+		for _, node := range nodes.Data {
+			nodeConfig := api.NodeConfig{
+				ID:        node.ID,
+				Name:      node.Name,
+				PublicIP:  node.PublicIP,
+				PrivateIP: node.PrivateIP,
+				Agents:    make([]api.AgentConfig, 0),
+			}
+
+			var agents *api.GenericPaginatedResponse[*api.NewAgent]
+			if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
+				return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+			}
+
+			if len(agents.Data) == 0 {
+				utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
+				continue
+			}
+
+			for _, agent := range agents.Data {
+				nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
+					ID:         agent.ID,
+					MountPoint: agent.Volume.MountPoint,
+					Disk:       agent.Volume.Disk,
+					Port:       agent.Port,
+					Secret:     agent.Secret,
+				})
+			}
+
+			nodeConfigs = append(nodeConfigs, nodeConfig)
+
+		}
+	}
+
+	if err = generateDeployFiles(conf, generateFilesChoice, nodeConfigs); err != nil {
+		return fmt.Errorf("error generating deployment files: %w", err)
 	}
 
 	return nil
@@ -965,7 +1162,7 @@ func generateClusterYAMLFiles(nodeConfig api.NodeConfig, envs api.YAMLGeneration
 	return string(secretYAMLBytes) + "\n---\n" + string(clusterAgentYAMLBytes), nil
 }
 
-func DownloadAndGenerateAnsibleTar(tarURL string, nodeConfigs []api.NodeConfig, outputPath string) error {
+func downloadAndGenerateAnsibleTar(tarURL string, nodeConfigs []api.NodeConfig, outputPath string) error {
 	resp, err := http.Get(tarURL)
 	if err != nil {
 		return fmt.Errorf("failed to download tarball: %w", err)
@@ -1028,6 +1225,32 @@ func injectAnsibleFiles(root string, nodes []api.NodeConfig) error {
 		if err := os.WriteFile(path, data, 0644); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func generateDeployFiles(conf *configuration.Config, deployOption string, nodeConfigs []api.NodeConfig) error {
+	basePath := "./cubbit-agent-playbook.tar"
+	outputPath := "./cubbit-agent-yaml.tar"
+
+	switch deployOption {
+	case "ansible":
+		return downloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigs, basePath)
+	case "yaml":
+		return generateYAMLFiles(conf, nodeConfigs, outputPath)
+	case "both":
+		if err := downloadAndGenerateAnsibleTar(constants.AnsibleTarUrl, nodeConfigs, basePath); err != nil {
+			return fmt.Errorf("error generating Ansible files: %w", err)
+		}
+
+		if err := generateYAMLFiles(conf, nodeConfigs, outputPath); err != nil {
+			return fmt.Errorf("error generating YAML files: %w", err)
+		}
+	case "skip":
+		return nil
+	default:
+		return fmt.Errorf("invalid deployment option: %s", deployOption)
 	}
 
 	return nil

@@ -504,6 +504,16 @@ var createSwarmNodeSubCmd = &cobra.Command{
 			return
 		}
 
+		allowedDeployOption := []string{"ansible", "yaml", "both"}
+		if isChanged := cmd.Flags().Changed("deploy-option"); isChanged {
+			deployOption, _ := cmd.Flags().GetString("deploy-option")
+			if deployOption != "" && !utils.Contains(allowedDeployOption, deployOption) {
+				fmt.Println("Error: invalid deploy option provided, allowed options are: ansible, yaml, both")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+
 		if !interactive {
 			id, _ := cmd.Flags().GetString("id")
 			name, _ := cmd.Flags().GetString("name")
@@ -977,6 +987,10 @@ var createSwarmAgentSubCmd = &cobra.Command{
 			if err = tui.Send(cmd, args, action.CreateSwarmAgent); err != nil {
 				utils.PrintError(err)
 			}
+		} else {
+			if err = action.CreateSwarmAgentInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
 		}
 	},
 }
@@ -1153,6 +1167,46 @@ var removeSwarmAgentSubCmd = &cobra.Command{
 	},
 }
 
+var deploySwarmAgentSubCmd = &cobra.Command{
+	Use:   "deploy",
+	Short: "deploy node agents",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("nexus-id")
+			cmd.MarkFlagRequired("deploy-option")
+
+			allowedDeployOption := []string{"ansible", "yaml", "both"}
+
+			deployOption, _ := cmd.Flags().GetString("deploy-option")
+			if deployOption != "" && !utils.Contains(allowedDeployOption, deployOption) {
+				fmt.Println("Error: invalid deploy option provided, allowed options are: ansible, yaml, both")
+				cmd.Usage()
+				os.Exit(1)
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		if !interactive {
+			if err = tui.Send(cmd, args, action.GenerateSwarmNodeDeployFiles); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.GenerateSwarmNodeDeployFilesInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	swarmCmd.AddCommand(createSwarmSubCmd)
 	createSwarmSubCmd.Flags().String("name", "", "Name of the swarm")
@@ -1221,6 +1275,7 @@ func init() {
 	createSwarmNodeSubCmd.Flags().String("node-config", "", "Configuration of the node")
 	createSwarmNodeSubCmd.Flags().Bool("batch", false, "Create multiple nodes from a batch file")
 	createSwarmNodeSubCmd.Flags().String("file", "", "Path to the JSON file containing node definitions")
+	createSwarmNodeSubCmd.Flags().String("deploy-option", "", "Deployment option for the node (ansible, yaml, both)")
 
 	swarmCmd.AddCommand(describeSwarmNodeSubCmd)
 	describeSwarmNodeSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
@@ -1325,6 +1380,11 @@ func init() {
 	removeSwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
 	removeSwarmAgentSubCmd.Flags().String("node-id", "", "ID of the node")
 	removeSwarmAgentSubCmd.Flags().String("agent-id", "", "ID of the agent")
+
+	swarmCmd.AddCommand(deploySwarmAgentSubCmd)
+	deploySwarmAgentSubCmd.Flags().String("nexus-id", "", "ID of the nexus")
+	deploySwarmAgentSubCmd.Flags().String("node-id", "", "ID of the node")
+	deploySwarmAgentSubCmd.Flags().String("deploy-option", "", "Deployment option (e.g., 'ansible', 'yaml','both')")
 
 	rootCmd.AddCommand(swarmCmd)
 	swarmCmd.PersistentFlags().String("name", "", "Name of the swarm")

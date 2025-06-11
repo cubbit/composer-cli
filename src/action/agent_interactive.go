@@ -646,3 +646,149 @@ func ListSwarmAgentsInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func CreateSwarmAgentInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, nexusID, nodeID, configPath string
+	var conf *configuration.Config
+	var operator *api.Operator
+	var swarms []*api.Swarm
+	var nexuses *api.NexusList
+	var choice string
+	var choices []string
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("error while generating access and refresh tokens: %w", err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		if operator, err = api.GetOperatorSelf(conf.Urls, *accessToken); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
+		}
+
+		if swarms, err = api.ListSwarms(conf.Urls, *accessToken, operator.ID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		for _, swarm := range swarms {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+		}
+
+		if choice, err = tui.ChooseOne("Which swarm would you like to choose?", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	choices = []string{}
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", nx.ID, nx.Name, nx.Description))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if choice, err = tui.ChooseOne("Which nexus would you like to choose?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNexusRequest, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	nexusID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nodes.Data) == 0 {
+		utils.PrintNotFound("No nodes found")
+		return nil
+	}
+
+	choices = []string{}
+
+	for _, node := range nodes.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s", node.ID, node.Name))
+	}
+
+	if choice, err = tui.ChooseOne("Which node would you like to choose?", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
+	}
+
+	_, withoutPrefix, _ = strings.Cut(choice, " ")
+	nodeID, _, _ = strings.Cut(withoutPrefix, ",")
+
+	nodeConfigs := make([]api.NodeConfig, 1)
+	if err = collectAgentConfiguration(&nodeConfigs); err != nil {
+		return fmt.Errorf("error collecting agent configuration: %w", err)
+	}
+
+	if _, err = createNodeAgents(conf, *accessToken, id, nexusID, nodeID, nodeConfigs); err != nil {
+		return fmt.Errorf("error creating new agents: %w %v", err, nodeConfigs)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("Agents created successfully in swarm %s", id))
+
+	return nil
+}
+
+func createNodeAgents(conf *configuration.Config, accessToken, swarmID string, nexusID string, nodeID string, nodeConfigs []api.NodeConfig) (*api.NewAgentsResponse, error) {
+	var err error
+	req := api.BulkInsertNewAgentRequestBody{
+		Agents: make([]api.CreateNewAgentRequestBody, 0),
+	}
+
+	for _, nodeConfig := range nodeConfigs {
+		agents := make([]api.CreateNewAgentRequestBody, len(nodeConfig.Agents))
+		for j, agentConfig := range nodeConfig.Agents {
+			agents[j] = api.CreateNewAgentRequestBody{
+				Port: agentConfig.Port,
+				Volume: api.AgentVolume{
+					MountPoint: agentConfig.MountPoint,
+					Disk:       agentConfig.Disk,
+				},
+			}
+		}
+		req.Agents = append(req.Agents, agents...)
+	}
+
+	var createNodeAgents *api.NewAgentsResponse
+	if createNodeAgents, err = api.CreateAgentV4(conf.Urls, accessToken, swarmID, nexusID, nodeID, req); err != nil {
+		return nil, fmt.Errorf("error creating agents: %w", err)
+	}
+
+	return createNodeAgents, nil
+}

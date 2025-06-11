@@ -15,10 +15,10 @@ import (
 func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var name, id, nodeName, label, nexusID, privateIP, publicIP, configPath, nodeConfigStr string
+	var name, id, nodeName, label, nexusID, privateIP, publicIP, deployOption, configPath, nodeConfigStr string
 	var nodeConfig map[string]interface{}
 	var conf *configuration.Config
-	var node *api.NewNodesResponse
+	var nodes *api.NewNodesResponse
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -58,6 +58,10 @@ func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if deployOption, err = cmd.Flags().GetString("deploy-option"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -84,11 +88,51 @@ func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	if node, err = api.CreateNodeV4(conf.Urls, *accessToken, id, nexusID, nodesBodyRequest); err != nil {
+	if nodes, err = api.CreateNodeV4(conf.Urls, *accessToken, id, nexusID, nodesBodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Node %s created successfully\n", node.Nodes[0].ID))
+	utils.PrintSuccess(fmt.Sprintf("Node %s created successfully\n", nodes.Nodes[0].ID))
+
+	var nodeConfigs []api.NodeConfig
+
+	nodeConfigs = make([]api.NodeConfig, 0, 1)
+	for _, node := range nodes.Nodes {
+		nodeConfig := api.NodeConfig{
+			ID:        node.ID,
+			Name:      node.Name,
+			PublicIP:  node.PublicIP,
+			PrivateIP: node.PrivateIP,
+			Agents:    make([]api.AgentConfig, 0),
+		}
+
+		var agents *api.GenericPaginatedResponse[*api.NewAgent]
+		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+		}
+
+		if len(agents.Data) == 0 {
+			utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
+			continue
+		}
+
+		for _, agent := range agents.Data {
+			nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
+				ID:         agent.ID,
+				MountPoint: agent.Volume.MountPoint,
+				Disk:       agent.Volume.Disk,
+				Port:       agent.Port,
+				Secret:     agent.Secret,
+			})
+		}
+
+		nodeConfigs = append(nodeConfigs, nodeConfig)
+
+	}
+
+	if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
+		return fmt.Errorf("error generating deployment files: %w", err)
+	}
 
 	return nil
 }
@@ -96,7 +140,7 @@ func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 	var err error
 	var accessToken *string
-	var id, name, nexusID, configPath, filePath string
+	var id, name, nexusID, deployOption, configPath, filePath string
 	var conf *configuration.Config
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
@@ -107,6 +151,10 @@ func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 	}
 
 	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if deployOption, err = cmd.Flags().GetString("deploy-option"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -184,6 +232,46 @@ func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 	utils.PrintSuccess(fmt.Sprintf("Successfully created %d nodes\n", len(nodes.Nodes)))
 	for _, node := range nodes.Nodes {
 		fmt.Printf("  • %s  %s\n", node.ID, node.Name)
+	}
+
+	var nodeConfigs []api.NodeConfig
+
+	nodeConfigs = make([]api.NodeConfig, 0, len(nodes.Nodes))
+	for _, node := range nodes.Nodes {
+		nodeConfig := api.NodeConfig{
+			ID:        node.ID,
+			Name:      node.Name,
+			PublicIP:  node.PublicIP,
+			PrivateIP: node.PrivateIP,
+			Agents:    make([]api.AgentConfig, 0),
+		}
+
+		var agents *api.GenericPaginatedResponse[*api.NewAgent]
+		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+		}
+
+		if len(agents.Data) == 0 {
+			utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
+			continue
+		}
+
+		for _, agent := range agents.Data {
+			nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
+				ID:         agent.ID,
+				MountPoint: agent.Volume.MountPoint,
+				Disk:       agent.Volume.Disk,
+				Port:       agent.Port,
+				Secret:     agent.Secret,
+			})
+		}
+
+		nodeConfigs = append(nodeConfigs, nodeConfig)
+
+	}
+
+	if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
+		return fmt.Errorf("error generating deployment files: %w", err)
 	}
 
 	return nil
@@ -474,6 +562,146 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		if l {
 			fmt.Println()
 		}
+	}
+
+	return nil
+}
+
+func GenerateSwarmNodeDeployFiles(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var configPath, deployOption string
+	var conf *configuration.Config
+	var id, name, nexusID, nodeID string
+	var nodes *api.GenericPaginatedResponse[*api.NewNode]
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if nodeID, err = cmd.Flags().GetString("node-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if deployOption, err = cmd.Flags().GetString("deploy-option"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
+		}
+	}
+
+	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nodes.Data) == 0 {
+		utils.PrintNotFound("No nodes found")
+		return nil
+	}
+
+	var nodeConfigs []api.NodeConfig
+
+	if nodeID != "" {
+		var node *api.NewNode
+		for _, n := range nodes.Data {
+			if n.ID == nodeID {
+				node = n
+				break
+			}
+		}
+
+		if node == nil {
+			utils.PrintNotFound("Node not found")
+			return nil
+		}
+
+		var agents *api.GenericPaginatedResponse[*api.NewAgent]
+		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, nodeID, "", ""); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+		}
+
+		if len(agents.Data) == 0 {
+			utils.PrintNotFound("No agents found for the selected node")
+			return nil
+		}
+
+		nodeConfigs = make([]api.NodeConfig, 0, len(agents.Data))
+		for _, agent := range agents.Data {
+			nodeConfig := api.NodeConfig{
+				ID:        node.ID,
+				Name:      node.Name,
+				PublicIP:  node.PublicIP,
+				PrivateIP: node.PrivateIP,
+				Agents: []api.AgentConfig{
+					{
+						ID:         agent.ID,
+						MountPoint: agent.Volume.MountPoint,
+						Disk:       agent.Volume.Disk,
+						Port:       agent.Port,
+						Secret:     agent.Secret,
+					},
+				},
+			}
+			nodeConfigs = append(nodeConfigs, nodeConfig)
+		}
+	} else {
+
+		nodeConfigs = make([]api.NodeConfig, 0, len(nodes.Data))
+		for _, node := range nodes.Data {
+			nodeConfig := api.NodeConfig{
+				ID:        node.ID,
+				Name:      node.Name,
+				PublicIP:  node.PublicIP,
+				PrivateIP: node.PrivateIP,
+				Agents:    make([]api.AgentConfig, 0),
+			}
+
+			var agents *api.GenericPaginatedResponse[*api.NewAgent]
+			if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
+				return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+			}
+
+			if len(agents.Data) == 0 {
+				utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
+				continue
+			}
+
+			for _, agent := range agents.Data {
+				nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
+					ID:         agent.ID,
+					MountPoint: agent.Volume.MountPoint,
+					Disk:       agent.Volume.Disk,
+					Port:       agent.Port,
+					Secret:     agent.Secret,
+				})
+			}
+
+			nodeConfigs = append(nodeConfigs, nodeConfig)
+
+		}
+	}
+
+	if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
+		return fmt.Errorf("error generating deployment files: %w", err)
 	}
 
 	return nil
