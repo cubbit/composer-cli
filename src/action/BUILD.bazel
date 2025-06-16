@@ -5,6 +5,8 @@ go_library(
     srcs = [
         "account.go",
         "account_interactive.go",
+        "agent.go",
+        "agent_interactive.go",
         "distributor.go",
         "distributor_interactive.go",
         "login.go",
@@ -27,8 +29,6 @@ go_library(
         "token.go",
         "token_interactive.go",
         "version.go",
-        "agent.go",
-        "agent_interactive.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/src/action",
     visibility = ["//visibility:public"],

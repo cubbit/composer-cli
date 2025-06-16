@@ -4,6 +4,7 @@ go_library(
     name = "api",
     srcs = [
         "account.go",
+        "agents.go",
         "authentication_client.go",
         "distributor.go",
         "nexus.go",
@@ -15,7 +16,6 @@ go_library(
         "response_extractors.go",
         "swarm.go",
         "tenant.go",
-        "agents.go",
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/src/api",
     visibility = ["//visibility:public"],

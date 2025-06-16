@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "account.go",
         "distributor.go",
+        "docs.go",
         "operator.go",
         "project.go",
         "root.go",
@@ -21,5 +22,7 @@ go_library(
         "//src/tui",
         "//utils",
         "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//doc",
+        "@com_github_spf13_pflag//:pflag",
     ],
 )
