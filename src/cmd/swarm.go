@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -28,8 +27,11 @@ var createSwarmSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateSwarm); err != nil {
+			if err = action.CreateSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -46,8 +48,11 @@ var listSwarmSubCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarms); err != nil {
+			if err = action.ListSwarms(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -74,8 +79,11 @@ var describeSwarmSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeSwarm); err != nil {
+			if err = action.DescribeSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -108,6 +116,9 @@ var editSwarmDescriptionSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
 			if err = action.EditSwarmDescription(cmd, args...); err != nil {
 				utils.PrintError(err)
@@ -142,6 +153,9 @@ var editSwarmNameSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
 			if err = action.EditSwarmName(cmd, args...); err != nil {
 				utils.PrintError(err)
@@ -174,8 +188,11 @@ var removeSwarmSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveSwarm); err != nil {
+			if err = action.RemoveSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -205,8 +222,11 @@ var addOperatorToSwarmSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.AddOperatorToSwarm); err != nil {
+			if err = action.AddOperatorToSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -233,8 +253,11 @@ var listSwarmOperatorsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarmOperators); err != nil {
+			if err = action.ListSwarmOperators(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -267,8 +290,11 @@ var removeSwarmOperatorSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveSwarmOperator); err != nil {
+			if err = action.RemoveSwarmOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -301,8 +327,11 @@ var describeSwarmOperatorsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeSwarmOperator); err != nil {
+			if err = action.DescribeSwarmOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -335,8 +364,11 @@ var EditSwarmOperatorRoleSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.EditSwarmOperatorRole); err != nil {
+			if err = action.EditSwarmOperatorRole(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -366,8 +398,11 @@ var createSwarmNexusSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateSwarmNexus); err != nil {
+			if err = action.CreateSwarmNexus(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -392,8 +427,11 @@ var editSwarmNexusSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.EditSwarmNexus); err != nil {
+			if err = action.EditSwarmNexus(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -418,8 +456,11 @@ var removeSwarmNexusSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveSwarmNexus); err != nil {
+			if err = action.RemoveSwarmNexus(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -446,8 +487,11 @@ var listSwarmNexusesSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarmNexuses); err != nil {
+			if err = action.ListSwarmNexuses(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -472,8 +516,11 @@ var describeSwarmNexusSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeSwarmNexus); err != nil {
+			if err = action.DescribeSwarmNexus(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -546,16 +593,19 @@ var createSwarmNodeSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		batch, _ := cmd.Flags().GetBool("batch")
 		if batch {
-			if err = tui.Send(cmd, args, action.CreateSwarmNodeBatch); err != nil {
+			if err = action.CreateSwarmNodeBatch(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 			return
 		}
 
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateSwarmNode); err != nil {
+			if err = action.CreateSwarmNode(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -586,8 +636,11 @@ var describeSwarmNodeSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeSwarmNode); err != nil {
+			if err = action.DescribeSwarmNode(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -617,8 +670,11 @@ var editSwarmNodeSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.EditSwarmNode); err != nil {
+			if err = action.EditSwarmNode(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -650,8 +706,11 @@ var removeSwarmNodeSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveSwarmNode); err != nil {
+			if err = action.RemoveSwarmNode(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -698,8 +757,11 @@ var listSwarmNodesSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarmNodes); err != nil {
+			if err = action.ListSwarmNodes(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -743,8 +805,11 @@ var CreateSwarmRedundancyClassSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateSwarmRedundancyClass); err != nil {
+			if err = action.CreateSwarmRedundancyClass(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -770,8 +835,11 @@ var DescribeRedundancyClassesSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeSwarmRedundancyClass); err != nil {
+			if err = action.DescribeSwarmRedundancyClass(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -800,8 +868,11 @@ var CheckRedundancyClassStatusSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CheckSwarmRedundancyClassStatus); err != nil {
+			if err = action.CheckSwarmRedundancyClassStatus(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -830,8 +901,11 @@ var CheckRedundancyClassRecoveryStatusSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CheckSwarmRedundancyClassRecoveryStatus); err != nil {
+			if err = action.CheckSwarmRedundancyClassRecoveryStatus(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -860,8 +934,11 @@ var ExpandRedundancyClassSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ExpandSwarmRedundancyClass); err != nil {
+			if err = action.ExpandSwarmRedundancyClass(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -890,8 +967,11 @@ var RecoverRedundancyClassSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RecoverSwarmRedundancyClass); err != nil {
+			if err = action.RecoverSwarmRedundancyClass(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -918,8 +998,11 @@ var listRedundancyClassesSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarmRedundancyClasses); err != nil {
+			if err = action.ListSwarmRedundancyClasses(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -975,16 +1058,19 @@ var createSwarmAgentSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		batch, _ := cmd.Flags().GetBool("batch")
 		if batch {
-			if err = tui.Send(cmd, args, action.CreateSwarmAgentBatch); err != nil {
+			if err = action.CreateSwarmAgentBatch(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 			return
 		}
 
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateSwarmAgent); err != nil {
+			if err = action.CreateSwarmAgent(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1032,8 +1118,11 @@ var editSwarmAgentSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.EditSwarmAgent); err != nil {
+			if err = action.EditSwarmAgent(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1064,8 +1153,11 @@ var describeSwarmAgentSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeSwarmAgent); err != nil {
+			if err = action.DescribeSwarmAgent(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1123,8 +1215,11 @@ var listSwarmAgentsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListSwarmAgents); err != nil {
+			if err = action.ListSwarmAgents(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1155,8 +1250,11 @@ var removeSwarmAgentSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveSwarmAgent); err != nil {
+			if err = action.RemoveSwarmAgent(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1195,8 +1293,11 @@ var deploySwarmAgentSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.GenerateSwarmNodeDeployFiles); err != nil {
+			if err = action.GenerateSwarmNodeDeployFiles(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

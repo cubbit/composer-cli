@@ -136,10 +136,10 @@ func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl str
 	return nil
 }
 
-func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
+func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID string) (*TenantSwarmList, error) {
 	var err error
 	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/swarms"
-	var response SwarmList
+	var response TenantSwarmList
 
 	if err = request_utils.DoRequest(
 		url,

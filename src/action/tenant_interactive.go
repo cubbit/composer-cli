@@ -434,7 +434,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
-	var swarms *api.SwarmList
+	var swarms *api.TenantSwarmList
 	var choice string
 	var choices []string
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
@@ -503,7 +503,7 @@ func ListAvailableSwarmsTenantInteractive(cmd *cobra.Command) error {
 		if swarm.Default {
 			defaultString = "[DEFAULT]"
 		}
-		list = append(list, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, defaultString))
+		list = append(list, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.SwarmName, defaultString))
 
 	}
 

@@ -35,4 +35,5 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&interactive, "interactive", "i", false, "Run in interactive mode")
 	rootCmd.PersistentFlags().String("profile", constants.DefaultProfile, "Profile Configuration")
 	rootCmd.PersistentFlags().String("config", defaultConfigPath, "Configuration path for file")
+	rootCmd.PersistentFlags().Bool("human", false, "Output in human-readable format")
 }

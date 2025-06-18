@@ -6,7 +6,6 @@ import (
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +27,7 @@ func GenerateAccessToken(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorStoringSession, err)
 	}
 
-	utils.PrintSuccess("access token generated successfully")
-	fmt.Printf("Token: %s\n", *accessToken)
+	fmt.Printf(*accessToken)
 
 	return nil
 }

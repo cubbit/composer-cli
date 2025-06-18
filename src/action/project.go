@@ -52,7 +52,7 @@ func CreateProject(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingProjectRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("project: %s created successfully", response.ID))
+	utils.PrintCreateSuccess("project", response.ID)
 
 	return nil
 }
@@ -105,13 +105,6 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Projects List")
-
-	if len(projects.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -120,16 +113,21 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if verbose {
-		utils.PrintVerbose(projects.Data, l)
+	if len(projects.Data) == 0 {
+		utils.PrintEmptyList()
 		return nil
 	}
 
-	for _, project := range projects.Data {
-		fmt.Printf(" • %s\n", project.ProjectID)
-		if l {
-			fmt.Println()
+	utils.PrintList("Your Projects List")
+
+	if verbose {
+		utils.PrintVerbose(projects.Data, l)
+	} else {
+		var IDs []string
+		for _, project := range projects.Data {
+			IDs = append(IDs, project.ProjectID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +22,11 @@ var createProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateProject); err != nil {
+			if err = action.CreateProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

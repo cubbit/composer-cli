@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -35,8 +34,11 @@ var createDistributorSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateDistributor); err != nil {
+			if err = action.CreateDistributor(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -53,8 +55,11 @@ var listDistributorSubCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListDistributor); err != nil {
+			if err = action.ListDistributor(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -85,8 +90,11 @@ var removeDistributorSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveDistributor); err != nil {
+			if err = action.RemoveDistributor(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -124,8 +132,11 @@ var createDistributorCouponSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateDistributorCoupon); err != nil {
+			if err = action.CreateDistributorCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -152,8 +163,11 @@ var listDistributorCouponsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListDistributorCoupons); err != nil {
+			if err = action.ListDistributorCoupons(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -187,8 +201,11 @@ var describeDistributorCouponSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeDistributorCoupon); err != nil {
+			if err = action.DescribeDistributorCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -222,8 +239,11 @@ var editDistributorCouponSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.EditDistributorCoupon); err != nil {
+			if err = action.EditDistributorCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -257,8 +277,11 @@ var revokeDistributorCouponSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RevokeDistributorCoupon); err != nil {
+			if err = action.RevokeDistributorCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -292,8 +315,11 @@ var removeDistributorCouponSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveDistributorCoupon); err != nil {
+			if err = action.RemoveDistributorCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -347,8 +373,11 @@ var inviteDistributorCouponSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.InviteDistributorCoupon); err != nil {
+			if err = action.InviteDistributorCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -389,8 +418,11 @@ var reportDistributorSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.GetDistributorReport); err != nil {
+			if err = action.GetDistributorReport(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

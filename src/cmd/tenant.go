@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -28,8 +27,11 @@ var createTenantSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateTenant); err != nil {
+			if err = action.CreateTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -68,8 +70,11 @@ var listTenantSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListTenant); err != nil {
+			if err = action.ListTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -100,8 +105,11 @@ var removeTenantSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveTenant); err != nil {
+			if err = action.RemoveTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -128,8 +136,11 @@ var describeTenantSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeTenant); err != nil {
+			if err = action.DescribeTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -162,6 +173,9 @@ var editTenantDescriptionSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
 			if err = action.EditTenantDescription(cmd, args...); err != nil {
 				utils.PrintError(err)
@@ -196,6 +210,9 @@ var editTenantImageSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
 			if err = action.EditTenantImage(cmd, args); err != nil {
 				utils.PrintError(err)
@@ -224,8 +241,11 @@ var listTenantAvailableSwarmsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListAvailableSwarmsTenant); err != nil {
+			if err = action.ListAvailableSwarmsTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -254,8 +274,11 @@ var addOperatorToTenantSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.AddOperatorToTenant); err != nil {
+			if err = action.AddOperatorToTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -282,8 +305,11 @@ var listTenantOperatorsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListTenantOperators); err != nil {
+			if err = action.ListTenantOperators(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -317,7 +343,7 @@ var removeTenantOperatorSubCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveTenantOperator); err != nil {
+			if err = action.RemoveTenantOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -350,8 +376,11 @@ var connectSwarmSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ConnectSwarm); err != nil {
+			if err = action.ConnectSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -384,6 +413,9 @@ var editTenantSettingsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
 			if err = action.EditTenantSettings(cmd, args...); err != nil {
 				utils.PrintError(err)
@@ -418,8 +450,11 @@ var describeTenantOperatorsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeTenantOperator); err != nil {
+			if err = action.DescribeTenantOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -452,8 +487,11 @@ var EditTenantOperatorRoleSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.EditTenantOperatorRole); err != nil {
+			if err = action.EditTenantOperatorRole(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -489,8 +527,11 @@ var listTenantAccountsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListTenantAccounts); err != nil {
+			if err = action.ListTenantAccounts(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -523,8 +564,11 @@ var describeTenantAccountSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeTenantAccount); err != nil {
+			if err = action.DescribeTenantAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -561,8 +605,11 @@ var removeTenantAccountSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveTenantAccount); err != nil {
+			if err = action.RemoveTenantAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -596,8 +643,11 @@ var banTenantAccountSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.BanTenantAccount); err != nil {
+			if err = action.BanTenantAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -631,8 +681,11 @@ var unbanTenantAccountSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.UnbanTenantAccount); err != nil {
+			if err = action.UnbanTenantAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -666,8 +719,11 @@ var restoreTenantAccountSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RestoreTenantAccount); err != nil {
+			if err = action.RestoreTenantAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -701,8 +757,11 @@ var deleteTenantAccountSessionsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DeleteTenantAccountSessions); err != nil {
+			if err = action.DeleteTenantAccountSessions(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -739,8 +798,11 @@ var createTenantAccountsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateTenantAccounts); err != nil {
+			if err = action.CreateTenantAccounts(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -774,8 +836,11 @@ var updateTenantAccountSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.UpdateTenantAccount); err != nil {
+			if err = action.UpdateTenantAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -812,8 +877,11 @@ var listTenantProjectsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.ListTenantProjects); err != nil {
+			if err = action.ListTenantProjects(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -846,8 +914,11 @@ var describeTenantProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.DescribeTenantProject); err != nil {
+			if err = action.DescribeTenantProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -884,8 +955,11 @@ var removeTenantProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RemoveTenantProject); err != nil {
+			if err = action.RemoveTenantProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -919,8 +993,11 @@ var banTenantProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.BanTenantProject); err != nil {
+			if err = action.BanTenantProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -954,8 +1031,11 @@ var unbanTenantProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.UnbanTenantProject); err != nil {
+			if err = action.UnbanTenantProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -989,8 +1069,11 @@ var restoreTenantProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.RestoreTenantProject); err != nil {
+			if err = action.RestoreTenantProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1024,8 +1107,11 @@ var updateTenantProjectSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.UpdateTenantProject); err != nil {
+			if err = action.UpdateTenantProject(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1058,8 +1144,11 @@ var editTenantDistributorCodeSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.AssignTenantToCoupon); err != nil {
+			if err = action.AssignTenantToCoupon(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -1093,6 +1182,8 @@ func init() {
 	tenantCmd.AddCommand(editTenantImageSubCmd)
 
 	tenantCmd.AddCommand(listTenantAvailableSwarmsSubCmd)
+	listTenantAvailableSwarmsSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for swarms")
+	listTenantAvailableSwarmsSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different swarms")
 
 	tenantCmd.AddCommand(addOperatorToTenantSubCmd)
 	addOperatorToTenantSubCmd.Flags().String("email", "", "Email of the operator")

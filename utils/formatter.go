@@ -16,19 +16,26 @@ func PrintFormattedData(data interface{}, format string) {
 		printJSON(data)
 	case "csv":
 		printCSV(data)
-	case "semantic":
-		printSemantic(data, 0)
 	default:
-		printJSON(data)
+		printSemantic(data, 0)
 	}
 }
 
 func printSemantic(data interface{}, indentLevel int) {
 	val := reflect.ValueOf(data)
+
+	for val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			fmt.Println(indent(indentLevel) + "null")
+			return
+		}
+		val = val.Elem()
+	}
+
 	switch val.Kind() {
 	case reflect.Struct:
 		if val.Type().String() == "time.Time" {
-			fmt.Println(val.Interface().(time.Time).String())
+			fmt.Println(indent(indentLevel) + val.Interface().(time.Time).String())
 			return
 		}
 		if indentLevel > 0 {
@@ -36,49 +43,48 @@ func printSemantic(data interface{}, indentLevel int) {
 		}
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
-			fieldValue := val.Field(i).Interface()
-			fmt.Printf("%s%s:", strings.Repeat("\t", indentLevel), field.Tag.Get("json"))
-			if field.Type.Kind() == reflect.Struct {
-				printSemantic(fieldValue, indentLevel+1)
-			} else {
-				printSemantic(fieldValue, indentLevel)
+			fieldValue := val.Field(i)
+
+			if !fieldValue.CanInterface() {
+				continue
 			}
+
+			fieldName := field.Tag.Get("json")
+			if fieldName == "" {
+				fieldName = field.Name
+			}
+			fmt.Printf("%s%s: ", indent(indentLevel), style(fieldName, boldStyle))
+
+			printSemantic(fieldValue.Interface(), indentLevel+1)
 		}
 	case reflect.Map:
+		fmt.Println()
 		iter := val.MapRange()
 		for iter.Next() {
 			key := iter.Key().Interface()
 			value := iter.Value().Interface()
-			fmt.Printf("%v: %v\n", key, value)
+			fmt.Printf("%s%s: ", indent(indentLevel), style(fmt.Sprintf("%v", key), boldStyle))
+			printSemantic(value, indentLevel+1)
 		}
-		fmt.Print("\n")
-	case reflect.Array, reflect.Slice:
+	case reflect.Slice, reflect.Array:
+		if val.Len() == 0 {
+			fmt.Println(indent(indentLevel) + "[]")
+			return
+		}
 		for i := 0; i < val.Len(); i++ {
 			elem := val.Index(i).Interface()
-			fmt.Printf("%v\n", elem)
+			printSemantic(elem, indentLevel+1)
 		}
 	case reflect.Bool:
-		fmt.Println(val.Bool())
+		fmt.Println(fmt.Sprintf("%v", val.Bool()))
 	case reflect.String:
 		fmt.Println(val.String())
 	case reflect.Int, reflect.Int32, reflect.Int64:
 		fmt.Println(val.Int())
 	case reflect.Float32, reflect.Float64:
 		fmt.Println(val.Float())
-	case reflect.Ptr:
-		if val.IsNil() {
-			fmt.Println("null")
-		} else if val.Elem().Kind() == reflect.Struct {
-			printSemantic(val.Elem().Interface(), indentLevel+1)
-
-		} else {
-			derefVal := val.Elem().Interface()
-			printSemantic(derefVal, 0)
-		}
-	case reflect.Interface:
-		fmt.Println(val.Elem())
 	default:
-		fmt.Println("Unsupported data type")
+		fmt.Println(fmt.Sprintf("%v", val.Interface()))
 	}
 }
 
@@ -205,4 +211,8 @@ func structToString(data interface{}) string {
 	str.Write([]byte("}"))
 
 	return str.String()
+}
+
+func indent(level int) string {
+	return strings.Repeat("  ", level)
 }

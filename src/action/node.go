@@ -130,8 +130,10 @@ func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 
 	}
 
-	if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
-		return fmt.Errorf("error generating deployment files: %w", err)
+	if deployOption != "" {
+		if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
+			return fmt.Errorf("error generating deployment files: %w", err)
+		}
 	}
 
 	return nil
@@ -231,7 +233,7 @@ func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 
 	utils.PrintSuccess(fmt.Sprintf("Successfully created %d nodes\n", len(nodes.Nodes)))
 	for _, node := range nodes.Nodes {
-		fmt.Printf("  • %s  %s\n", node.ID, node.Name)
+		utils.PrintCreateSuccess("node", node.ID)
 	}
 
 	var nodeConfigs []api.NodeConfig
@@ -270,8 +272,10 @@ func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 
 	}
 
-	if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
-		return fmt.Errorf("error generating deployment files: %w", err)
+	if deployOption != "" {
+		if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
+			return fmt.Errorf("error generating deployment files: %w", err)
+		}
 	}
 
 	return nil
@@ -537,11 +541,6 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 	}
 
-	if len(nodes.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -550,18 +549,21 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if verbose {
-		utils.PrintVerbose(nodes.Data, l)
+	if len(nodes.Data) == 0 {
+		utils.PrintEmptyList()
 		return nil
 	}
 
-	for _, node := range nodes.Data {
+	utils.PrintList("Your Nodes List")
 
-		fmt.Printf(" • %s\n", node.Name)
-
-		if l {
-			fmt.Println()
+	if verbose {
+		utils.PrintVerbose(nodes.Data, l)
+	} else {
+		var IDs []string
+		for _, node := range nodes.Data {
+			IDs = append(IDs, node.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil

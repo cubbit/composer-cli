@@ -89,7 +89,7 @@ func CreateSwarmAgent(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Agent %s created successfully\n", agent.Agents[0].ID))
+	utils.PrintCreateSuccess("agent", agent.Agents[0].ID)
 
 	return nil
 }
@@ -166,7 +166,7 @@ func CreateSwarmAgentBatch(cmd *cobra.Command, args []string) error {
 
 	utils.PrintSuccess(fmt.Sprintf("Successfully created %d agents\n", len(agents.Agents)))
 	for _, agent := range agents.Agents {
-		fmt.Printf("  • %s\n", agent.ID)
+		utils.PrintCreateSuccess("agent", agent.ID)
 	}
 
 	return nil
@@ -300,13 +300,6 @@ func ListSwarmAgents(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	utils.PrintList("Your Agents List")
-
-	if len(agents.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -315,16 +308,21 @@ func ListSwarmAgents(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if verbose {
-		utils.PrintVerbose(agents.Data, l)
+	if len(agents.Data) == 0 {
+		utils.PrintEmptyList()
 		return nil
 	}
 
-	for _, agent := range agents.Data {
-		fmt.Printf(" • %s\n", agent.ID)
-		if l {
-			fmt.Println()
+	utils.PrintList("Your Agents List")
+
+	if verbose {
+		utils.PrintVerbose(agents.Data, l)
+	} else {
+		var IDs []string
+		for _, agent := range agents.Data {
+			IDs = append(IDs, agent.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil

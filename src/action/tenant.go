@@ -74,7 +74,7 @@ func CreateTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingTenantRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("tenant: %s created successfully", response.ID))
+	utils.PrintCreateSuccess("tenant", response.ID)
 
 	return nil
 }
@@ -120,23 +120,21 @@ func ListTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	utils.PrintList("Your Tenants List")
-
 	if len(tenants.Data) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
 
+	utils.PrintList("Your Tenants List")
+
 	if verbose {
 		utils.PrintVerbose(tenants.Data, l)
-		return nil
-	}
-
-	for _, tenant := range tenants.Data {
-		fmt.Printf(" • %s\n", tenant.Name)
-		if l {
-			fmt.Println()
+	} else {
+		var IDs []string
+		for _, tenant := range tenants.Data {
+			IDs = append(IDs, tenant.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil
@@ -362,8 +360,9 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 	var accessToken *string
 	var id, name, configPath string
 	var conf *configuration.Config
-	var swarms *api.SwarmList
+	var swarms *api.TenantSwarmList
 	var tenant *api.Tenant
+	var verbose, l bool
 
 	if id, err = cmd.Flags().GetString("id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -392,20 +391,31 @@ func ListAvailableSwarmsTenant(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingSwarmsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Connected Swarms List")
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if l, err = cmd.Flags().GetBool("line"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
 
 	if len(swarms.Swarms) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
 
-	for _, swarm := range swarms.Swarms {
-		cross := " "
-		if swarm.Default {
-			cross = "x"
+	utils.PrintList("Your Swarms List")
+
+	if verbose {
+		utils.PrintVerbose(swarms.Swarms, l)
+	} else {
+		var IDs []string
+		for _, swarm := range swarms.Swarms {
+			IDs = append(IDs, swarm.SwarmID)
 		}
-		fmt.Printf("[%s] %s, %s\n", cross, swarm.SwarmID, swarm.SwarmName)
+		utils.PrintSimpleList(IDs)
 	}
+
 	return nil
 }
 
@@ -518,13 +528,6 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Operators List")
-
-	if len(operators.Operators) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -538,11 +541,21 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	for _, operator := range operators.Operators {
-		fmt.Printf(" • %s\n", operator.Email)
-		if l {
-			fmt.Println()
+	if len(operators.Operators) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	utils.PrintList("Your Operators List")
+
+	if verbose {
+		utils.PrintVerbose(operators.Operators, l)
+	} else {
+		var IDs []string
+		for _, operator := range operators.Operators {
+			IDs = append(IDs, operator.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil
@@ -785,45 +798,6 @@ func UpdateTenantAccount(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantID string) (*api.Tenant, error) {
-	var err error
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
-
-	if tenants, err = api.ListTenants(conf.Urls, accessToken, "", ""); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-	}
-
-	for _, tn := range tenants.Data {
-		if tenantID == tn.Name || tenantID == tn.ID {
-			tenant = tn
-
-		}
-	}
-
-	if tenant == nil {
-		return nil, fmt.Errorf("tenant %s not found", tenant.ID)
-	}
-
-	return tenant, nil
-}
-
-func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (*api.Operator, error) {
-	var err error
-	var operators *api.OperatorList
-
-	if operators, err = api.ListTenantOperators(conf.Urls, accessToken, tenantID); err != nil {
-		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
-	}
-	for _, op := range operators.Operators {
-		if operator == op.Email || operator == op.ID {
-			return op, nil
-		}
-	}
-
-	return nil, fmt.Errorf("operator %s not found", operator)
-}
-
 func EditTenantSettings(cmd *cobra.Command, args ...string) error {
 	var err error
 	var accessToken *string
@@ -1025,4 +999,43 @@ func AssignTenantToCoupon(cmd *cobra.Command, args []string) error {
 	utils.PrintSuccess(fmt.Sprintf("tenant %s assigned successfully to %s", response.ID, couponCode))
 
 	return nil
+}
+
+func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantID string) (*api.Tenant, error) {
+	var err error
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
+
+	if tenants, err = api.ListTenants(conf.Urls, accessToken, "", ""); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
+	}
+
+	for _, tn := range tenants.Data {
+		if tenantID == tn.Name || tenantID == tn.ID {
+			tenant = tn
+
+		}
+	}
+
+	if tenant == nil {
+		return nil, fmt.Errorf("tenant %s not found", tenant.ID)
+	}
+
+	return tenant, nil
+}
+
+func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (*api.Operator, error) {
+	var err error
+	var operators *api.OperatorList
+
+	if operators, err = api.ListTenantOperators(conf.Urls, accessToken, tenantID); err != nil {
+		return nil, fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+	}
+	for _, op := range operators.Operators {
+		if operator == op.Email || operator == op.ID {
+			return op, nil
+		}
+	}
+
+	return nil, fmt.Errorf("operator %s not found", operator)
 }

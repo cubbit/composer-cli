@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -25,8 +24,11 @@ var signupSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateOperator); err != nil {
+			if err = action.CreateOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -49,8 +51,11 @@ var operatorLoginSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.SignInOperator); err != nil {
+			if err = action.SignInOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -66,8 +71,11 @@ var operatorLogoutCmd = &cobra.Command{
 	Short: "Log out the operator",
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.SignOutOperator); err != nil {
+			if err = action.SignOutOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -83,8 +91,11 @@ var tokenSubCmd = &cobra.Command{
 	Short: "Generate access token",
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.GenerateAccessToken); err != nil {
+			if err = action.GenerateAccessToken(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

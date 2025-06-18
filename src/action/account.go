@@ -47,7 +47,7 @@ func CreateAccount(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperatorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("account %s created successfully", email))
+	utils.PrintCreateSuccess("account", email)
 
 	return nil
 }
@@ -100,13 +100,6 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantAccountsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Users List")
-
-	if len(accounts.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
 	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -115,16 +108,21 @@ func ListTenantAccounts(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if verbose {
-		utils.PrintVerbose(accounts.Data, l)
+	if len(accounts.Data) == 0 {
+		utils.PrintEmptyList()
 		return nil
 	}
 
-	for _, account := range accounts.Data {
-		fmt.Printf("• %s\n", account.ID)
-		if l {
-			fmt.Println()
+	utils.PrintList("Your Tenant Users List")
+
+	if verbose {
+		utils.PrintVerbose(accounts.Data, l)
+	} else {
+		var IDs []string
+		for _, account := range accounts.Data {
+			IDs = append(IDs, account.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil
@@ -446,7 +444,7 @@ func DeleteTenantAccountSessions(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantAccountSessionsRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("user %s sessions deleted successfully", accountID))
+	utils.PrintDelete(fmt.Sprintf("user %s sessions deleted successfully", accountID))
 
 	return nil
 }

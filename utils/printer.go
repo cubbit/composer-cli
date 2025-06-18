@@ -2,11 +2,23 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/crypto/ssh/terminal"
+)
+
+type OutputMode int
+
+const (
+	OutputQuiet OutputMode = iota
+	OutputHuman
+)
+
+var (
+	currentMode = OutputQuiet
 )
 
 var (
@@ -14,141 +26,258 @@ var (
 	RedBg     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FF0000"))
 	greenBg   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#00FF80"))
 	yellowBg  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFBA00"))
+	grayStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+	blueStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#0080FF"))
 )
 
+func SetOutputMode(mode OutputMode) {
+	currentMode = mode
+}
+
+func IsQuietMode() bool {
+	return currentMode == OutputQuiet
+}
+
+func IsHumanMode() bool {
+	return currentMode == OutputHuman
+}
+
 func PrintSuccess(s string) {
-	fmt.Printf("%s ✨🐝 %s\n", greenBg.Render("SUCCESS"), s)
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("%s ✨🐝 %s\n", style("SUCCESS", greenBg), s)
+	default:
+		return
+	}
+}
+
+func PrintCreateSuccess(resourceType, id string) {
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("%s ✨🐝 %s %s created\n",
+			style("SUCCESS", greenBg),
+			style(resourceType, boldStyle),
+			style(id, blueStyle))
+	default:
+		return
+	}
+}
+
+func PrintDelete(s string) {
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("🗑️ 🚮 %s\n", s)
+	default:
+		return
+	}
 }
 
 func PrintError(err error) {
 	errStr, _ := strings.CutSuffix(err.Error(), "\n")
 	lines := strings.Split(errStr, "\n")
-	for i, line := range lines {
-		if i == 0 {
-			l, _ := strings.CutSuffix(line, ": ")
-			fmt.Printf("%s %s\n", RedBg.Render("ERR"), l)
-		} else {
-			fmt.Println(line)
+
+	switch currentMode {
+	case OutputHuman:
+		for i, line := range lines {
+			if i == 0 {
+				l, _ := strings.CutSuffix(line, ": ")
+				fmt.Fprintf(os.Stderr, "%s %s\n", style("ERR", RedBg), l)
+			} else {
+				fmt.Fprintf(os.Stderr, "%s %s\n", style("INF", blueStyle), line)
+			}
 		}
+	default:
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	}
 }
 
-func PrintDelete(s string) {
-	fmt.Printf("🗑️ 🚮 %s\n", s)
-}
-
 func PrintNotFound(s string) {
-	fmt.Printf("%s %s\n", yellowBg.Render("WRN"), s)
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("%s %s\n", style("WRN", yellowBg), s)
+	default:
+		return
+	}
 }
 
 func PrintEmptyList() {
-	fmt.Print("🪣  [ ]\n")
+	switch currentMode {
+	case OutputHuman:
+		fmt.Print("🪣 [ ]\n")
+	default:
+		return
+	}
 }
 
 func PrintList(s string) {
-	fmt.Printf("📋 %s\n", boldStyle.Render(s))
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("📋 %s\n", style(s, boldStyle))
+	default:
+		return
+	}
+}
+
+func PrintSimpleList(items []string) {
+	switch currentMode {
+	case OutputHuman:
+		for _, item := range items {
+			fmt.Printf(" • %s\n", item)
+		}
+	default:
+		for _, item := range items {
+			fmt.Println(item)
+		}
+	}
 }
 
 func PrintVerbose(data interface{}, withLineSeparator bool) {
 	value := reflect.ValueOf(data)
-	elemType := value.Index(0).Elem().Type()
-	numFields := elemType.NumField()
-	maxWidths := calculateWidths(value)
-
-	// print header
-	header := make([]interface{}, 0)
-	for i := 0; i < numFields; i++ {
-		field := elemType.Field(i)
-		fieldType := field.Type
-		if displayField(field.Type.Kind().String()) {
-			if fieldType.Kind() == reflect.Ptr {
-				if displayField(fieldType.Elem().Kind().String()) {
-					header = append(header, field.Tag.Get("json"))
-				}
-			} else {
-				header = append(header, field.Tag.Get("json"))
-			}
-
-		}
+	if value.Len() == 0 {
+		PrintEmptyList()
+		return
 	}
-
-	headerFormat := ""
-	for i := range header {
-		headerFormat += fmt.Sprintf("%%-%dv ", maxWidths[i])
+	switch currentMode {
+	case OutputQuiet:
+		printTabSeparatedTable(data)
+		return
+	default:
+		printHumanTable(data, withLineSeparator)
 	}
-	headerFormat += "\n"
-	fmt.Printf(headerFormat, header...)
+}
 
-	// print separator
-	width, _, err := terminal.GetSize(0)
-	if err != nil {
-		fmt.Println("Error:", err)
+func printHumanTable(data interface{}, withLineSeparator bool) {
+	value := reflect.ValueOf(data)
+	if value.Len() == 0 {
 		return
 	}
 
-	fmt.Printf(strings.Repeat("-", width) + "\n")
+	elemType := value.Index(0).Elem().Type()
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	// print header
+	var headers []string
+	for i := 0; i < elemType.NumField(); i++ {
+		field := elemType.Field(i)
+		if displayField(field.Type) ||
+			(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
+			jsonTag := field.Tag.Get("json")
+			if jsonTag == "" {
+				jsonTag = field.Name
+			}
+			headers = append(headers, strings.ToUpper(jsonTag))
+		}
+	}
+
+	headerRow := strings.Join(headers, "\t")
+	if currentMode == OutputHuman {
+		headerRow = style(headerRow, boldStyle)
+	}
+	fmt.Fprintln(w, headerRow)
+
+	for i := 0; i < value.Len(); i++ {
+		elem := value.Index(i).Elem()
+		var rowValues []string
+
+		for j := 0; j < elem.NumField(); j++ {
+			field := elem.Type().Field(j)
+			fieldValue := elem.Field(j)
+
+			if !displayField(field.Type) &&
+				!(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
+				continue
+			}
+
+			displayValue := formatValue(fieldValue)
+			rowValues = append(rowValues, displayValue)
+		}
+
+		fmt.Fprintln(w, strings.Join(rowValues, "\t"))
+		if withLineSeparator && currentMode == OutputHuman {
+			fmt.Fprintln(w, "")
+		}
+	}
+
+	w.Flush()
+}
+
+func printTabSeparatedTable(data interface{}) {
+	value := reflect.ValueOf(data)
+	if value.Len() == 0 {
+		return
+	}
 
 	// print rows
 	for i := 0; i < value.Len(); i++ {
 		elem := value.Index(i).Elem()
-		numFields := elem.Type().NumField()
-		row := make([]interface{}, 0)
-		for j := 0; j < numFields; j++ {
+		var rowValues []string
+
+		for j := 0; j < elem.NumField(); j++ {
 			field := elem.Type().Field(j)
-			fieldType := field.Type
-			if displayField(field.Type.Kind().String()) {
-				if fieldType.Kind() == reflect.Ptr {
-					if displayField(fieldType.Elem().Kind().String()) {
-						header = append(header, field.Tag.Get("json"))
-						if elem.Field(j).IsNil() {
-							row = append(row, fmt.Sprintf("%v", "null"))
-						} else if !elem.Field(j).IsNil() {
-							value := elem.Field(j).Elem()
-							row = append(row, value.Interface())
-						}
-					}
-				} else {
-					row = append(row, elem.Field(j).Interface())
-				}
+			fieldValue := elem.Field(j)
+
+			if !displayField(field.Type) {
+				continue
 			}
+
+			displayValue := formatValue(fieldValue)
+			rowValues = append(rowValues, displayValue)
 		}
 
-		rowFormat := ""
-		for i := range row {
-			rowFormat += fmt.Sprintf("%%-%dv	", maxWidths[i])
-		}
-		fmt.Printf(fmt.Sprintf("• %s \n", rowFormat), row...)
-
-		if withLineSeparator {
-			fmt.Println()
-		}
+		fmt.Println(strings.Join(rowValues, "\t"))
 	}
 }
 
-func displayField(str string) bool {
-	types := []string{"string", "int", "float64", "bool", "time.Time", "int64", "int32", "ptr"}
-	for _, s := range types {
-		if s == str {
-			return true
-		}
+func displayField(t reflect.Type) bool {
+	switch t.Kind() {
+	case reflect.String, reflect.Int, reflect.Int64, reflect.Int32, reflect.Float64, reflect.Bool:
+		return true
+	case reflect.Struct:
+		return t.Name() == "Time" || true
+	case reflect.Ptr:
+		return displayField(t.Elem())
+	case reflect.Slice:
+		return displayField(t.Elem())
+	default:
+		return false
 	}
-	return false
 }
 
-func calculateWidths(value reflect.Value) []int {
-	elemType := value.Index(0).Elem().Type()
-	numFields := elemType.NumField()
-	maxWidths := make([]int, numFields)
+func style(text string, style lipgloss.Style) string {
+	return style.Render(text)
+}
 
-	for i := 0; i < value.Len(); i++ {
-		elem := value.Index(i).Elem()
-		for j := 0; j < numFields; j++ {
-			if !displayField(elem.Type().String()) {
-				fieldValue := fmt.Sprintf("%v", elem.Field(j).Interface())
-				maxWidths[j] = len(fieldValue)
-			}
+func formatValue(v reflect.Value) string {
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return ""
 		}
+		return formatValue(v.Elem())
 	}
 
-	return maxWidths
+	if v.Kind() == reflect.Struct {
+		var parts []string
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			if !field.CanInterface() {
+				continue
+			}
+			parts = append(parts, formatValue(field))
+		}
+		return fmt.Sprintf("{%s}", strings.Join(parts, " "))
+	}
+
+	if v.Kind() == reflect.Slice {
+		var parts []string
+		for i := 0; i < v.Len(); i++ {
+			parts = append(parts, formatValue(v.Index(i)))
+		}
+		return fmt.Sprintf("[%s]", strings.Join(parts, ", "))
+	}
+
+	if v.CanInterface() {
+		return fmt.Sprintf("%v", v.Interface())
+	}
+
+	return ""
 }

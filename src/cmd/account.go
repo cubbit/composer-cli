@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
 	"github.com/cubbit/cubbit/client/cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -26,8 +25,11 @@ var accountSignupSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.CreateAccount); err != nil {
+			if err = action.CreateAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -51,8 +53,11 @@ var accountLoginSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.SignInAccount); err != nil {
+			if err = action.SignInAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {
@@ -68,8 +73,11 @@ var accountLogoutCmd = &cobra.Command{
 	Short: "Log out the operator",
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
+
+		action.SetupOutput(cmd)
+
 		if !interactive {
-			if err = tui.Send(cmd, args, action.SignOutAccount); err != nil {
+			if err = action.SignOutAccount(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		} else {

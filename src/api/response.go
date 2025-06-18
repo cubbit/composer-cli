@@ -114,22 +114,32 @@ type TenantList struct {
 }
 
 type Swarm struct {
-	ID            string                 `json:"id"`
-	SwarmID       string                 `json:"swarm_id"`
-	SwarmName     string                 `json:"swarm_name"`
-	TenantID      string                 `json:"tenant_id"`
-	Name          string                 `json:"name" example:"Cubbit"`
-	Description   string                 `json:"description" example:"Cloud storage: privacy, powered by p2p collaborations and eco-friendly"`
-	Default       bool                   `json:"default"`
-	OwnerID       string                 `json:"owner_id" example:"847390b4-a5b0-4ef7-949d-a15e84875d7e"`
-	Configuration map[string]interface{} `json:"configuration" example:"{}"`
-	Metrics       map[string]interface{} `json:"metrics" example:"{}"`
-	CreatedAt     time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
-	DeletedAt     time.Time              `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	ID             string                 `json:"id" binding:"required,uuid"`
+	Name           string                 `json:"name" binding:"required,min=1"`
+	Configuration  map[string]interface{} `json:"configuration"`
+	Size           int64                  `json:"size" binding:"required"`
+	OwnerID        string                 `json:"owner_id"`
+	Used           int64                  `json:"used"`
+	CreationDate   time.Time              `json:"creation_date"`
+	Description    *string                `json:"description"`
+	OrganizationID *string                `json:"organization_id"`
 }
 
 type SwarmList struct {
 	Swarms []Swarm `json:"swarms"`
+}
+
+type TenantSwarmList struct {
+	Swarms []*TenantSwarm `json:"swarms"`
+}
+type TenantSwarm struct {
+	ID                  string `json:"id"`
+	SwarmID             string `json:"swarm_id"`
+	TenantID            string `json:"tenant_id"`
+	RedundancyClassID   string `json:"redundancy_class_id"`
+	Default             bool   `json:"default"`
+	SwarmName           string `json:"swarm_name"`
+	RedundancyClassName string `json:"redundancy_class_name"`
 }
 
 type Operator struct {

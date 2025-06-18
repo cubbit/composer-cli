@@ -47,7 +47,7 @@ func CreateOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingOperatorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("operator %s created successfully", email))
+	utils.PrintCreateSuccess("operator", email)
 
 	return nil
 }

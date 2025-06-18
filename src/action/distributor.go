@@ -69,7 +69,7 @@ func CreateDistributor(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributor %s created successfully", response.ID))
+	utils.PrintCreateSuccess("distributor", response.ID)
 
 	return nil
 }
@@ -102,24 +102,21 @@ func ListDistributor(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	utils.PrintList("Your Distributors List")
-
 	if len(distributors.Distributors) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
 
+	utils.PrintList("Your Distributors List")
+
 	if verbose {
 		utils.PrintVerbose(distributors.Distributors, l)
-		return nil
-	}
-
-	for _, distributor := range distributors.Distributors {
-		fmt.Printf(" • %s\n", distributor.Name)
-
-		if l {
-			fmt.Println()
+	} else {
+		var IDs []string
+		for _, distributor := range distributors.Distributors {
+			IDs = append(IDs, distributor.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil
@@ -272,7 +269,7 @@ func CreateDistributorCoupon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDistributorCouponRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("distributor code %s created successfully", response.ID))
+	utils.PrintCreateSuccess("distributor code", response.ID)
 
 	return nil
 }
@@ -323,12 +320,12 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	utils.PrintList("Your Distributor Codes List")
-
 	if len(distributorCoupons.Coupons) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
+
+	utils.PrintList("Your Distributor Codes List")
 
 	for _, coupon := range distributorCoupons.Coupons {
 		HumanReadableDistributorCoupons = append(HumanReadableDistributorCoupons, coupon.ToHumanReadableDistributorCode())
@@ -336,14 +333,12 @@ func ListDistributorCoupons(cmd *cobra.Command, args []string) error {
 
 	if verbose {
 		utils.PrintVerbose(HumanReadableDistributorCoupons, l)
-		return nil
-	}
-
-	for _, coupon := range distributorCoupons.Coupons {
-		fmt.Printf(" • %s\n", coupon.Name)
-		if l {
-			fmt.Println()
+	} else {
+		var IDs []string
+		for _, coupon := range HumanReadableDistributorCoupons {
+			IDs = append(IDs, coupon.ID)
 		}
+		utils.PrintSimpleList(IDs)
 	}
 
 	return nil
@@ -691,12 +686,12 @@ func GetDistributorReport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorReportRequest, err)
 	}
 
-	utils.PrintList("Your Distributor Report")
-
 	if len(distributorReport.Report) == 0 {
 		utils.PrintEmptyList()
 		return nil
 	}
+
+	utils.PrintList("Your Distributor Report")
 
 	utils.PrintFormattedData(distributorReport.Report, format)
 
