@@ -39,6 +39,7 @@ const (
 	GenerateOperatorChallenge      = "/v1/auth/operators/signin/challenge"
 	OperatorSignIn                 = "/v1/auth/operators/signin"
 	CreateOperator                 = "/v1/operators/signup?secret="
+	PromoteOperator                = "/v1/operators/promote"
 	ForgeOperatorAccessToken       = "/v1/auth/operators/forge/access"
 	RefreshOperatorAccessToken     = "/v1/auth/operators/refresh/access"
 	ForgeOperatorDeleteTenantToken = "/v1/auth/operators/forge/token?capabilities=delete_tenant&tenant_id="

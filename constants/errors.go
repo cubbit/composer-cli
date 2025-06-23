@@ -43,6 +43,7 @@ const (
 	ErrorTokenNotFound                      = "error token not found"
 
 	ErrorCreatingOperatorRequest    = "failed to create operator request"
+	ErrorPromotingOperatorRequest   = "failed to promote operator request"
 	ErrorForgingRequest             = "failed to forge token request"
 	ErrorListingTenantsRequest      = "failed request to list tenants request"
 	ErrorDeletingTenantRequest      = "failed request to delete tenant"

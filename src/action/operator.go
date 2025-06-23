@@ -51,3 +51,37 @@ func CreateOperator(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
+func PromoteOperator(cmd *cobra.Command, args []string) error {
+	var url *configuration.Url
+	var err error
+	var email, policyName, apiServerURL, secret string
+
+	if email, err = cmd.Flags().GetString("email"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if policyName, err = cmd.Flags().GetString("policy_name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if apiServerURL, err = cmd.Flags().GetString("api-server-url"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if secret, err = cmd.Flags().GetString("secret"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if url, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeOperator, apiServerURL); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
+	}
+
+	if err = api.PromoteOperator(*url, email, policyName, secret); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorPromotingOperatorRequest, err)
+	}
+
+	utils.PrintSuccess("operator promoted")
+
+	return nil
+}

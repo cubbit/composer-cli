@@ -84,7 +84,7 @@ func DoRequest(url string, opts ...RequestModifier) error {
 		body, _ := ioutil.ReadAll(res.Body)
 		var apiErr Error
 		if err := json.Unmarshal(body, &apiErr); err != nil {
-			return fmt.Errorf("error while unmarshaling the request response: %w", err)
+			return fmt.Errorf("error while unmarshaling '%s' the request response: %w", string(body), err)
 		}
 
 		var errorLines []string

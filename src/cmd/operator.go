@@ -106,6 +106,33 @@ var tokenSubCmd = &cobra.Command{
 	},
 }
 
+var promoteSubCmd = &cobra.Command{
+	Use:   "promote",
+	Short: "Promote an operator to a higher policy",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("policy_name")
+			cmd.MarkFlagRequired("secret")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.PromoteOperator(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.PromoteOperatorInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	operatorCmd.AddCommand(signupSubCmd)
 	signupSubCmd.Flags().String("api-server-url", "https://api.cubbit.eu/iam", "Api server URL")
@@ -124,6 +151,12 @@ func init() {
 	operatorCmd.AddCommand(operatorLogoutCmd)
 
 	operatorCmd.AddCommand(tokenSubCmd)
+
+	operatorCmd.AddCommand(promoteSubCmd)
+	promoteSubCmd.Flags().String("api-server-url", "https://api.cubbit.eu/iam", "Api server URL")
+	promoteSubCmd.Flags().String("email", "", "Email Address")
+	promoteSubCmd.Flags().String("policy_name", "system-admin", "Policy name")
+	promoteSubCmd.Flags().String("secret", "", "Secret")
 
 	rootCmd.AddCommand(operatorCmd)
 }

@@ -29,3 +29,20 @@ func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator,
 func GetOperatorSelf(urls configuration.Url, accessToken string) (*Operator, error) {
 	return GetOperator(urls, accessToken, "me")
 }
+
+func PromoteOperator(urls configuration.Url, email, policyName, secret string) error {
+	var err error
+
+	url := urls.IamUrl + constants.PromoteOperator
+	requestBody := map[string]interface{}{
+		"email":       email,
+		"policy_name": policyName,
+		"secret":      secret,
+	}
+
+	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusCreated)); err != nil {
+		return err
+	}
+
+	return nil
+}

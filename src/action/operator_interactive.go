@@ -47,3 +47,43 @@ func CreateOperatorInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func PromoteOperatorInteractive(cmd *cobra.Command) error {
+	var urls *configuration.Url
+	var apiServerUrl, email, policyName, secret string
+	var err error
+
+	if _, err = tui.TextInputs(
+		"Enter your API server URL",
+		false,
+		tui.Input{Placeholder: "API server url: (default https://api.cubbit.eu)", IsPassword: false, Value: &apiServerUrl}); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if urls, err = configuration.ConfigureAPIServerURL(configuration.SessionTypeOperator, apiServerUrl); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
+	}
+
+	if _, err = tui.TextInputs(
+		"Fill in the form bellow",
+		true,
+		tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email},
+		tui.Input{Placeholder: "Policy name (default system-admin)", IsPassword: false, Value: &policyName},
+		tui.Input{Placeholder: "Secret", IsPassword: true, Value: &secret}); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if policyName == "" {
+		policyName = "system-admin"
+	}
+
+	if err = api.PromoteOperator(*urls, email, policyName, secret); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorPromotingOperatorRequest, err)
+	}
+
+	utils.PrintSuccess(fmt.Sprintf("operator %s promoted successfully", email))
+
+	return nil
+}
