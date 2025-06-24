@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.21.0
+
+### Minor Changes
+
+- 942bbfb: Added the ability to assign system wide policies to operators by the coordinator managers
+- 7341268: Added a new quiet mode intended for use in scripts and automation, providing minimal output.
+  The existing human-readable output is now referred to as human mode.
+
 ## 0.20.0
 
 ### Minor Changes
