@@ -38,7 +38,7 @@ func extractRefreshCookie(response *string) request_utils.RequestModifier {
 	}
 }
 
-func extractReport(response *DistributorReportResponseModel) request_utils.RequestModifier {
+func extractReport(response any) request_utils.RequestModifier {
 	return func(opt *request_utils.RequestOptions, res *http.Response) error {
 
 		var err error

@@ -1024,6 +1024,80 @@ func getTenantByNameOrId(conf *configuration.Config, accessToken string, tenantI
 	return tenant, nil
 }
 
+func GetTenantReport(cmd *cobra.Command, args []string) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, format, from, to, output string
+	var conf *configuration.Config
+	var tenant *api.Tenant
+	var fileName *string
+	var tenantReport *api.TenantReportResponseModel
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if from, err = cmd.Flags().GetString("from"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if to, err = cmd.Flags().GetString("to"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if format, err = cmd.Flags().GetString("format"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if output, err = cmd.Flags().GetString("output"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id == "" {
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+
+		}
+		id = tenant.ID
+	}
+
+	if output != "" {
+		if fileName, err = api.DownloadTenantReport(conf.Urls, *accessToken, id, from, to, output); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDownloadingDistributorReportRequest, err)
+		}
+
+		utils.PrintSuccess(fmt.Sprintf("report downloaded successfully to : %s", *fileName))
+		return nil
+	}
+
+	if tenantReport, err = api.GetTenantReport(conf.Urls, *accessToken, id, from, to); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingDistributorReportRequest, err)
+	}
+
+	if len(tenantReport.Report) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	utils.PrintList("Your Tenant Report")
+
+	utils.PrintFormattedData(tenantReport.Report, format)
+
+	return nil
+}
+
 func getTenantOperatorByEmailOrId(conf *configuration.Config, accessToken string, tenantID string, operator string) (*api.Operator, error) {
 	var err error
 	var operators *api.OperatorList

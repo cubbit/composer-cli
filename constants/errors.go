@@ -185,4 +185,7 @@ const (
 	ErrorCheckingRedundancyClassRecoveryStatusRequest = "failed request to check redundancy class recovery status"
 	ErrorRecoveringRedundancyClassRequest             = "failed request to recover redundancy class"
 	ErrorExpandingRedundancyClassRequest              = "failed request to expand redundancy class"
+
+	ErrorRetrievingTenantReportRequest  = "failed request to retrieve tenant report"
+	ErrorDownloadingTenantReportRequest = "failed request to download tenant report"
 )

@@ -1331,3 +1331,108 @@ func AssignTenantToCouponInteractive(cmd *cobra.Command) error {
 
 	return nil
 }
+
+func GetTenantReportInteractive(cmd *cobra.Command) error {
+	var err error
+	var accessToken *string
+	var id, name, configPath, from, to, output, format, choice, download string
+	var conf *configuration.Config
+	var choices []string
+	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var tenant *api.Tenant
+	var tenantReport *api.TenantReportResponseModel
+
+	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	}
+
+	if id, err = cmd.Flags().GetString("id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if id == "" && name == "" {
+		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingOperatorsRequest, err)
+		}
+
+		for _, tenant := range tenants.Data {
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
+		}
+
+		if len(choices) == 0 {
+			utils.PrintNotFound("No tenants found")
+			return nil
+		}
+
+		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+
+		_, withoutPrefix, _ := strings.Cut(choice, " ")
+		id, _, _ = strings.Cut(withoutPrefix, ",")
+	}
+
+	if id == "" {
+		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+		}
+		id = tenant.ID
+	}
+
+	if _, err = tui.TextInputs(
+		"Fill in the form below",
+		false,
+		tui.Input{Placeholder: "From* (DD/MM/YYY+HH:mm:ss)", IsPassword: false, Value: &from},
+		tui.Input{Placeholder: "To* (DD/MM/YYY+HH:mm:ss)", IsPassword: false, Value: &to}); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if download, err = tui.ChooseOne("Do you want to download the report?", false, false, []string{"Yes", "No"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if download == "Yes" {
+		if _, err = tui.TextInputs("File name or directory to download the report", true, tui.Input{Placeholder: "File Name or Dir*", IsPassword: false, Value: &output}); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+		}
+		if output == "" {
+			output = "."
+		}
+
+		var downloadedFile *string
+		if downloadedFile, err = api.DownloadTenantReport(conf.Urls, *accessToken, id, from, to, output); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorDownloadingTenantReportRequest, err)
+		}
+
+		utils.PrintSuccess(fmt.Sprintf("report downloaded successfully to : %s", *downloadedFile))
+		return nil
+	}
+
+	if tenantReport, err = api.GetTenantReport(conf.Urls, *accessToken, id, from, to); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantReportRequest, err)
+	}
+
+	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	utils.PrintList("Your Tenant Report")
+
+	if len(tenantReport.Report) == 0 {
+		utils.PrintEmptyList()
+		return nil
+	}
+
+	utils.PrintFormattedData(tenantReport.Report, format)
+
+	return nil
+}

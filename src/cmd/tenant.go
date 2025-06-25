@@ -1159,6 +1159,51 @@ var editTenantDistributorCodeSubCmd = &cobra.Command{
 	},
 }
 
+var reportTenantSubCmd = &cobra.Command{
+	Use:   "report",
+	Short: "downloads/prints a full report for the tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("from")
+			cmd.MarkFlagRequired("to")
+
+			isChanged := cmd.Flags().Changed("output")
+			if isChanged {
+				output, _ := cmd.Flags().GetString("output")
+
+				if output == "" {
+					fmt.Println("Error: output cannot be empty.Use a dot (.) to indicate the current directory.")
+					cmd.Usage()
+					os.Exit(1)
+				}
+			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.GetTenantReport(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.GetTenantReportInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 func init() {
 	tenantCmd.AddCommand(createTenantSubCmd)
 	createTenantSubCmd.Flags().String("name", "", "Name of the tenant")
@@ -1265,6 +1310,12 @@ func init() {
 	updateTenantProjectSubCmd.Flags().String("description", "", "Description of the project")
 	updateTenantProjectSubCmd.Flags().String("image-url", "", "Image URL of the project")
 	tenantCmd.AddCommand(editTenantDistributorCodeSubCmd)
+
+	tenantCmd.AddCommand(reportTenantSubCmd)
+	reportTenantSubCmd.Flags().String("from", "", "Start date and time in DD/MM/YYYY+HH:mm:ss format")
+	reportTenantSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
+	reportTenantSubCmd.Flags().String("format", "json", "Formats the result")
+	reportTenantSubCmd.Flags().StringP("output", "o", "", "Specify the output file or directory.Use a dot (.) to indicate the current directory.")
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")

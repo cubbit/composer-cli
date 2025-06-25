@@ -355,3 +355,42 @@ func EditOperatorRoleInTenant(urls configuration.Url, accessToken, tenantID, ope
 
 	return nil
 }
+
+func DownloadTenantReport(urls configuration.Url, accessToken, tenantID, from, to, output string) (*string, error) {
+	var err error
+	var url string
+	var response string
+	url = urls.DashUrl + constants.BaseDashURI + constants.Tenants + "/" + tenantID + "/projects/report" + "?from_date=" + from + "&to_date=" + to
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAttachement(),
+		DownloadReport(output, &response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func GetTenantReport(urls configuration.Url, accessToken, tenantID, from, to string) (*TenantReportResponseModel, error) {
+	var err error
+	var url string
+	var response TenantReportResponseModel
+
+	url = urls.DashUrl + constants.BaseDashURI + constants.Tenants + "/" + tenantID + "/projects/report" + "?from_date=" + from + "&to_date=" + to
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractReport(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, err
+}

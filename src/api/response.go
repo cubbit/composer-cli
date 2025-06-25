@@ -235,6 +235,28 @@ type DistributorReportResponseModel struct {
 	Report []TenantReport `json:"report"`
 }
 
+type ProjectReport struct {
+	ID                  string        `json:"id"`
+	ExternalID          string        `json:"external_id"`
+	ProjectName         string        `json:"project_name"`
+	StorageBH           string        `json:"storage_bh"`
+	StorageAVGTB        string        `json:"storage_avg_tb"`
+	StorageMaxTB        string        `json:"storage_max_tb"`
+	StorageTB           string        `json:"storage_tb"`
+	StorageReservedTB   string        `json:"storage_reserved_tb"`
+	BandwidthReservedTB string        `json:"bandwidth_reserved_tb"`
+	EgressTB            string        `json:"egress_tb"`
+	IngressTB           string        `json:"ingress_tb"`
+	FromTime            string        `json:"from_time"`
+	ToTime              string        `json:"to_time"`
+	Status              string        `json:"status"`
+	Timestamp           time.Duration `json:"timestamp"`
+}
+
+type TenantReportResponseModel struct {
+	Report []ProjectReport `json:"report"`
+}
+
 type ZoneResponse struct {
 	Name        string `json:"name" binding:"required" example:"France"`
 	Key         string `json:"key" binding:"required" example:"fr"`
