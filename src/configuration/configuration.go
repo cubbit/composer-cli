@@ -24,6 +24,7 @@ const (
 )
 
 type Url struct {
+	BaseURL         string `yaml:"base_url"`
 	IamUrl          string `yaml:"iam"`
 	DashUrl         string `yaml:"dash"`
 	ChUrl           string `yaml:"ch"`
@@ -260,6 +261,7 @@ func composeURL(apiServerUrl string) *Url {
 	}
 
 	url := &Url{
+		BaseURL:         apiServerUrl,
 		IamUrl:          apiServerUrl + constants.BaseIamURI,
 		DashUrl:         constants.BaseDashURL,
 		ChUrl:           apiServerUrl + constants.BaseChURI,

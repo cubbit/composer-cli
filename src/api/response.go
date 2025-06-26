@@ -77,6 +77,31 @@ type TenantSettings struct {
 	SupportLink       *string                                    `json:"support_link"`
 	DisplayName       *string                                    `json:"display_name"`
 	WhitelabelEnabled bool                                       `json:"whitelabel_enabled"`
+	WhiteLabel        *WhiteLabel                                `json:"white_label"`
+}
+
+type WhiteLabel struct {
+	DNS         *WhiteLabelDNS         `json:"dns"`
+	EmailDomain *WhiteLabelEmailDomain `json:"email_domain"`
+}
+
+type WhiteLabelDNS struct {
+	Value     string `json:"value"`
+	Challenge string `json:"challenge"`
+	Verified  bool   `json:"verified"`
+}
+
+type WhiteLabelEmailDomain struct {
+	Value     string               `json:"value"`
+	User      *string              `json:"user"`
+	Challenge []DNSChallengeRecord `json:"challenge"`
+	Verified  bool                 `json:"verified"`
+}
+
+type DNSChallengeRecord struct {
+	Type  string `json:"type" example:"TXT"`
+	Name  string `json:"name" example:"_cubbit-challenge.tum-rating6.com"`
+	Value string `json:"value" example:"some-value"`
 }
 
 type TenantSettingsProject struct {
@@ -756,3 +781,65 @@ type AgentSecret struct {
 	AgentSecret string `json:"agentSecret"`
 	AgentUUID   string `json:"agentUUID"`
 }
+
+type CreateGatewayRequestBody struct {
+	Name          string                 `json:"name" binding:"required,min=3,max=63" example:"gateway"`
+	Location      string                 `json:"location" binding:"required" example:"eu-west-1"`
+	Configuration map[string]interface{} `json:"configuration"`
+}
+
+type UpdateGatewayRequestBody struct {
+	Name     *string `json:"name" binding:"omitempty,min=3,max=63" example:"cubbit"`
+	Location *string `json:"location" binding:"omitempty,min=1" example:"eu-west-1"`
+}
+type Gateway struct {
+	ID             string     `json:"id" binding:"required,uuid"`
+	Name           string     `json:"name" binding:"required"`
+	Location       string     `json:"location" binding:"required"`
+	CreatedAt      time.Time  `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	DeletedAt      *time.Time `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	HardDeleteAt   *time.Time `json:"hard_delete_at" example:"2023-01-18T12:42:59.089247Z"`
+	Secret         string     `json:"secret" binding:"required"`
+	OrganizationID *string    `json:"organization_id" example:"00000000-0000-0000-0000-000000000000"`
+}
+
+type GatewayWithGatewayTenant struct {
+	Gateway       *Gateway       `json:"gateway"`
+	GatewayTenant *GatewayTenant `json:"gateway_tenant"`
+}
+
+type GatewayTenant struct {
+	ID            string                 `json:"id" binding:"required,uuid"`
+	GatewayID     string                 `json:"gateway_id" binding:"required,uuid"`
+	TenantID      string                 `json:"tenant_id" binding:"required,uuid"`
+	CreatedAt     time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	DeletedAt     *time.Time             `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	HardDeleteAt  *time.Time             `json:"hard_delete_at" example:"2023-01-18T12:42:59.089247Z"`
+	Configuration map[string]interface{} `json:"configuration"`
+	Hidden        bool                   `json:"hidden"`
+}
+
+type GatewayInstanceListResponse struct {
+	Data []*GatewayInstance `json:"data"`
+}
+
+type GatewayInstance struct {
+	ID              string                 `json:"id" binding:"required,uuid"`
+	GatewayID       string                 `json:"gateway_id" binding:"required,uuid"`
+	IP              string                 `json:"ip" binding:"required"`
+	Status          map[string]interface{} `json:"status"`
+	StatusUpdatedAt *time.Time             `json:"status_updated_at" example:"2023-01-18T12:42:59.089247Z"`
+	CreatedAt       time.Time              `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	Features        map[string]interface{} `json:"features"`
+	EvaluatedStatus GatewayStatus          `json:"evaluated_status"`
+}
+
+type GatewayStatus string
+
+const (
+	UnknownGatewayStatus  GatewayStatus = "unknown"
+	InactiveGatewayStatus GatewayStatus = "inactive"
+	ActiveGatewayStatus   GatewayStatus = "active"
+	OfflineGatewayStatus  GatewayStatus = "offline"
+	OnlineGatewayStatus   GatewayStatus = "online"
+)

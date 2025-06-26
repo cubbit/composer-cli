@@ -51,6 +51,42 @@ func PrintSuccess(s string) {
 	}
 }
 
+func PrintInfo(s string) {
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("%s %s\n", style("INFO", blueStyle), s)
+	default:
+		return
+	}
+}
+
+func PrintWarn(s string) {
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("%s %s\n", style("WARN", yellowBg), s)
+	default:
+		return
+	}
+}
+
+func PrintHint(s string) {
+	switch currentMode {
+	case OutputHuman:
+		fmt.Printf("%s 💡 %s\n", style("HINT", grayStyle), s)
+	default:
+		return
+	}
+}
+
+func PrintEmptyLine() {
+	switch currentMode {
+	case OutputHuman:
+		fmt.Println()
+	default:
+		return
+	}
+}
+
 func PrintCreateSuccess(resourceType, id string) {
 	switch currentMode {
 	case OutputHuman:

@@ -186,6 +186,16 @@ const (
 	ErrorRecoveringRedundancyClassRequest             = "failed request to recover redundancy class"
 	ErrorExpandingRedundancyClassRequest              = "failed request to expand redundancy class"
 
-	ErrorRetrievingTenantReportRequest  = "failed request to retrieve tenant report"
-	ErrorDownloadingTenantReportRequest = "failed request to download tenant report"
+	ErrorRetrievingTenantReportRequest          = "failed request to retrieve tenant report"
+	ErrorDownloadingTenantReportRequest         = "failed request to download tenant report"
+	ErrorCreatingGatewayRequest                 = "failed request to create gateway"
+	ErrorListingGatewaysRequest                 = "failed request to list gateways"
+	ErrorRetrievingGatewayRequest               = "failed request to retrieve gateway"
+	ErrorDeletingGatewayRequest                 = "failed request to delete gateway"
+	ErrorEditingGatewayRequest                  = "failed request to edit gateway"
+	ErrorListingGatewayInstancesRequest         = "failed request to list gateway instances"
+	ErrorTenantDNSAlreadyConfigured             = "tenant DNS is already configured"
+	ErrorWhileConfiguringTenantDNS              = "error while configuring tenant DNS"
+	ErrorWhileVerifyingTenantDNS                = "error while verifying tenant DNS"
+	ErrorForgingTenantGatewayDeleteTokenRequest = "failed request to forge tenant gateway delete token"
 )

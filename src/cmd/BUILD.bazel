@@ -19,7 +19,6 @@ go_library(
         "//constants",
         "//src/action",
         "//src/configuration",
-        "//src/tui",
         "//utils",
         "@com_github_spf13_cobra//:cobra",
         "@com_github_spf13_cobra//doc",

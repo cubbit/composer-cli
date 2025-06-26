@@ -1159,6 +1159,317 @@ var editTenantDistributorCodeSubCmd = &cobra.Command{
 	},
 }
 
+var createTenantGatewaySubCmd = &cobra.Command{
+	Use:   "create-gateway",
+	Short: "creates a gateway for a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("gateway-name")
+			cmd.MarkFlagRequired("gateway-location")
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.CreateTenantGateway(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.CreateTenantGatewayInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var updateTenantGatewaySubCmd = &cobra.Command{
+	Use:   "edit-gateway",
+	Short: "updates a gateway in a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("gateway-id")
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.UpdateTenantGateway(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.UpdateTenantGatewayInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listTenantGatewaysSubCmd = &cobra.Command{
+	Use:   "list-gateways",
+	Short: "lists tenant gateways",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			allowed_sorting_keys := []string{"id, name"}
+			sort, _ := cmd.Flags().GetString("sort")
+
+			if sort != "" && !utils.Contains(allowed_sorting_keys, sort) {
+				fmt.Println("Error: invalid sort key provided, allowed keys are: id, name")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.ListTenantGateways(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListTenantGatewaysInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeTenantGatewaySubCmd = &cobra.Command{
+	Use:   "describe-gateway",
+	Short: "describes tenant gateways",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("gateway-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.DescribeTenantGateway(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.DescribeTenantGatewayInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var removeTenantGatewaySubCmd = &cobra.Command{
+	Use:     "remove-gateway",
+	Short:   "removes a tenant gateway",
+	Aliases: []string{"rm"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("email")
+			cmd.MarkFlagRequired("password")
+			cmd.MarkFlagRequired("gateway-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.RemoveTenantGateway(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.RemoveTenantGatewayInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var listTenantGatewayInstancesSubCmd = &cobra.Command{
+	Use:   "list-gateway-instances",
+	Short: "lists tenant gateway instances",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("gateway-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.ListTenantGatewayInstances(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ListTenantGatewayInstancesInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var configureTenantDNSSubCmd = &cobra.Command{
+	Use:   "configure-dns",
+	Short: "configures DNS for a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("domain")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.ConfigureTenantDNS(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ConfigureAndVerifyDNSInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var verifyTenantDNSSubCmd = &cobra.Command{
+	Use:   "verify-dns",
+	Short: "verifies DNS for a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("domain")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.VerifyTenantDNS(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.ConfigureAndVerifyDNSInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var installTenantGatewaySubCmd = &cobra.Command{
+	Use:   "install-gateway",
+	Short: "installs a gateway for a tenant",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if !interactive {
+			id, _ := cmd.Flags().GetString("id")
+			name, _ := cmd.Flags().GetString("name")
+			if id == "" && name == "" {
+				fmt.Println("Error: at least one of the two required flags --id or --name should be provided.")
+				cmd.Usage()
+				os.Exit(1)
+			}
+
+			cmd.MarkFlagRequired("gateway-id")
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+
+		action.SetupOutput(cmd)
+
+		if !interactive {
+			if err = action.InstallTenantGateway(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else {
+			if err = action.InstallTenantGatewayInteractive(cmd); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
 var reportTenantSubCmd = &cobra.Command{
 	Use:   "report",
 	Short: "downloads/prints a full report for the tenant",
@@ -1316,6 +1627,55 @@ func init() {
 	reportTenantSubCmd.Flags().String("to", "", "End date and time in DD/MM/YYYY+HH:mm:ss format")
 	reportTenantSubCmd.Flags().String("format", "json", "Formats the result")
 	reportTenantSubCmd.Flags().StringP("output", "o", "", "Specify the output file or directory.Use a dot (.) to indicate the current directory.")
+
+	tenantCmd.AddCommand(createTenantGatewaySubCmd)
+	createTenantGatewaySubCmd.Flags().String("gateway-name", "", "Name of the gateway")
+	createTenantGatewaySubCmd.Flags().String("gateway-location", "", "Location of the gateway")
+
+	tenantCmd.AddCommand(updateTenantGatewaySubCmd)
+	updateTenantGatewaySubCmd.Flags().String("gateway-id", "", "ID of the gateway")
+	updateTenantGatewaySubCmd.Flags().String("gateway-name", "", "Name of the gateway")
+	updateTenantGatewaySubCmd.Flags().String("gateway-location", "", "Location of the gateway")
+
+	tenantCmd.AddCommand(listTenantGatewaysSubCmd)
+	listTenantGatewaysSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for gateways")
+	listTenantGatewaysSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different gateways")
+	listTenantGatewaysSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listTenantGatewaysSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+
+	tenantCmd.AddCommand(describeTenantGatewaySubCmd)
+	describeTenantGatewaySubCmd.Flags().String("gateway-id", "", "ID of the gateway")
+	describeTenantGatewaySubCmd.Flags().String("format", "default", "Formats the output")
+
+	tenantCmd.AddCommand(removeTenantGatewaySubCmd)
+	removeTenantGatewaySubCmd.Flags().String("email", "", "Email address")
+	removeTenantGatewaySubCmd.Flags().String("password", "", "Password")
+	removeTenantGatewaySubCmd.Flags().String("gateway-id", "", "ID of the gateway")
+	removeTenantGatewaySubCmd.Flags().String("code", "", "Two factor authentication code")
+
+	tenantCmd.AddCommand(listTenantGatewayInstancesSubCmd)
+	listTenantGatewayInstancesSubCmd.Flags().String("gateway-id", "", "ID of the gateway")
+	listTenantGatewayInstancesSubCmd.Flags().BoolP("verbose", "v", false, "Lists all available information for gateway instances")
+	listTenantGatewayInstancesSubCmd.Flags().BoolP("line", "l", false, "Adds a line between the information about different gateway instances")
+
+	tenantCmd.AddCommand(configureTenantDNSSubCmd)
+	configureTenantDNSSubCmd.Flags().String("domain", "", "Domain to configure for the tenant")
+	configureTenantDNSSubCmd.Flags().Bool("force", false, "Force the configuration of DNS even if it already exists")
+
+	tenantCmd.AddCommand(verifyTenantDNSSubCmd)
+
+	tenantCmd.AddCommand(installTenantGatewaySubCmd)
+	installTenantGatewaySubCmd.Flags().String("gateway-id", "", "ID of the gateway")
+	installTenantGatewaySubCmd.Flags().String("cache", "", "Cache path")
+	installTenantGatewaySubCmd.Flags().String("cert-root", "./cert", "Certificate root path")
+	installTenantGatewaySubCmd.Flags().Bool("no-tls", false, "Disable TLS")
+	installTenantGatewaySubCmd.Flags().Bool("no-init", false, "Skip node initialization")
+	installTenantGatewaySubCmd.Flags().Bool("no-infra", false, "Skip infrastructure setup")
+	installTenantGatewaySubCmd.Flags().Bool("no-app", false, "Skip application setup")
+	installTenantGatewaySubCmd.Flags().Bool("no-console", false, "Skip console setup")
+	installTenantGatewaySubCmd.Flags().Bool("no-offloader", false, "Skip offloader setup")
+	installTenantGatewaySubCmd.Flags().Bool("no-s3", false, "Skip S3 setup")
+	installTenantGatewaySubCmd.Flags().Bool("ingress", false, "Install only ingress")
 
 	rootCmd.AddCommand(tenantCmd)
 	tenantCmd.PersistentFlags().String("name", "", "Name of the tenant")
