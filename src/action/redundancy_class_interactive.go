@@ -25,6 +25,8 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 	var choice string
 	var choices []string
 	var swarms []*api.Swarm
+	var nexuses *api.NexusList
+	var nexusIDs []string
 
 	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
@@ -52,7 +54,7 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 		}
 
 		for _, swarm := range swarms {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, swarm.Description))
+			choices = append(choices, fmt.Sprintf("• %s, %s, %s", swarm.ID, swarm.Name, utils.StringOrEmpty(swarm.Description)))
 		}
 
 		if choice, err = tui.ChooseOne("Which swarm would you like to choose?", false, false, choices); err != nil {
@@ -71,9 +73,114 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 
 	if _, err = tui.TextInputs(
 		"Fill in the form below",
-		true,
+		false,
 		tui.Input{Placeholder: "Name*", IsPassword: false, Value: &redundancyClassName},
 		tui.Input{Placeholder: "Description", IsPassword: false, Value: &redundancyClassDescription},
+	); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
+	}
+
+	if nexuses, err = api.ListNexuses(conf.Urls, *accessToken, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	}
+
+	if len(nexuses.Nexuses) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	type nexusInfo struct {
+		ID                  string
+		NodeCount           int
+		NodesAgentsCountMap map[string]int
+	}
+
+	nexusInfoMap := make(map[string]*nexusInfo)
+
+	for _, nx := range nexuses.Nexuses {
+		var nodes *api.GenericPaginatedResponse[*api.NewNode]
+
+		if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nx.ID, "", ""); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
+		}
+
+		nodeCount := len(nodes.Data)
+		nodesAgentsCountMap := make(map[string]int)
+
+		for _, node := range nodes.Data {
+			var agents *api.GenericPaginatedResponse[*api.NewAgent]
+			if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nx.ID, node.ID, "", ""); err != nil {
+				return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+			}
+
+			nodesAgentsCountMap[node.ID] = len(agents.Data)
+
+		}
+
+		info := &nexusInfo{
+			ID:                  nx.ID,
+			NodeCount:           nodeCount,
+			NodesAgentsCountMap: nodesAgentsCountMap,
+		}
+
+		nexusInfoMap[nx.ID] = info
+
+	}
+
+	choices = []string{}
+
+	minDisks := 0
+	for _, nx := range nexuses.Nexuses {
+		for _, count := range nexusInfoMap[nx.ID].NodesAgentsCountMap {
+			minDisks = count
+			if count < minDisks {
+				minDisks = count
+			}
+		}
+	}
+
+	for _, nx := range nexuses.Nexuses {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s (nodes: %d, agents: %d)",
+			nx.ID, nx.Name, nx.Description, nexusInfoMap[nx.ID].NodeCount, minDisks))
+	}
+
+	if len(choices) == 0 {
+		utils.PrintNotFound("No nexuses found")
+		return nil
+	}
+
+	if nexusIDs, err = tui.ChooseMany("Which nexuses would you like to choose?", false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNexusRequest, err)
+	}
+
+	for i, nexus := range nexusIDs {
+		_, withoutPrefix, _ := strings.Cut(nexus, " ")
+		nexusID, _, _ := strings.Cut(withoutPrefix, ",")
+		nexusIDs[i] = nexusID
+	}
+
+	for _, nexusID := range nexusIDs {
+		if info, exists := nexusInfoMap[nexusID]; exists {
+			if info.NodeCount == 0 {
+				utils.PrintWarn(fmt.Sprintf("Nexus %s has no nodes available", nexusID))
+				return nil
+			}
+
+			totalAgents := 0
+			for _, agentCount := range info.NodesAgentsCountMap {
+				totalAgents += agentCount
+			}
+
+			if totalAgents == 0 {
+				utils.PrintWarn(fmt.Sprintf("Nexus %s has no agents available", nexusID))
+				return nil
+			}
+		}
+	}
+
+	if _, err = tui.TextInputs(
+		"Fill in the redundancy parameters",
+		true,
 		tui.Input{Placeholder: "Inner K*", IsPassword: false, Value: &innerK},
 		tui.Input{Placeholder: "Inner N*", IsPassword: false, Value: &innerN},
 		tui.Input{Placeholder: "Outer K*", IsPassword: false, Value: &outerK},
@@ -81,10 +188,6 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 		tui.Input{Placeholder: "Anti Affinity Group*", IsPassword: false, Value: &antiAffinityGroup}); err != nil {
 
 		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-	}
-
-	if len(redundancyClassDescription) > 200 {
-		return fmt.Errorf("%s: %w", constants.ErrorDescriptionSize, err)
 	}
 
 	if innerKInt, err = strconv.Atoi(innerK); err != nil {
@@ -107,6 +210,42 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: %w", constants.ErrorConvertingField, err)
 	}
 
+	if len(nexusIDs) < outerKInt+outerNInt {
+		utils.PrintWarn(fmt.Sprintf("not enough nexuses selected to create redundancy class: need at least %d, selected %d", outerKInt+outerNInt, len(nexusIDs)))
+		return nil
+	}
+
+	for _, nexusID := range nexusIDs {
+		totalNodes := 0
+		if info, exists := nexusInfoMap[nexusID]; exists {
+			totalNodes += info.NodeCount
+
+			totalAgents := 0
+			for nodeID, agentCount := range info.NodesAgentsCountMap {
+				totalAgents += agentCount
+
+				if agentCount < innerKInt+innerNInt {
+					utils.PrintWarn(fmt.Sprintf("Node %s in nexus %s has insufficient agents: %d (need at least %d)",
+						nodeID, nexusID, agentCount, innerKInt+innerNInt))
+				}
+
+				if agentCount < antiAffinityGroupInt {
+					utils.PrintWarn("The anti-affinity parameter is greater than the number of agents available per single machine")
+				}
+			}
+		}
+	}
+
+	if outerKInt == 0 {
+		utils.PrintWarn("The configuration chosen will result in the use of a single availability zone. This configuration is allowed but strongly discouraged")
+		return nil
+	}
+
+	if innerKInt == 0 {
+		utils.PrintWarn("The current configuration does not add redundancy. Any offline agent will compromise access to the data distributed on it")
+		return nil
+	}
+
 	bodyRequest := api.CreateRedundancyClassRequestBody{
 		Name:              redundancyClassName,
 		Description:       redundancyClassDescription,
@@ -115,14 +254,14 @@ func CreateSwarmRedundancyClassInteractive(cmd *cobra.Command) error {
 		OuterK:            outerKInt,
 		OuterN:            outerNInt,
 		AntiAffinityGroup: antiAffinityGroupInt,
+		Nexuses:           nexusIDs,
 	}
 
-	if redundancyClass, err = api.CreateRedundancyClass(conf.Urls, *accessToken, id, bodyRequest); err != nil {
+	if redundancyClass, err = api.CreateRedundancyClassV4(conf.Urls, *accessToken, id, bodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingRedundancyClassRequest, err)
 	}
 
 	utils.PrintSuccess(fmt.Sprintf("redundancy class %s created successfully", redundancyClass.ID))
-
 	return nil
 }
 
