@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.22.0
+
+### Minor Changes
+
+- b695ed7: Added new CLI commands to manage gateways: create, edit, delete, list all gateways, list gateway instances, describe a specific gateway, verify and configure a DNS, and install a gateway interactively.
+- 2118726: Introduced a new command to generate tenant consumption reports.
+
+### Patch Changes
+
+- 7e20888: updated the flow to create redundancy class interactively
+
 ## 0.21.0
 
 ### Minor Changes
