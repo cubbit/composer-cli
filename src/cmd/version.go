@@ -18,7 +18,7 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
+	// rootCmd.AddCommand(versionCmd)
 
 	if ENABLE_ACCOUNT_SECTION {
 		rootCmd.AddCommand(projectCmd)

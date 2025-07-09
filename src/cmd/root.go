@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"os"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
@@ -11,6 +12,11 @@ import (
 const ENABLE_ACCOUNT_SECTION = false
 
 var interactive bool
+var packageJSON []byte
+
+type PackageData struct {
+	Version string `json:"version"`
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "cubbit-operator-cli",
@@ -18,9 +24,16 @@ var rootCmd = &cobra.Command{
 	Long:  "The CLI for managing operators, tenants and swarms in Cubbit distributed datacenter",
 }
 
-func Execute() {
-	var err error
-	if err = rootCmd.Execute(); err != nil {
+func Execute(packageJSON []byte) {
+	var pkg PackageData
+	if err := json.Unmarshal(packageJSON, &pkg); err != nil {
+		os.Exit(1)
+	}
+
+	rootCmd.Version = pkg.Version
+	rootCmd.SetVersionTemplate("{{.Use}} version {{.Version}}\n")
+
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

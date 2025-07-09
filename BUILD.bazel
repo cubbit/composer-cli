@@ -21,6 +21,7 @@ gazelle(
 go_library(
     name = "cli_lib",
     srcs = ["main.go"],
+    embedsrcs = ["package.json"],
     importpath = "github.com/cubbit/cubbit/client/cli",
     visibility = ["//visibility:private"],
     deps = ["//src/cmd"],
