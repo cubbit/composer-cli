@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.22.1
+
+### Patch Changes
+
+- 5a2728d: fix cli version command
+
 ## 0.22.0
 
 ### Minor Changes
