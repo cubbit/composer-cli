@@ -1,3 +1,4 @@
+// Package action provides CLI actions for managing agents.
 package action
 
 import (
@@ -12,20 +13,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateSwarmAgent(cmd *cobra.Command, args []string) error {
+func CreateAgent(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, nexusID, nodeID, agentFeaturesStr, agentDisk, agentMountPoint, configPath, nodeConfigStr string
+	var swarmID, nexusID, nodeID, agentFeaturesStr, agentDisk, agentMountPoint, nodeConfigStr string
 	var agentPort int
 	var agentFeatures map[string]interface{}
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var agent *api.NewAgentsResponse
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -55,22 +53,16 @@ func CreateSwarmAgent(cmd *cobra.Command, args []string) error {
 
 	if agentFeaturesStr != "" {
 		if err = json.Unmarshal([]byte(nodeConfigStr), &agentFeatures); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorParsingJsonConfiguration, err)
+			return fmt.Errorf("%s: %w", constants.ErrorParsingJSONConfiguration, err)
 		}
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	agentsBodyRequest := api.BulkInsertNewAgentRequestBody{
@@ -85,25 +77,34 @@ func CreateSwarmAgent(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	if agent, err = api.CreateAgentV4(conf.Urls, *accessToken, id, nexusID, nodeID, agentsBodyRequest); err != nil {
+	if agent, err = api.CreateAgent(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, agentsBodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintCreateSuccess("agent", agent.Agents[0].ID)
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		agent.Agents,
+		func(a *api.NewAgentResponse) []string {
+			return []string{
+				a.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewAgentResponse]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
-func CreateSwarmAgentBatch(cmd *cobra.Command, args []string) error {
+func CreateAgentBatch(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, nexusID, nodeID, configPath, filePath string
+	var swarmID, nexusID, nodeID, filePath string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -119,17 +120,12 @@ func CreateSwarmAgentBatch(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	fileData, err := os.ReadFile(filePath)
@@ -159,32 +155,34 @@ func CreateSwarmAgentBatch(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no agents found in batch file")
 	}
 
-	agents, err := api.CreateAgentV4(conf.Urls, *accessToken, id, nexusID, nodeID, batchAgents)
+	agents, err := api.CreateAgent(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, batchAgents)
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Successfully created %d agents\n", len(agents.Agents)))
-	for _, agent := range agents.Agents {
-		utils.PrintCreateSuccess("agent", agent.ID)
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		agents.Agents,
+		func(a *api.NewAgentResponse) []string {
+			return []string{
+				a.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewAgentResponse]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func DescribeSwarmAgent(cmd *cobra.Command, args []string) error {
+func DescribeAgent(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var configPath, format string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var agents *api.GenericPaginatedResponse[*api.NewAgent]
-	var id, name, nexusID, nodeID, agentID string
+	var swarmID, nexusID, nodeID, agentID string
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -200,55 +198,49 @@ func DescribeSwarmAgent(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, nodeID, "", ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
+	if agents, err = api.GetAgent(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, agentID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
 	}
 
 	if len(agents.Data) == 0 {
-		utils.PrintError(fmt.Errorf("agent not found"))
-		return nil
+		return fmt.Errorf("no agent found with ID %s", agentID)
 	}
 
-	for _, agent := range agents.Data {
-		if agent.ID == agentID {
-			utils.PrintFormattedData(agent, format)
-		}
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.NewAgent{agents.Data[0]},
+		func(a *api.NewAgent) []string {
+			return []string{
+				a.ID,
+				fmt.Sprintf("%d", a.Port),
+				a.Volume.MountPoint,
+				a.Volume.Disk,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewAgent]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		},
+	)
 }
 
-func ListSwarmAgents(cmd *cobra.Command, args []string) error {
+func ListAgents(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, nexusID, nodeID, rcID, configPath, sort, filter string
+	var swarmID, nexusID, nodeID, rcID, sort, filter string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var agents *api.GenericPaginatedResponse[*api.NewAgent]
-	var verbose, l bool
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -276,71 +268,51 @@ func ListSwarmAgents(cmd *cobra.Command, args []string) error {
 		filter = utils.BuildFilterQuery(filter)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	if rcID != "" {
-		if agents, err = api.ListAgentsForRCV4(conf.Urls, *accessToken, id, rcID, sort, filter); err != nil {
+		if agents, err = api.ListAgentsForRC(*urls, resolvedProfile.APIKey, swarmID, rcID, sort, filter); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
 		}
 	} else if nexusID != "" && nodeID != "" {
-		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, nodeID, sort, filter); err != nil {
+		if agents, err = api.ListAgents(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, sort, filter); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 		}
 	}
 
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if len(agents.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	utils.PrintList("Your Agents List")
-
-	if verbose {
-		utils.PrintVerbose(agents.Data, l)
-	} else {
-		var IDs []string
-		for _, agent := range agents.Data {
-			IDs = append(IDs, agent.ID)
-		}
-		utils.PrintSimpleList(IDs)
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		agents.Data,
+		func(a *api.NewAgent) []string {
+			return []string{
+				a.ID,
+				fmt.Sprintf("%d", a.Port),
+				a.Volume.MountPoint,
+				a.Volume.Disk,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewAgent]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func EditSwarmAgent(cmd *cobra.Command, args []string) error {
+func EditAgent(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, nexusID, nodeID, agentID, agentDisk, agentMountPoint, configPath, agentFeaturesStr string
+	var swarmID, nexusID, nodeID, agentID, agentDisk, agentMountPoint, agentFeaturesStr string
 	var agentPort int
 	var agentFeatures map[string]interface{}
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -374,22 +346,16 @@ func EditSwarmAgent(cmd *cobra.Command, args []string) error {
 
 	if agentFeaturesStr != "" {
 		if err = json.Unmarshal([]byte(agentFeaturesStr), &agentFeatures); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorParsingJsonConfiguration, err)
+			return fmt.Errorf("%s: %w", constants.ErrorParsingJSONConfiguration, err)
 		}
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	var agentBodyRequest api.UpdateNewAgentRequestBody
@@ -416,27 +382,34 @@ func EditSwarmAgent(cmd *cobra.Command, args []string) error {
 		agentBodyRequest.Features = agentFeatures
 	}
 
-	if err = api.UpdateAgentV4(conf.Urls, *accessToken, id, nexusID, nodeID, agentID, agentBodyRequest); err != nil {
+	if err = api.UpdateAgent(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, agentID, agentBodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Agent %s updated successfully\n", agentID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.UpdateNewAgentRequestBody{
+			&agentBodyRequest},
+		func(a *api.UpdateNewAgentRequestBody) []string {
+			return []string{
+				agentID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.UpdateNewAgentRequestBody]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		},
+	)
 }
 
-func RemoveSwarmAgent(cmd *cobra.Command, args []string) error {
+func RemoveAgent(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var configPath string
+	var swarmID, nexusID, nodeID, agentID string
 	var conf *configuration.Config
-	var id, name, nexusID, nodeID, agentID string
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -452,25 +425,97 @@ func RemoveSwarmAgent(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if err = api.DeleteAgentV4(conf.Urls, *accessToken, id, nexusID, nodeID, agentID); err != nil {
+	if err = api.DeleteAgent(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, agentID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("Agent %s deleted successfully\n", agentID))
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{agentID},
+		func(s string) []string { return []string{s} },
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
+}
 
-	return nil
+func CheckAgentStatus(cmd *cobra.Command, args []string) error {
+
+	var err error
+
+	var swarmID, nexusID, nodeID, agentID string
+
+	var conf *configuration.Config
+
+	var resolvedProfile *configuration.ResolvedProfile
+
+	var urls *configuration.URLs
+
+	var status *api.GetAgentEvaluatedStatusResponse
+
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+
+	}
+
+	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+
+	}
+
+	if nodeID, err = cmd.Flags().GetString("node-id"); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+
+	}
+
+	if agentID, err = cmd.Flags().GetString("agent-id"); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+
+	}
+
+	if conf, err = configuration.LoadConfig(); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+
+	}
+
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+
+	}
+
+	if status, err = api.GetAgentStatus(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, agentID); err != nil {
+
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingAgentStatusRequest, err)
+
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.GetAgentEvaluatedStatusResponse{status},
+		func(s *api.GetAgentEvaluatedStatusResponse) []string {
+			return []string{
+				string(s.Status),
+			}
+		},
+		&utils.SmartOutputConfig[*api.GetAgentEvaluatedStatusResponse]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+		},
+	)
 }

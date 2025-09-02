@@ -1,3 +1,4 @@
+// Package api provides functions to interact with the nexus API.
 package api
 
 import (
@@ -6,17 +7,20 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateGateway(urls configuration.Url, accessToken string, tenantID string, gatewayBody CreateGatewayRequestBody) (*GatewayWithGatewayTenant, error) {
+func CreateGateway(urls configuration.URLs, accessToken string, tenantID string, gatewayBody CreateGatewayRequestBody) (*GatewayWithGatewayTenant, error) {
 	var err error
 	var response GatewayWithGatewayTenant
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/gateways"
+	var requestBody []byte
 
-	requestBody, err := json.Marshal(gatewayBody)
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "gateways").
+		Build()
+
+	requestBody, err = json.Marshal(gatewayBody)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +39,15 @@ func CreateGateway(urls configuration.Url, accessToken string, tenantID string, 
 	return &response, nil
 }
 
-func UpdateGateway(urls configuration.Url, accessToken string, tenantID string, gatewayID string, gatewayBody UpdateGatewayRequestBody) error {
+func UpdateGateway(urls configuration.URLs, accessToken string, tenantID string, gatewayID string, gatewayBody UpdateGatewayRequestBody) error {
 	var err error
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/gateways/" + gatewayID
+	var requestBody []byte
 
-	requestBody, err := json.Marshal(gatewayBody)
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "gateways", gatewayID).
+		Build()
+
+	requestBody, err = json.Marshal(gatewayBody)
 	if err != nil {
 		return err
 	}
@@ -57,10 +65,13 @@ func UpdateGateway(urls configuration.Url, accessToken string, tenantID string, 
 	return nil
 }
 
-func GetGateway(urls configuration.Url, accessToken string, tenantID string, gatewayID string) (*Gateway, error) {
+func GetGateway(urls configuration.URLs, accessToken string, tenantID string, gatewayID string) (*Gateway, error) {
 	var err error
 	var response Gateway
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/gateways/" + gatewayID
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "gateways", gatewayID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -74,12 +85,17 @@ func GetGateway(urls configuration.Url, accessToken string, tenantID string, gat
 	return &response, nil
 }
 
-func ListGateways(urls configuration.Url, accessToken string, tenantID string, sort string, filter string) (*GenericPaginatedResponse[*Gateway], error) {
+func ListGateways(urls configuration.URLs, accessToken string, tenantID string, sort string, filter string) (*GenericPaginatedResponse[*Gateway], error) {
 	var err error
 	var finalResponse GenericPaginatedResponse[*Gateway]
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/gateways" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
-
 	var nextPage *int
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "gateways").
+		QueryParam("sort_key", sort).
+		QueryParam("q", url.QueryEscape(filter)).
+		Build()
+
 	page := 1
 
 	for {
@@ -106,9 +122,12 @@ func ListGateways(urls configuration.Url, accessToken string, tenantID string, s
 	return &finalResponse, nil
 }
 
-func DeleteGateway(urls configuration.Url, accessToken string, tenantID string, gatewayID string, token string) error {
+func DeleteGateway(urls configuration.URLs, accessToken string, tenantID string, gatewayID string) error {
 	var err error
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/gateways/" + gatewayID + "?token=" + token
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "gateways", gatewayID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -122,26 +141,12 @@ func DeleteGateway(urls configuration.Url, accessToken string, tenantID string, 
 	return nil
 }
 
-func ListGatewayInstances(urls configuration.Url, accessToken string, tenantID string, gatewayID string) (*GatewayInstanceListResponse, error) {
+func VerifyDNS(urls configuration.URLs, accessToken string, tenantID string) error {
 	var err error
-	var finalResponse GatewayInstanceListResponse
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/gateways/" + gatewayID + "/instances"
 
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&finalResponse),
-	); err != nil {
-		return nil, err
-	}
-
-	return &finalResponse, nil
-}
-
-func VerifyDNS(urls configuration.Url, accessToken string, tenantID string) error {
-	var err error
-	url := urls.ChUrl + constants.Tenants + "/" + tenantID + "/whitelabel/verify-dns"
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "whitelabel", "verify-dns").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,

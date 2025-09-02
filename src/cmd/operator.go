@@ -1,3 +1,4 @@
+// Package cmd provides CLI commands for managing IAM operators.
 package cmd
 
 import (
@@ -6,127 +7,104 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var operatorCmd = &cobra.Command{
-	Use:   "operator",
-	Short: "Execute commands in operator sections",
+var IAMUserCmd = &cobra.Command{
+	Use:   "user",
+	Short: "Execute commands in iam user sections",
 }
 
-var signupSubCmd = &cobra.Command{
-	Use:   "signup",
-	Short: "Create a new operator",
+var addIAMOperatorSubCmd = &cobra.Command{
+	Use:   "create",
+	Short: "invites an operator into a tenant/swarm",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if !interactive {
-			cmd.MarkFlagRequired("email")
-			cmd.MarkFlagRequired("password")
-			cmd.MarkFlagRequired("first-name")
-			cmd.MarkFlagRequired("last-name")
-		}
+		cmd.MarkFlagRequired("email")
+		cmd.MarkFlagRequired("policy-id")
+
+		cmd.MarkFlagsOneRequired("tenant-id", "swarm-id")
+		cmd.MarkFlagsMutuallyExclusive("tenant-id", "swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+		tenantID, _ := cmd.Flags().GetString("tenant-id")
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
 
-		action.SetupOutput(cmd)
-
-		if !interactive {
-			if err = action.CreateOperator(cmd, args); err != nil {
+		if tenantID != "" {
+			if err := action.AddOperatorToTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else {
-			if err = action.CreateOperatorInteractive(cmd); err != nil {
+		} else if swarmID != "" {
+			if err := action.AddOperatorToSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		}
 	},
 }
 
-var operatorLoginSubCmd = &cobra.Command{
-	Use:     "login",
-	Short:   "Login the operator",
-	Aliases: []string{"signin"},
+var listIAMOperatorsSubCmd = &cobra.Command{
+	Use:   "list",
+	Short: "lists tenant/swarm operators",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if !interactive {
-			cmd.MarkFlagRequired("email")
-			cmd.MarkFlagRequired("password")
-		}
+		cmd.MarkFlagsOneRequired("tenant-id", "swarm-id")
+		cmd.MarkFlagsMutuallyExclusive("tenant-id", "swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+		tenantID, _ := cmd.Flags().GetString("tenant-id")
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
 
-		action.SetupOutput(cmd)
-
-		if !interactive {
-			if err = action.SignInOperator(cmd, args); err != nil {
+		if tenantID != "" {
+			if err := action.ListTenantOperators(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else {
-			if err = action.SignInOperatorInteractive(cmd); err != nil {
+		} else if swarmID != "" {
+			if err := action.ListSwarmOperators(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		}
 	},
 }
 
-var operatorLogoutCmd = &cobra.Command{
-	Use:   "logout",
-	Short: "Log out the operator",
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-
-		action.SetupOutput(cmd)
-
-		if !interactive {
-			if err = action.SignOutOperator(cmd, args); err != nil {
-				utils.PrintError(err)
-			}
-		} else {
-			if err := action.SignOutOperatorInteractive(cmd); err != nil {
-				utils.PrintError(err)
-			}
-		}
-	},
-}
-
-var tokenSubCmd = &cobra.Command{
-	Use:   "token",
-	Short: "Generate access token",
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-
-		action.SetupOutput(cmd)
-
-		if !interactive {
-			if err = action.GenerateAccessToken(cmd, args); err != nil {
-				utils.PrintError(err)
-			}
-		} else {
-			if err := action.GenerateOperatorAccessTokenInteractive(cmd); err != nil {
-				utils.PrintError(err)
-			}
-		}
-	},
-}
-
-var promoteSubCmd = &cobra.Command{
-	Use:   "promote",
-	Short: "Promote an operator to a higher policy",
+var removeIAMOperatorSubCmd = &cobra.Command{
+	Use:   "remove",
+	Short: "removes tenant/swarm operator",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if !interactive {
-			cmd.MarkFlagRequired("email")
-			cmd.MarkFlagRequired("policy_name")
-			cmd.MarkFlagRequired("secret")
-		}
+		cmd.MarkFlagRequired("user-id")
+
+		cmd.MarkFlagsOneRequired("tenant-id", "swarm-id")
+		cmd.MarkFlagsMutuallyExclusive("tenant-id", "swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
+		tenantID, _ := cmd.Flags().GetString("tenant-id")
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
 
-		action.SetupOutput(cmd)
-
-		if !interactive {
-			if err = action.PromoteOperator(cmd, args); err != nil {
+		if tenantID != "" {
+			if err := action.RemoveTenantOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else {
-			if err = action.PromoteOperatorInteractive(cmd); err != nil {
+		} else if swarmID != "" {
+			if err := action.RemoveSwarmOperator(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		}
+	},
+}
+
+var describeIAMOperatorsSubCmd = &cobra.Command{
+	Use:   "describe",
+	Short: "describe tenant/swarm operator",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("user-id")
+
+		cmd.MarkFlagsOneRequired("tenant-id", "swarm-id")
+		cmd.MarkFlagsMutuallyExclusive("tenant-id", "swarm-id")
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		tenantID, _ := cmd.Flags().GetString("tenant-id")
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
+
+		if tenantID != "" {
+			if err := action.DescribeTenantOperator(cmd, args); err != nil {
+				utils.PrintError(err)
+			}
+		} else if swarmID != "" {
+			if err := action.DescribeSwarmOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		}
@@ -134,29 +112,33 @@ var promoteSubCmd = &cobra.Command{
 }
 
 func init() {
-	operatorCmd.AddCommand(signupSubCmd)
-	signupSubCmd.Flags().String("api-server-url", "https://api.cubbit.eu/iam", "Api server URL")
-	signupSubCmd.Flags().String("email", "", "Email Address")
-	signupSubCmd.Flags().String("password", "", "Password")
-	signupSubCmd.Flags().String("first-name", "", "First Name")
-	signupSubCmd.Flags().String("last-name", "", "Last Name")
-	signupSubCmd.Flags().String("secret", "", "Secret")
 
-	operatorCmd.AddCommand(operatorLoginSubCmd)
-	operatorLoginSubCmd.Flags().String("api-server-url", "https://api.cubbit.eu/iam", "Api server url")
-	operatorLoginSubCmd.Flags().StringP("email", "e", "", "Email Address")
-	operatorLoginSubCmd.Flags().StringP("password", "p", "", "")
-	operatorLoginSubCmd.Flags().String("code", "", "Two factor authentication code")
+	IAMUserCmd.AddCommand(addIAMOperatorSubCmd)
+	addIAMOperatorSubCmd.Flags().String("email", "", "Email of the operator")
+	addIAMOperatorSubCmd.Flags().String("policy-id", "", "ID of the policy to assign to the operator")
+	addIAMOperatorSubCmd.Flags().String("first-name", "", "First name of the operator")
+	addIAMOperatorSubCmd.Flags().String("last-name", "", "Last name of the operator")
+	addIAMOperatorSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
+	addIAMOperatorSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
-	operatorCmd.AddCommand(operatorLogoutCmd)
+	IAMUserCmd.AddCommand(listIAMOperatorsSubCmd)
+	listIAMOperatorsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
+	listIAMOperatorsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listIAMOperatorsSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
+	listIAMOperatorsSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
-	operatorCmd.AddCommand(tokenSubCmd)
+	IAMUserCmd.AddCommand(removeIAMOperatorSubCmd)
+	removeIAMOperatorSubCmd.Flags().String("user-id", "", "ID of the operator")
+	removeIAMOperatorSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
+	removeIAMOperatorSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
-	operatorCmd.AddCommand(promoteSubCmd)
-	promoteSubCmd.Flags().String("api-server-url", "https://api.cubbit.eu/iam", "Api server URL")
-	promoteSubCmd.Flags().String("email", "", "Email Address")
-	promoteSubCmd.Flags().String("policy_name", "system-admin", "Policy name")
-	promoteSubCmd.Flags().String("secret", "", "Secret")
+	IAMUserCmd.AddCommand(describeIAMOperatorsSubCmd)
+	describeIAMOperatorsSubCmd.Flags().String("user-id", "", "ID of the operator")
+	describeIAMOperatorsSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
+	describeIAMOperatorsSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
-	rootCmd.AddCommand(operatorCmd)
+	iamCmd.AddCommand(IAMUserCmd)
+	IAMUserCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
+	IAMUserCmd.MarkPersistentFlagRequired("tenant-id")
+
 }

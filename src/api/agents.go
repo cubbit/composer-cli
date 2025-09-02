@@ -1,7 +1,9 @@
+// Package api provides functions to interact with the agents API.
 package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -10,12 +12,16 @@ import (
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateAgentV4(urls configuration.Url, accessToken string, swarmID string, nexusID string, nodeID string, agentsBody BulkInsertNewAgentRequestBody) (*NewAgentsResponse, error) {
+func CreateAgent(urls configuration.URLs, accessToken string, swarmID string, nexusID string, nodeID string, agentsBody BulkInsertNewAgentRequestBody) (*NewAgentsResponse, error) {
 	var err error
 	var response NewAgentsResponse
-	url := urls.ChUrl + "/v4/swarms/" + swarmID + "/nexuses/" + nexusID + "/nodes/" + nodeID + "/agents"
+	var bodyRequest []byte
 
-	bodyRequest, err := json.Marshal(agentsBody)
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "nexuses", nexusID, "nodes", nodeID, "agents").
+		Build()
+
+	bodyRequest, err = json.Marshal(agentsBody)
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +40,17 @@ func CreateAgentV4(urls configuration.Url, accessToken string, swarmID string, n
 	return &response, nil
 }
 
-func ListAgentsV4(urls configuration.Url, accessToken string, swarmID string, nexusID, nodeID, sort string, filter string) (*GenericPaginatedResponse[*NewAgent], error) {
+func ListAgents(urls configuration.URLs, accessToken string, swarmID string, nexusID, nodeID, sort string, filter string) (*GenericPaginatedResponse[*NewAgent], error) {
 	var err error
 	var finalResponse GenericPaginatedResponse[*NewAgent]
-
-	url := urls.ChUrl + "/v4/swarms/" + swarmID + "/nexuses/" + nexusID + "/nodes/" + nodeID + "/agents" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
-
 	var nextPage *int
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "nexuses", nexusID, "nodes", nodeID, "agents").
+		QueryParam("sort_key", sort).
+		QueryParam("q", url.QueryEscape(filter)).
+		Build()
+
 	page := 1
 
 	for {
@@ -67,11 +77,36 @@ func ListAgentsV4(urls configuration.Url, accessToken string, swarmID string, ne
 	return &finalResponse, nil
 }
 
-func UpdateAgentV4(urls configuration.Url, accessToken string, swarmID string, nexusID string, nodeID string, agentID string, nodesBody UpdateNewAgentRequestBody) error {
+func GetAgent(urls configuration.URLs, accessToken string, swarmID, nexusID, nodeID, agentID string) (*GenericPaginatedResponse[*NewAgent], error) {
 	var err error
-	url := urls.ChUrl + "/v4/swarms/" + swarmID + "/nexuses/" + nexusID + "/nodes/" + nodeID + "/agents/" + agentID
+	var response GenericPaginatedResponse[*NewAgent]
 
-	bodyRequest, err := json.Marshal(nodesBody)
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "nexuses", nexusID, "nodes", nodeID, "agents").
+		QueryParam("q", fmt.Sprintf("agent:eq(%s)", agentID)).
+		Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func UpdateAgent(urls configuration.URLs, accessToken string, swarmID string, nexusID string, nodeID string, agentID string, nodesBody UpdateNewAgentRequestBody) error {
+	var err error
+	var bodyRequest []byte
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "nexuses", nexusID, "nodes", nodeID, "agents", agentID).
+		Build()
+
+	bodyRequest, err = json.Marshal(nodesBody)
 	if err != nil {
 		return err
 	}
@@ -90,9 +125,12 @@ func UpdateAgentV4(urls configuration.Url, accessToken string, swarmID string, n
 	return nil
 }
 
-func DeleteAgentV4(urls configuration.Url, accessToken string, swarmID string, nexusID string, nodeID string, agentID string) error {
+func DeleteAgent(urls configuration.URLs, accessToken string, swarmID string, nexusID string, nodeID string, agentID string) error {
 	var err error
-	url := urls.ChUrl + "/v4/swarms/" + swarmID + "/nexuses/" + nexusID + "/nodes/" + nodeID + "/agents/" + agentID
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "nexuses", nexusID, "nodes", nodeID, "agents", agentID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -107,13 +145,17 @@ func DeleteAgentV4(urls configuration.Url, accessToken string, swarmID string, n
 	return nil
 }
 
-func ListAgentsForRCV4(urls configuration.Url, accessToken string, swarmID string, rcID, sort string, filter string) (*GenericPaginatedResponse[*NewAgent], error) {
+func ListAgentsForRC(urls configuration.URLs, accessToken string, swarmID string, rcID, sort string, filter string) (*GenericPaginatedResponse[*NewAgent], error) {
 	var err error
 	var finalResponse GenericPaginatedResponse[*NewAgent]
-
-	url := urls.ChUrl + "/v4/swarms/" + swarmID + "/redundancy_class/" + rcID + "/agents" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
-
 	var nextPage *int
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "redundancy_class", rcID, "agents").
+		QueryParam("sort_key", sort).
+		QueryParam("q", url.QueryEscape(filter)).
+		Build()
+
 	page := 1
 
 	for {
@@ -138,4 +180,33 @@ func ListAgentsForRCV4(urls configuration.Url, accessToken string, swarmID strin
 	}
 
 	return &finalResponse, nil
+}
+
+func GetAgentStatus(urls configuration.URLs, accessToken, swarmID, nexusID, nodeID, agentID string) (*GetAgentEvaluatedStatusResponse, error) {
+
+	var err error
+
+	var response GetAgentEvaluatedStatusResponse
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v4", "swarms", swarmID, "nexuses", nexusID, "nodes", nodeID, "agents", agentID, "status").
+		Build()
+
+	if err = request_utils.DoRequest(
+
+		url,
+
+		request_utils.WithAccessToken(accessToken),
+
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+
+		ExtractGenericModel(&response),
+	); err != nil {
+
+		return nil, err
+
+	}
+
+	return &response, nil
+
 }

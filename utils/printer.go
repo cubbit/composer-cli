@@ -5,9 +5,11 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	"text/tabwriter"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/cubbit/cubbit/client/cli/src/configuration"
+	"github.com/spf13/cobra"
 )
 
 type OutputMode int
@@ -18,7 +20,7 @@ const (
 )
 
 var (
-	currentMode = OutputQuiet
+	currentMode = OutputHuman
 )
 
 var (
@@ -29,6 +31,12 @@ var (
 	grayStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
 	blueStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#0080FF"))
 )
+
+type SmartOutputConfig[T any] struct {
+	SingleResource              bool
+	SingleResourceCompactOutput bool
+	DefaultOutput               configuration.OutputFormat
+}
 
 func SetOutputMode(mode OutputMode) {
 	currentMode = mode
@@ -167,101 +175,173 @@ func PrintSimpleList(items []string) {
 	}
 }
 
-func PrintVerbose(data interface{}, withLineSeparator bool) {
-	value := reflect.ValueOf(data)
-	if value.Len() == 0 {
-		PrintEmptyList()
-		return
-	}
-	switch currentMode {
-	case OutputQuiet:
-		printTabSeparatedTable(data)
-		return
-	default:
-		printHumanTable(data, withLineSeparator)
-	}
+func PrintVerbose(data interface{}, noHeaders bool) {
+	printMarkdownTable(data, noHeaders)
+
 }
 
-func printHumanTable(data interface{}, withLineSeparator bool) {
+func printMarkdownTable(data interface{}, noHeaders bool) {
 	value := reflect.ValueOf(data)
-	if value.Len() == 0 {
-		return
-	}
 
-	elemType := value.Index(0).Elem().Type()
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-
-	// print header
-	var headers []string
-	for i := 0; i < elemType.NumField(); i++ {
-		field := elemType.Field(i)
-		if displayField(field.Type) ||
-			(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
-			jsonTag := field.Tag.Get("json")
-			if jsonTag == "" {
-				jsonTag = field.Name
-			}
-			headers = append(headers, strings.ToUpper(jsonTag))
+	if value.Kind() == reflect.Ptr {
+		if value.IsNil() {
+			return
 		}
+		value = value.Elem()
 	}
 
-	headerRow := strings.Join(headers, "\t")
-	if currentMode == OutputHuman {
-		headerRow = style(headerRow, boldStyle)
-	}
-	fmt.Fprintln(w, headerRow)
+	var rows [][]string
+	var headers []string
 
-	for i := 0; i < value.Len(); i++ {
-		elem := value.Index(i).Elem()
-		var rowValues []string
+	if value.Kind() == reflect.Slice || value.Kind() == reflect.Array {
+		if value.Len() == 0 {
+			return
+		}
 
-		for j := 0; j < elem.NumField(); j++ {
-			field := elem.Type().Field(j)
-			fieldValue := elem.Field(j)
+		firstElem := value.Index(0)
 
+		if firstElem.Kind() == reflect.Ptr {
+			if firstElem.IsNil() {
+				firstElem = reflect.New(firstElem.Type().Elem()).Elem()
+			} else {
+				firstElem = firstElem.Elem()
+			}
+		}
+
+		if firstElem.Kind() == reflect.Struct {
+			elemType := firstElem.Type()
+			for i := 0; i < elemType.NumField(); i++ {
+				field := elemType.Field(i)
+				if !displayField(field.Type) &&
+					!(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
+					continue
+				}
+
+				jsonTag := field.Tag.Get("json")
+				if jsonTag == "" {
+					jsonTag = field.Name
+				}
+				headers = append(headers, jsonTag)
+			}
+
+			for i := 0; i < value.Len(); i++ {
+				elem := value.Index(i)
+
+				if elem.Kind() == reflect.Ptr {
+					if elem.IsNil() {
+						row := make([]string, len(headers))
+						for j := range row {
+							row[j] = ""
+						}
+						rows = append(rows, row)
+						continue
+					}
+					elem = elem.Elem()
+				}
+				var row []string
+				for j := 0; j < elem.NumField(); j++ {
+					field := elem.Type().Field(j)
+					fieldValue := elem.Field(j)
+					if !displayField(field.Type) &&
+						!(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
+						continue
+					}
+					row = append(row, formatValue(fieldValue))
+				}
+				rows = append(rows, row)
+			}
+		} else {
+			headers = []string{"Value"}
+
+			for i := 0; i < value.Len(); i++ {
+				elem := value.Index(i)
+				row := []string{formatValue(elem)}
+				rows = append(rows, row)
+			}
+		}
+	} else if value.Kind() == reflect.Struct {
+		elemType := value.Type()
+
+		for i := 0; i < elemType.NumField(); i++ {
+			field := elemType.Field(i)
 			if !displayField(field.Type) &&
 				!(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
 				continue
 			}
 
-			displayValue := formatValue(fieldValue)
-			rowValues = append(rowValues, displayValue)
+			jsonTag := field.Tag.Get("json")
+			if jsonTag == "" {
+				jsonTag = field.Name
+			}
+			headers = append(headers, jsonTag)
 		}
 
-		fmt.Fprintln(w, strings.Join(rowValues, "\t"))
-		if withLineSeparator && currentMode == OutputHuman {
-			fmt.Fprintln(w, "")
-		}
-	}
-
-	w.Flush()
-}
-
-func printTabSeparatedTable(data interface{}) {
-	value := reflect.ValueOf(data)
-	if value.Len() == 0 {
-		return
-	}
-
-	// print rows
-	for i := 0; i < value.Len(); i++ {
-		elem := value.Index(i).Elem()
-		var rowValues []string
-
-		for j := 0; j < elem.NumField(); j++ {
-			field := elem.Type().Field(j)
-			fieldValue := elem.Field(j)
-
-			if !displayField(field.Type) {
+		var row []string
+		for j := 0; j < value.NumField(); j++ {
+			field := elemType.Field(j)
+			fieldValue := value.Field(j)
+			if !displayField(field.Type) &&
+				!(field.Type.Kind() == reflect.Ptr && displayField(field.Type.Elem())) {
 				continue
 			}
-
-			displayValue := formatValue(fieldValue)
-			rowValues = append(rowValues, displayValue)
+			row = append(row, formatValue(fieldValue))
 		}
-
-		fmt.Println(strings.Join(rowValues, "\t"))
+		rows = append(rows, row)
+	} else {
+		headers = []string{"Value"}
+		row := []string{formatValue(value)}
+		rows = append(rows, row)
 	}
+
+	colWidths := make([]int, len(headers))
+	for i, h := range headers {
+		colWidths[i] = len(h)
+	}
+	for _, row := range rows {
+		for i, cell := range row {
+			if i < len(colWidths) && len(cell) > colWidths[i] {
+				colWidths[i] = len(cell)
+			}
+		}
+	}
+
+	if !noHeaders {
+		fmt.Print("| ")
+		for i, h := range headers {
+			if i > 0 {
+				fmt.Print(" | ")
+			}
+			fmt.Print(padRight(h, colWidths[i]))
+		}
+		fmt.Println(" |")
+
+		fmt.Print("| ")
+		for i, w := range colWidths {
+			if i > 0 {
+				fmt.Print(" | ")
+			}
+			fmt.Print(strings.Repeat("-", w))
+		}
+		fmt.Println(" |")
+	}
+
+	for _, row := range rows {
+		fmt.Print("| ")
+		for i, cell := range row {
+			if i > 0 {
+				fmt.Print(" | ")
+			}
+			fmt.Print(padRight(cell, colWidths[i]))
+		}
+		fmt.Println(" |")
+	}
+}
+
+func padRight(s string, width int) string {
+	if len(s) < width {
+		return s + strings.Repeat(" ", width-len(s))
+	}
+	return s
 }
 
 func displayField(t reflect.Type) bool {
@@ -293,6 +373,12 @@ func formatValue(v reflect.Value) string {
 
 	if v.Kind() == reflect.Struct {
 		var parts []string
+
+		if v.Type().Name() == "Time" {
+			t := v.Interface().(time.Time)
+			return t.Format(time.RFC3339)
+		}
+
 		for i := 0; i < v.NumField(); i++ {
 			field := v.Field(i)
 			if !field.CanInterface() {
@@ -316,4 +402,65 @@ func formatValue(v reflect.Value) string {
 	}
 
 	return ""
+}
+
+func PrintQuiet(fields ...string) {
+	fmt.Println(strings.Join(fields, "\t"))
+}
+
+func PrintSmartOutput[T any](
+	cmd *cobra.Command,
+	items []T,
+	fieldsFunc func(T) []string,
+	config *SmartOutputConfig[T],
+) error {
+	output, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return fmt.Errorf("failed to get output flag: %w", err)
+	}
+
+	if config != nil && config.DefaultOutput != "" && !cmd.Flags().Changed("output") {
+		output = string(config.DefaultOutput)
+	}
+
+	noHeaders, err := cmd.Flags().GetBool("no-headers")
+	if err != nil {
+		return fmt.Errorf("failed to get no-headers flag: %w", err)
+	}
+
+	quiet, err := cmd.Flags().GetBool("quiet")
+	if err != nil {
+		return fmt.Errorf("failed to get quiet flag: %w", err)
+	}
+
+	isSingleResource := config != nil && config.SingleResource && len(items) == 1
+	compactOutput := config != nil && config.SingleResourceCompactOutput && len(items) == 1
+
+	switch output {
+	case "human":
+		if quiet {
+			if fieldsFunc == nil || (compactOutput && isSingleResource) {
+				return nil
+			}
+			for _, item := range items {
+				PrintQuiet(fieldsFunc(item)...)
+			}
+			return nil
+		}
+		if compactOutput && fieldsFunc != nil {
+			PrintQuiet(fieldsFunc(items[0])...)
+			return nil
+		}
+
+		PrintVerbose(items, noHeaders)
+		return nil
+
+	default:
+		if isSingleResource {
+			PrintFormattedData(items[0], output)
+		} else {
+			PrintFormattedData(items, output)
+		}
+		return nil
+	}
 }

@@ -1,3 +1,4 @@
+// Package cmd provides CLI commands for managing documentation generation.
 package cmd
 
 import (
@@ -58,7 +59,7 @@ var manCmd = &cobra.Command{
 		}
 
 		header := &doc.GenManHeader{
-			Title:   "cubbit-operator-cli",
+			Title:   "cubbit",
 			Section: "1",
 		}
 
@@ -217,23 +218,6 @@ func printFlags(cmd *cobra.Command, prefix string, isParentLast bool) {
 		}
 
 		fmt.Printf("%s%s %s\n", flagPrefix, flagConnector, flag)
-	}
-
-	for i, flag := range persistentFlags {
-		flagPrefix := prefix
-		if isParentLast {
-			flagPrefix += "    "
-		} else {
-			flagPrefix += "│   "
-		}
-
-		isLastFlag := i == len(persistentFlags)-1
-		flagConnector := "├── "
-		if isLastFlag {
-			flagConnector = "└── "
-		}
-
-		fmt.Printf("%s%s🌍 %s (persistent)\n", flagPrefix, flagConnector, flag)
 	}
 }
 

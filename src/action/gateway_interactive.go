@@ -1,3 +1,4 @@
+// Package action provides CLI actions for managing gateways.
 package action
 
 import (
@@ -14,661 +15,48 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateTenantGatewayInteractive(cmd *cobra.Command) error {
-	var err error
-	var id, name, gatewayName, gatewayLocation, configPath string
-	var accessToken *string
-	var conf *configuration.Config
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenantGateway *api.GatewayWithGatewayTenant
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		var tenant *api.Tenant
-
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	if _, err = tui.TextInputs(
-		"Fill in the form bellow",
-		true,
-		tui.Input{Placeholder: "Gateway Name*", IsPassword: false, Value: &gatewayName},
-		tui.Input{Placeholder: "Gateway Location*", IsPassword: false, Value: &gatewayLocation},
-	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-
-	}
-
-	gatewayBodyRequest := api.CreateGatewayRequestBody{
-		Name:          gatewayName,
-		Location:      gatewayLocation,
-		Configuration: map[string]interface{}{},
-	}
-
-	if tenantGateway, err = api.CreateGateway(conf.Urls, *accessToken, id, gatewayBodyRequest); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingGatewayRequest, err)
-	}
-
-	utils.PrintCreateSuccess("tenant gateway", tenantGateway.Gateway.ID)
-
-	return nil
-}
-
-func ListTenantGatewaysInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath string
-	var conf *configuration.Config
-	var gateways *api.GenericPaginatedResponse[*api.Gateway]
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var tenant *api.Tenant
-	var sort string
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	allowedSortingKeys := []string{"id", "name"}
-	if sort, err = tui.ChooseOne("Choose your sorting key", false, true, allowedSortingKeys); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-	}
-
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, id, sort, ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
-	}
-
-	utils.PrintList("Your Tenant Gateways List")
-
-	if len(gateways.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	var list []string
-	for _, gateway := range gateways.Data {
-		list = append(list, fmt.Sprintf(" • %s, %s %s", gateway.ID, gateway.Name, gateway.Location))
-	}
-
-	tui.List(list)
-
-	return nil
-}
-
-func DescribeTenantGatewayInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath, gatewayID, format string
-	var conf *configuration.Config
-	var gateways *api.GenericPaginatedResponse[*api.Gateway]
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		var tenant *api.Tenant
-
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, id, "", ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
-	}
-
-	if len(gateways.Data) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	choices = []string{}
-
-	for _, ac := range gateways.Data {
-		choices = append(choices, fmt.Sprintf("• %s, %s %s", ac.ID, ac.Name, ac.Location))
-
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which gateway would you like to describe?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
-	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	gatewayID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	if format, err = tui.ChooseOne("Choose your output format", false, true, []string{"json", "semantic", "csv"}); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-	}
-
-	for _, ac := range gateways.Data {
-		if ac.ID == gatewayID {
-			utils.PrintFormattedData(*ac, format)
-			break
-		}
-	}
-
-	return nil
-}
-
-func RemoveTenantGatewayInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath, gatewayID, email, password, deleteTenantGatewayToken, code string
-	var conf *configuration.Config
-	var gateways *api.GenericPaginatedResponse[*api.Gateway]
-	var challenge *api.ChallengeResponseModel
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		var tenant *api.Tenant
-
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, id, "", ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
-	}
-
-	if len(gateways.Data) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	choices = []string{}
-
-	for _, ac := range gateways.Data {
-		choices = append(choices, fmt.Sprintf("• %s, %s %s", ac.ID, ac.Name, ac.Location))
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which gateway would you like to remove?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	gatewayID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	if _, err = tui.TextInputs(fmt.Sprintf("Confirm your login to remove gateway %s 🚮", utils.RedBg.Render(gatewayID)), true, tui.Input{Placeholder: "Email*", IsPassword: false, Value: &email}, tui.Input{Placeholder: "Password*", IsPassword: true, Value: &password}, tui.Input{Placeholder: "Code", IsPassword: false, Value: &code}); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-	}
-
-	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
-	}
-
-	if deleteTenantGatewayToken, err = api.ForgeOperatorDeleteTenantGatewayToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, gatewayID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingOperatorDeleteTokenRequest, err)
-	}
-
-	if err = api.DeleteGateway(conf.Urls, *accessToken, id, gatewayID, deleteTenantGatewayToken); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorDeletingGatewayRequest, err)
-	}
-
-	utils.PrintDelete(fmt.Sprintf("gateway %s removed successfully", gatewayID))
-
-	return nil
-}
-
-func UpdateTenantGatewayInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath, gatewayID, gatewayName, gatewayLocation string
-	var conf *configuration.Config
-	var gateways *api.GenericPaginatedResponse[*api.Gateway]
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		var tenant *api.Tenant
-
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, id, "", ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
-	}
-
-	if len(gateways.Data) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	choices = []string{}
-
-	for _, ac := range gateways.Data {
-		choices = append(choices, fmt.Sprintf("• %s, %s %s", ac.ID, ac.Name, ac.Location))
-
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which gateway would you like to edit?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
-	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	gatewayID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	if _, err = tui.TextInputs(
-		"Fill in the form bellow",
-		true,
-		tui.Input{Placeholder: "Gateway Name", IsPassword: false, Value: &gatewayName},
-		tui.Input{Placeholder: "Gateway Location", IsPassword: false, Value: &gatewayLocation},
-	); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRunningField, err)
-
-	}
-
-	gatewayBodyRequest := api.UpdateGatewayRequestBody{}
-
-	if gatewayName != "" {
-		gatewayBodyRequest.Name = &gatewayName
-	}
-
-	if gatewayLocation != "" {
-		gatewayBodyRequest.Location = &gatewayLocation
-	}
-
-	if err = api.UpdateGateway(conf.Urls, *accessToken, id, gatewayID, gatewayBodyRequest); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingGatewayRequest, err)
-	}
-
-	utils.PrintSuccess("tenant gateway updated successfully")
-	return nil
-}
-
-func ListTenantGatewayInstancesInteractive(cmd *cobra.Command) error {
-	var err error
-	var accessToken *string
-	var id, name, configPath, gatewayID string
-	var conf *configuration.Config
-	var gateways *api.GenericPaginatedResponse[*api.Gateway]
-	var choice string
-	var choices []string
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-	var gatewayInstances *api.GatewayInstanceListResponse
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if id == "" && name == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", tenant.ID, tenant.Name, utils.StringOrEmpty(tenant.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
-	}
-
-	if id == "" {
-		var tenant *api.Tenant
-
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, id, "", ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
-	}
-
-	if len(gateways.Data) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	choices = []string{}
-
-	for _, ac := range gateways.Data {
-		choices = append(choices, fmt.Sprintf("• %s, %s %s", ac.ID, ac.Name, ac.Location))
-
-	}
-
-	if len(choices) == 0 {
-		utils.PrintNotFound("No gateways found")
-		return nil
-	}
-
-	if choice, err = tui.ChooseOne("Which gateway would you like to describe?", false, false, choices); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
-	}
-
-	_, withoutPrefix, _ := strings.Cut(choice, " ")
-	gatewayID, _, _ = strings.Cut(withoutPrefix, ",")
-
-	if gatewayInstances, err = api.ListGatewayInstances(conf.Urls, *accessToken, id, gatewayID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewayInstancesRequest, err)
-	}
-
-	utils.PrintList("Your Tenant Gateway Instances List")
-
-	if len(gatewayInstances.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	var list []string
-	for _, instance := range gatewayInstances.Data {
-		list = append(list, fmt.Sprintf(" • %s, %s %s", instance.ID, instance.IP, instance.EvaluatedStatus))
-	}
-
-	tui.List(list)
-
-	return nil
-}
-
 func ConfigureAndVerifyDNSInteractive(cmd *cobra.Command) error {
 	var err error
-	var accessToken *string
-	var id, name, domain, configPath string
+	var id, domain string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var choice string
 	var choices []string
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
 	var tenant *api.Tenant
 	var force bool
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	if tenants, err = api.ListTenants(*urls, resolvedProfile.APIKey, "", ""); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	for _, t := range tenants.Data {
+		choices = append(choices, fmt.Sprintf("• %s, %s, %s", t.ID, t.Name, utils.StringOrEmpty(t.Description)))
 	}
 
-	if id == "" && name == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, t := range tenants.Data {
-			choices = append(choices, fmt.Sprintf("• %s, %s, %s", t.ID, t.Name, utils.StringOrEmpty(t.Description)))
-		}
-
-		if len(choices) == 0 {
-			utils.PrintNotFound("No tenants found")
-			return nil
-		}
-
-		if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		_, withoutPrefix, _ := strings.Cut(choice, " ")
-		id, _, _ = strings.Cut(withoutPrefix, ",")
+	if len(choices) == 0 {
+		utils.PrintNotFound("No tenants found")
+		return nil
 	}
 
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	} else {
-		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
+	if choice, err = tui.ChooseOne("Choose your tenant", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
+	}
+
+	_, withoutPrefix, _ := strings.Cut(choice, " ")
+	id, _, _ = strings.Cut(withoutPrefix, ",")
+
+	if tenant, err = api.GetTenant(*urls, resolvedProfile.APIKey, id); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
 	var dnsAlreadyConfigured bool
@@ -690,7 +78,7 @@ func ConfigureAndVerifyDNSInteractive(cmd *cobra.Command) error {
 		switch choice {
 		case "Skip configuration and proceed to verification":
 			shouldConfigure = false
-			if err = api.VerifyDNS(conf.Urls, *accessToken, id); err != nil {
+			if err = api.VerifyDNS(*urls, resolvedProfile.APIKey, id); err != nil {
 				return fmt.Errorf("%s: %w", constants.ErrorWhileVerifyingTenantDNS, err)
 			}
 			utils.PrintSuccess(fmt.Sprintf("Tenant %s DNS verified successfully", tenant.Name))
@@ -726,11 +114,11 @@ func ConfigureAndVerifyDNSInteractive(cmd *cobra.Command) error {
 			},
 		}
 
-		if err = api.EditTenantSettings(conf.Urls, *accessToken, id, tenantSettings); err != nil {
+		if err = api.EditTenantSettings(*urls, resolvedProfile.APIKey, id, tenantSettings); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorWhileConfiguringTenantDNS, err)
 		}
 
-		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
+		if tenant, err = api.GetTenant(*urls, resolvedProfile.APIKey, id); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 		}
 
@@ -746,7 +134,7 @@ func ConfigureAndVerifyDNSInteractive(cmd *cobra.Command) error {
 
 		switch choice {
 		case "Verify DNS now":
-			if err = api.VerifyDNS(conf.Urls, *accessToken, id); err != nil {
+			if err = api.VerifyDNS(*urls, resolvedProfile.APIKey, id); err != nil {
 				return fmt.Errorf("%s: %w", constants.ErrorWhileVerifyingTenantDNS, err)
 			}
 			utils.PrintSuccess(fmt.Sprintf("Tenant %s DNS verified successfully", tenant.Name))
@@ -760,9 +148,9 @@ func ConfigureAndVerifyDNSInteractive(cmd *cobra.Command) error {
 
 func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	var err error
-	var accessToken *string
-	var configPath string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var choice string
 	var choices []string
 	var tenants *api.GenericPaginatedResponse[*api.Tenant]
@@ -782,19 +170,19 @@ func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	var setupS3 bool = true
 	var installOnlyIngress bool = false
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	utils.PrintInfo("🚀 Starting Gateway Installation")
 	utils.PrintEmptyLine()
 
 	utils.PrintInfo("Step 1: Choose Tenant")
-	if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
+	if tenants, err = api.ListTenants(*urls, resolvedProfile.APIKey, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
 	}
 
@@ -815,7 +203,7 @@ func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ := strings.Cut(choice, " ")
 	tenantID, _, _ := strings.Cut(withoutPrefix, ",")
 
-	if tenant, err = api.GetTenant(conf.Urls, *accessToken, tenantID); err != nil {
+	if tenant, err = api.GetTenant(*urls, resolvedProfile.APIKey, tenantID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
@@ -823,7 +211,7 @@ func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	utils.PrintEmptyLine()
 
 	utils.PrintInfo("Step 2: Choose Gateway")
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, tenantID, "", ""); err != nil {
+	if gateways, err = api.ListGateways(*urls, resolvedProfile.APIKey, tenantID, "", ""); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
 	}
 
@@ -844,7 +232,7 @@ func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	_, withoutPrefix, _ = strings.Cut(choice, " ")
 	gatewayID, _, _ := strings.Cut(withoutPrefix, ",")
 
-	if gateway, err = api.GetGateway(conf.Urls, *accessToken, tenantID, gatewayID); err != nil {
+	if gateway, err = api.GetGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
 	}
 
@@ -934,7 +322,7 @@ func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	utils.PrintEmptyLine()
 
 	var domain string
-	var coordinatorDomain string = conf.Urls.BaseURL
+	var coordinatorDomain string = urls.BaseURL
 
 	if tenant.Settings != nil && tenant.Settings.WhiteLabel != nil && tenant.Settings.WhiteLabel.DNS != nil {
 		domain = tenant.Settings.WhiteLabel.DNS.Value
@@ -1030,7 +418,7 @@ func InstallTenantGatewayInteractive(cmd *cobra.Command) error {
 	command.Stderr = os.Stderr
 	command.Stdin = os.Stdin
 
-	if conf.Urls.BaseURL != "" {
+	if urls.BaseURL != "" {
 		if err = command.Run(); err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}

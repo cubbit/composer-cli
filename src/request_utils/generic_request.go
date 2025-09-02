@@ -155,19 +155,7 @@ func WithAccessToken(accessToken string) RequestModifier {
 			return nil
 		}
 
-		opt.headers[constants.Authorization] = constants.Bearer + " " + accessToken
-
-		return nil
-	}
-}
-
-func WithRefreshToken(refreshToken string) RequestModifier {
-	return func(opt *RequestOptions, res *http.Response) error {
-		if opt == nil {
-			return nil
-		}
-
-		opt.headers["Cookie"] = constants.RefreshTokenName + "=" + refreshToken
+		opt.headers[constants.Authorization] = constants.APIKey + " " + accessToken
 
 		return nil
 	}

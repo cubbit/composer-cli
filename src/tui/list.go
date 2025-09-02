@@ -697,5 +697,3 @@ func List(items []string) error {
 
 	return nil
 }
-
-

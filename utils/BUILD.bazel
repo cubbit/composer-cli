@@ -16,5 +16,10 @@ go_library(
     ],
     importpath = "github.com/cubbit/cubbit/client/cli/utils",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_charmbracelet_lipgloss//:lipgloss"],
+    deps = [
+        "//src/configuration",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+        "@com_github_spf13_cobra//:cobra",
+        "@in_gopkg_yaml_v3//:yaml_v3",
+    ],
 )

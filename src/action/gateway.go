@@ -1,3 +1,4 @@
+// Package action provides CLI actions for managing gateways.
 package action
 
 import (
@@ -13,15 +14,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateTenantGateway(cmd *cobra.Command, args []string) error {
+func CreateGateway(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, gatewayName, gatewayLocation, configPath string
+	var tenantID, name, location string
 	var conf *configuration.Config
-	var tenant *api.Tenant
-	var tenantGateway *api.GatewayWithGatewayTenant
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var gateway *api.GatewayWithGatewayTenant
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -29,58 +30,160 @@ func CreateTenantGateway(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if gatewayName, err = cmd.Flags().GetString("gateway-name"); err != nil {
+	if location, err = cmd.Flags().GetString("location"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if gatewayLocation, err = cmd.Flags().GetString("gateway-location"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	gatewayBodyRequest := api.CreateGatewayRequestBody{
-		Name:          gatewayName,
-		Location:      gatewayLocation,
+		Name:          name,
+		Location:      location,
 		Configuration: map[string]interface{}{},
 	}
 
-	if tenantGateway, err = api.CreateGateway(conf.Urls, *accessToken, id, gatewayBodyRequest); err != nil {
+	if gateway, err = api.CreateGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayBodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingGatewayRequest, err)
 	}
 
-	utils.PrintCreateSuccess("tenant gateway", tenantGateway.Gateway.ID)
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.GatewayWithGatewayTenant{gateway},
+		func(g *api.GatewayWithGatewayTenant) []string {
+			return []string{
+				g.Gateway.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.GatewayWithGatewayTenant]{
+			SingleResourceCompactOutput: true,
+			SingleResource:              true,
+			DefaultOutput:               resolvedProfile.Output,
+		})
 }
 
-func ListTenantGateways(cmd *cobra.Command, args []string) error {
+func DescribeGateway(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath, sort, filter string
+	var tenantID, gatewayID string
 	var conf *configuration.Config
-	var gateways *api.GenericPaginatedResponse[*api.Gateway]
-	var tenant *api.Tenant
-	var verbose, l bool
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var gateway *api.Gateway
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, err = configuration.LoadConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if gateway, err = api.GetGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.Gateway{gateway},
+		func(g *api.Gateway) []string {
+			return []string{
+				g.ID,
+				g.Name,
+				g.Location,
+			}
+		},
+		&utils.SmartOutputConfig[*api.Gateway]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
+}
+
+func UpdateGateway(cmd *cobra.Command, args []string) error {
+	var err error
+	var tenantID, gatewayID, name, location string
+	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
 	if name, err = cmd.Flags().GetString("name"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if location, err = cmd.Flags().GetString("location"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, err = configuration.LoadConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	gatewayRequestBody := api.UpdateGatewayRequestBody{}
+
+	if name != "" {
+		gatewayRequestBody.Name = &name
+	}
+
+	if location != "" {
+		gatewayRequestBody.Location = &location
+	}
+
+	if err = api.UpdateGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayID, gatewayRequestBody); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorEditingGatewayRequest, err)
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.UpdateGatewayRequestBody{&gatewayRequestBody},
+		func(g *api.UpdateGatewayRequestBody) []string {
+			return []string{
+				gatewayID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.UpdateGatewayRequestBody]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		},
+	)
+}
+
+func ListGateways(cmd *cobra.Command, args []string) error {
+	var err error
+	var tenantID, sort, filter string
+	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var gateways *api.GenericPaginatedResponse[*api.Gateway]
+
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if filter, err = cmd.Flags().GetString("filter"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -88,431 +191,81 @@ func ListTenantGateways(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	}
-
-	if filter, err = cmd.Flags().GetString("filter"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	if filter != "" {
 		filter = utils.BuildFilterQuery(filter)
 	}
 
-	if gateways, err = api.ListGateways(conf.Urls, *accessToken, id, sort, filter); err != nil {
+	if gateways, err = api.ListGateways(*urls, resolvedProfile.APIKey, tenantID, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingGatewaysRequest, err)
 	}
 
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if len(gateways.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	utils.PrintList("Your Tenant Gateways List")
-
-	if verbose {
-		utils.PrintVerbose(gateways.Data, l)
-	} else {
-		var IDs []string
-		for _, gateway := range gateways.Data {
-			IDs = append(IDs, gateway.ID)
-		}
-		utils.PrintSimpleList(IDs)
-	}
-
-	return nil
-}
-
-func DescribeTenantGateway(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, gatewayID, configPath, format string
-	var conf *configuration.Config
-	var tenant *api.Tenant
-	var gateway *api.Gateway
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	if gateway, err = api.GetGateway(conf.Urls, *accessToken, id, gatewayID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
-	}
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	utils.PrintFormattedData(*gateway, format)
-
-	return nil
-}
-
-func RemoveTenantGateway(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, gatewayID, email, password, code, configPath, deleteTenantGatewayToken string
-	var conf *configuration.Config
-	var challenge *api.ChallengeResponseModel
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if email, err = cmd.Flags().GetString("email"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if password, err = cmd.Flags().GetString("password"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if code, err = cmd.Flags().GetString("code"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			if name == tenant.Name {
-				id = tenant.ID
+	return utils.PrintSmartOutput(
+		cmd,
+		gateways.Data,
+		func(g *api.Gateway) []string {
+			return []string{
+				g.ID,
 			}
-		}
+		},
+		&utils.SmartOutputConfig[*api.Gateway]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
+}
 
-		if id == "" {
-			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
-			return nil
-		}
+func RemoveGateway(cmd *cobra.Command, args []string) error {
+	var err error
+	var tenantID, gatewayID string
+	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
+	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if deleteTenantGatewayToken, err = api.ForgeOperatorDeleteTenantGatewayToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, gatewayID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingTenantGatewayDeleteTokenRequest, err)
+	if conf, err = configuration.LoadConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if err = api.DeleteGateway(conf.Urls, *accessToken, id, gatewayID, deleteTenantGatewayToken); err != nil {
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if err = api.DeleteGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingGatewayRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("gateway %s removed successfully", gatewayID))
-
-	return nil
-}
-
-func UpdateTenantGateway(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, gatewayID, gatewayName, gatewayLocation, configPath string
-	var conf *configuration.Config
-	var tenant *api.Tenant
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if gatewayName, err = cmd.Flags().GetString("gateway-name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if gatewayLocation, err = cmd.Flags().GetString("gateway-location"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	}
-
-	gatewayRequestBody := api.UpdateGatewayRequestBody{}
-
-	if gatewayName != "" {
-		gatewayRequestBody.Name = &gatewayName
-	}
-
-	if gatewayLocation != "" {
-		gatewayRequestBody.Location = &gatewayLocation
-	}
-
-	if err = api.UpdateGateway(conf.Urls, *accessToken, id, gatewayID, gatewayRequestBody); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorEditingGatewayRequest, err)
-	}
-
-	utils.PrintSuccess("tenant gateway updated successfully")
-	return nil
-}
-
-func ListTenantGatewayInstances(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, gatewayID, configPath string
-	var conf *configuration.Config
-	var gatewayInstances *api.GatewayInstanceListResponse
-	var tenant *api.Tenant
-	var verbose, l bool
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	}
-
-	if gatewayInstances, err = api.ListGatewayInstances(conf.Urls, *accessToken, id, gatewayID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingGatewayInstancesRequest, err)
-	}
-
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if len(gatewayInstances.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	utils.PrintList("Your Tenant Gateway Instances List")
-
-	if verbose {
-		utils.PrintVerbose(gatewayInstances.Data, l)
-	} else {
-		var IDs []string
-		for _, gateway := range gatewayInstances.Data {
-			IDs = append(IDs, gateway.ID)
-		}
-		utils.PrintSimpleList(IDs)
-	}
-
-	return nil
-}
-
-func ConfigureTenantDNS(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, domain, configPath string
-	var conf *configuration.Config
-	var tenant *api.Tenant
-	var force bool
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if domain, err = cmd.Flags().GetString("domain"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if force, err = cmd.Flags().GetBool("force"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	} else {
-		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-	}
-
-	if tenant.Settings != nil {
-		if tenant.Settings.WhiteLabel != nil && tenant.Settings.WhiteLabel.DNS != nil && tenant.Settings.WhiteLabel.DNS.Challenge != "" && !force {
-			return fmt.Errorf("%s: %w", constants.ErrorTenantDNSAlreadyConfigured, fmt.Errorf("domain %s is already configured for tenant %s, add --force to override", tenant.Settings.WhiteLabel.DNS.Value, tenant.Name))
-
-		}
-	}
-
-	tenantSettings := api.TenantSettings{
-		WhiteLabel: &api.WhiteLabel{
-			DNS: &api.WhiteLabelDNS{
-				Value: domain,
-			},
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{gatewayID},
+		func(s string) []string { return []string{s} },
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
 		},
-	}
-
-	if err = api.EditTenantSettings(conf.Urls, *accessToken, id, tenantSettings); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorWhileConfiguringTenantDNS, err)
-	}
-
-	if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("tenant %s DNS configured successfully", tenant.Name))
-	utils.PrintInfo(fmt.Sprintf("Please add a TXT record named _acme-challenge with the following value: %s", tenant.Settings.WhiteLabel.DNS.Challenge))
-	return nil
+	)
 }
 
-func VerifyTenantDNS(cmd *cobra.Command, args []string) error {
+func InstallGateway(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath string
+	var tenantID, gatewayID string
 	var conf *configuration.Config
-	var tenant *api.Tenant
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	} else {
-		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-	}
-
-	if err = api.VerifyDNS(conf.Urls, *accessToken, id); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorWhileVerifyingTenantDNS, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("tenant %s DNS verified successfully", tenant.Name))
-
-	return nil
-}
-
-func InstallTenantGateway(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, gatewayID, configPath string
-	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var tenant *api.Tenant
 	var gateway *api.Gateway
 
@@ -528,12 +281,10 @@ func InstallTenantGateway(cmd *cobra.Command, args []string) error {
 	var setupS3 bool
 	var installOnlyIngress bool
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
+
 	if gatewayID, err = cmd.Flags().GetString("gateway-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -571,26 +322,19 @@ func InstallTenantGateway(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator, false); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
-	} else {
-		if tenant, err = api.GetTenant(conf.Urls, *accessToken, id); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
+	if tenant, err = api.GetTenant(*urls, resolvedProfile.APIKey, tenantID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
 	}
 
-	if gateway, err = api.GetGateway(conf.Urls, *accessToken, id, gatewayID); err != nil {
+	if gateway, err = api.GetGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
 	}
 
@@ -610,7 +354,7 @@ func InstallTenantGateway(cmd *cobra.Command, args []string) error {
 	utils.PrintEmptyLine()
 
 	var domain string
-	var coordinatorDomain string = conf.Urls.BaseURL
+	var coordinatorDomain string = urls.BaseURL
 
 	if tenant.Settings != nil && tenant.Settings.WhiteLabel != nil && tenant.Settings.WhiteLabel.DNS != nil {
 		domain = tenant.Settings.WhiteLabel.DNS.Value
@@ -696,7 +440,7 @@ func InstallTenantGateway(cmd *cobra.Command, args []string) error {
 	command.Stderr = os.Stderr
 	command.Stdin = os.Stdin
 
-	if conf.Urls.BaseURL != "" {
+	if urls.BaseURL != "" {
 		if err = command.Run(); err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}

@@ -1,9 +1,14 @@
+// Package action provides CLI actions for managing nodes.
 package action
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -12,19 +17,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateSwarmNode(cmd *cobra.Command, args []string) error {
+func CreateNode(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, nodeName, label, nexusID, privateIP, publicIP, deployOption, configPath, nodeConfigStr string
-	var nodeConfig map[string]interface{}
+	var swarmID, nexusID, name, label, privateIP, publicIP string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var nodes *api.NewNodesResponse
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -32,131 +33,73 @@ func CreateSwarmNode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if nodeName, err = cmd.Flags().GetString("node-name"); err != nil {
+	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if privateIP, err = cmd.Flags().GetString("node-private-ip"); err != nil {
+	if privateIP, err = cmd.Flags().GetString("private-ip"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if publicIP, err = cmd.Flags().GetString("node-public-ip"); err != nil {
+	if publicIP, err = cmd.Flags().GetString("public-ip"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if label, err = cmd.Flags().GetString("node-label"); err != nil {
+	if label, err = cmd.Flags().GetString("label"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if nodeConfigStr, err = cmd.Flags().GetString("node-config"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if nodeConfigStr != "" {
-		if err = json.Unmarshal([]byte(nodeConfigStr), &nodeConfig); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorParsingJsonConfiguration, err)
-		}
-	}
-
-	if deployOption, err = cmd.Flags().GetString("deploy-option"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	nodesBodyRequest := api.BulkInsertNewNodeRequestBody{
 		Nodes: []api.CreateNewNodeRequestBody{
 			{
-				Name:          nodeName,
-				PrivateIP:     privateIP,
-				PublicIP:      publicIP,
-				Label:         &label,
-				Configuration: nodeConfig,
+				Name:      name,
+				PrivateIP: privateIP,
+				PublicIP:  publicIP,
+				Label:     &label,
 			},
 		},
 	}
 
-	if nodes, err = api.CreateNodeV4(conf.Urls, *accessToken, id, nexusID, nodesBodyRequest); err != nil {
+	if nodes, err = api.CreateNodes(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodesBodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Node %s created successfully\n", nodes.Nodes[0].ID))
-
-	var nodeConfigs []api.NodeConfig
-
-	nodeConfigs = make([]api.NodeConfig, 0, 1)
-	for _, node := range nodes.Nodes {
-		nodeConfig := api.NodeConfig{
-			ID:        node.ID,
-			Name:      node.Name,
-			PublicIP:  node.PublicIP,
-			PrivateIP: node.PrivateIP,
-			Agents:    make([]api.AgentConfig, 0),
-		}
-
-		var agents *api.GenericPaginatedResponse[*api.NewAgent]
-		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
-		}
-
-		if len(agents.Data) == 0 {
-			utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
-			continue
-		}
-
-		for _, agent := range agents.Data {
-			nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
-				ID:         agent.ID,
-				MountPoint: agent.Volume.MountPoint,
-				Disk:       agent.Volume.Disk,
-				Port:       agent.Port,
-				Secret:     agent.Secret,
-			})
-		}
-
-		nodeConfigs = append(nodeConfigs, nodeConfig)
-
-	}
-
-	if deployOption != "" {
-		if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
-			return fmt.Errorf("error generating deployment files: %w", err)
-		}
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		nodes.Nodes,
+		func(n *api.NewNodeResponseItem) []string {
+			return []string{
+				n.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewNodeResponseItem]{
+			SingleResourceCompactOutput: true,
+			SingleResource:              true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
-func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
+func CreateNodeBatch(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, nexusID, deployOption, configPath, filePath string
+	var swarmID, nexusID, filePath string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
 	if nexusID, err = cmd.Flags().GetString("nexus-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if deployOption, err = cmd.Flags().GetString("deploy-option"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -164,17 +107,12 @@ func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	fileData, err := os.ReadFile(filePath)
@@ -226,74 +164,34 @@ func CreateSwarmNodeBatch(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	nodes, err := api.CreateNodeV4(conf.Urls, *accessToken, id, nexusID, batchNodes)
+	nodes, err := api.CreateNodes(*urls, resolvedProfile.APIKey, swarmID, nexusID, batchNodes)
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Successfully created %d nodes\n", len(nodes.Nodes)))
-	for _, node := range nodes.Nodes {
-		utils.PrintCreateSuccess("node", node.ID)
-	}
-
-	var nodeConfigs []api.NodeConfig
-
-	nodeConfigs = make([]api.NodeConfig, 0, len(nodes.Nodes))
-	for _, node := range nodes.Nodes {
-		nodeConfig := api.NodeConfig{
-			ID:        node.ID,
-			Name:      node.Name,
-			PublicIP:  node.PublicIP,
-			PrivateIP: node.PrivateIP,
-			Agents:    make([]api.AgentConfig, 0),
-		}
-
-		var agents *api.GenericPaginatedResponse[*api.NewAgent]
-		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
-		}
-
-		if len(agents.Data) == 0 {
-			utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
-			continue
-		}
-
-		for _, agent := range agents.Data {
-			nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
-				ID:         agent.ID,
-				MountPoint: agent.Volume.MountPoint,
-				Disk:       agent.Volume.Disk,
-				Port:       agent.Port,
-				Secret:     agent.Secret,
-			})
-		}
-
-		nodeConfigs = append(nodeConfigs, nodeConfig)
-
-	}
-
-	if deployOption != "" {
-		if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
-			return fmt.Errorf("error generating deployment files: %w", err)
-		}
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		nodes.Nodes,
+		func(n *api.NewNodeResponseItem) []string {
+			return []string{
+				n.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewNodeResponseItem]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func DescribeSwarmNode(cmd *cobra.Command, args []string) error {
+func DescribeNode(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var configPath, format string
+	var swarmID, nexusID, nodeID string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var node *api.NewNode
-	var id, name, nexusID, nodeID string
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -305,45 +203,45 @@ func DescribeSwarmNode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if node, err = api.GetNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID); err != nil {
+	if node, err = api.GetNode(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
 	}
 
-	utils.PrintFormattedData(*node, format)
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.NewNode{node},
+		func(n *api.NewNode) []string {
+			return []string{
+				n.ID,
+				n.Name,
+				n.PrivateIP,
+				n.PublicIP,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewNode]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		})
 
-	return nil
 }
 
-func EditSwarmNode(cmd *cobra.Command, args []string) error {
+func EditNode(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, nodeName, label, nodeID, nexusID, privateIP, publicIP, configPath, nodeConfigStr string
-	var nodeConfig map[string]interface{}
+	var swarmID, nexusID, nodeID, name, label, privateIP, publicIP string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var nodeBodyRequest api.UpdateNewNodeRequestBody
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -355,50 +253,32 @@ func EditSwarmNode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if nodeName, err = cmd.Flags().GetString("node-name"); err != nil {
+	if name, err = cmd.Flags().GetString("name"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if privateIP, err = cmd.Flags().GetString("node-private-ip"); err != nil {
+	if privateIP, err = cmd.Flags().GetString("private-ip"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if publicIP, err = cmd.Flags().GetString("node-public-ip"); err != nil {
+	if publicIP, err = cmd.Flags().GetString("public-ip"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if label, err = cmd.Flags().GetString("node-label"); err != nil {
+	if label, err = cmd.Flags().GetString("label"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if nodeConfigStr, err = cmd.Flags().GetString("node-config"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if nodeConfigStr != "" {
-		if err = json.Unmarshal([]byte(nodeConfigStr), &nodeConfig); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorParsingJsonConfiguration, err)
-		}
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	var nodeBodyRequest api.UpdateNewNodeRequestBody
-
-	if nodeName != "" {
-		nodeBodyRequest.Name = &nodeName
+	if name != "" {
+		nodeBodyRequest.Name = &name
 	}
 
 	if privateIP != "" {
@@ -413,31 +293,33 @@ func EditSwarmNode(cmd *cobra.Command, args []string) error {
 		nodeBodyRequest.Label = &label
 	}
 
-	if nodeConfigStr != "" {
-		nodeBodyRequest.Configuration = nodeConfig
-	}
-
-	if err = api.UpdateNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID, nodeBodyRequest); err != nil {
+	if err = api.UpdateNode(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, nodeBodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorEditingNodeRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Node %s edited successfully", nodeID))
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.UpdateNewNodeRequestBody{&nodeBodyRequest},
+		func(n *api.UpdateNewNodeRequestBody) []string {
+			return []string{
+				nodeID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.UpdateNewNodeRequestBody]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		},
+	)
 }
 
-func RemoveSwarmNode(cmd *cobra.Command, args []string) error {
+func RemoveNode(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var configPath string
 	var conf *configuration.Config
-	var id, name, nexusID, nodeID, email, password, code, deleteNodeToken string
-	var challenge *api.ChallengeResponseModel
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var swarmID, nexusID, nodeID string
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -449,61 +331,41 @@ func RemoveSwarmNode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if email, err = cmd.Flags().GetString("email"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if password, err = cmd.Flags().GetString("password"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if code, err = cmd.Flags().GetString("code"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
-	}
-
-	if deleteNodeToken, err = api.ForgeOperatorSwarmNodeToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, nodeID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingTenantAccountDeleteTokenRequest, err)
-	}
-
-	if err = api.DeleteNodeV4(conf.Urls, *accessToken, id, nexusID, nodeID, deleteNodeToken); err != nil {
+	if err = api.DeleteNode(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingNodeRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("Node %s removed successfully", nodeID))
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{nodeID},
+		func(n string) []string {
+			return []string{n}
+		},
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
-func ListSwarmNodes(cmd *cobra.Command, args []string) error {
+func ListNodes(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, nexusID, configPath, sort, filter string
+	var swarmID, nexusID, sort, filter string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var nodes *api.GenericPaginatedResponse[*api.NewNode]
-	var verbose, l bool
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -523,65 +385,42 @@ func ListSwarmNodes(cmd *cobra.Command, args []string) error {
 		filter = utils.BuildFilterQuery(filter)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, sort, filter); err != nil {
+	if nodes, err = api.ListNodes(*urls, resolvedProfile.APIKey, swarmID, nexusID, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingNodesRequest, err)
 	}
 
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if len(nodes.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	utils.PrintList("Your Nodes List")
-
-	if verbose {
-		utils.PrintVerbose(nodes.Data, l)
-	} else {
-		var IDs []string
-		for _, node := range nodes.Data {
-			IDs = append(IDs, node.ID)
-		}
-		utils.PrintSimpleList(IDs)
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		nodes.Data,
+		func(n *api.NewNode) []string {
+			return []string{
+				n.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.NewNode]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func GenerateSwarmNodeDeployFiles(cmd *cobra.Command, args []string) error {
+func GenerateNodeDeployFiles(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var configPath, deployOption string
+	var swarmID, nexusID, nodeID, outputDir string
 	var conf *configuration.Config
-	var id, name, nexusID, nodeID string
-	var nodes *api.GenericPaginatedResponse[*api.NewNode]
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var nodeConfigs []api.NodeConfig
+	var node *api.NewNode
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -593,118 +432,62 @@ func GenerateSwarmNodeDeployFiles(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if deployOption, err = cmd.Flags().GetString("deploy-option"); err != nil {
+	if outputDir, err = cmd.Flags().GetString("output-dir"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if node, err = api.GetNode(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingNodeRequest, err)
 	}
 
-	if nodes, err = api.ListNodesV4(conf.Urls, *accessToken, id, nexusID, "", ""); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorListingNexusesRequest, err)
-	}
-
-	if len(nodes.Data) == 0 {
-		utils.PrintNotFound("No nodes found")
+	if node == nil {
+		utils.PrintNotFound("Node not found")
 		return nil
 	}
 
-	var nodeConfigs []api.NodeConfig
+	var agents *api.GenericPaginatedResponse[*api.NewAgent]
+	if agents, err = api.ListAgents(*urls, resolvedProfile.APIKey, swarmID, nexusID, nodeID, "", ""); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
+	}
 
-	if nodeID != "" {
-		var node *api.NewNode
-		for _, n := range nodes.Data {
-			if n.ID == nodeID {
-				node = n
-				break
-			}
-		}
+	if len(agents.Data) == 0 {
+		utils.PrintNotFound("No agents found for the specified node")
+		return nil
+	}
 
-		if node == nil {
-			utils.PrintNotFound("Node not found")
-			return nil
-		}
-
-		var agents *api.GenericPaginatedResponse[*api.NewAgent]
-		if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, nodeID, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
-		}
-
-		if len(agents.Data) == 0 {
-			utils.PrintNotFound("No agents found for the selected node")
-			return nil
-		}
-
-		nodeConfigs = make([]api.NodeConfig, 0, len(agents.Data))
-		for _, agent := range agents.Data {
-			nodeConfig := api.NodeConfig{
-				ID:        node.ID,
-				Name:      node.Name,
-				PublicIP:  node.PublicIP,
-				PrivateIP: node.PrivateIP,
-				Agents: []api.AgentConfig{
-					{
-						ID:         agent.ID,
-						MountPoint: agent.Volume.MountPoint,
-						Disk:       agent.Volume.Disk,
-						Port:       agent.Port,
-						Secret:     agent.Secret,
-					},
-				},
-			}
-			nodeConfigs = append(nodeConfigs, nodeConfig)
-		}
-	} else {
-
-		nodeConfigs = make([]api.NodeConfig, 0, len(nodes.Data))
-		for _, node := range nodes.Data {
-			nodeConfig := api.NodeConfig{
-				ID:        node.ID,
-				Name:      node.Name,
-				PublicIP:  node.PublicIP,
-				PrivateIP: node.PrivateIP,
-				Agents:    make([]api.AgentConfig, 0),
-			}
-
-			var agents *api.GenericPaginatedResponse[*api.NewAgent]
-			if agents, err = api.ListAgentsV4(conf.Urls, *accessToken, id, nexusID, node.ID, "", ""); err != nil {
-				return fmt.Errorf("%s: %w", constants.ErrorListingAgentsRequest, err)
-			}
-
-			if len(agents.Data) == 0 {
-				utils.PrintNotFound(fmt.Sprintf("No agents found for node %s", node.ID))
-				continue
-			}
-
-			for _, agent := range agents.Data {
-				nodeConfig.Agents = append(nodeConfig.Agents, api.AgentConfig{
+	nodeConfigs = make([]api.NodeConfig, 0, len(agents.Data))
+	for _, agent := range agents.Data {
+		nodeConfig := api.NodeConfig{
+			ID:        node.ID,
+			Name:      node.Name,
+			PublicIP:  node.PublicIP,
+			PrivateIP: node.PrivateIP,
+			Agents: []api.AgentConfig{
+				{
 					ID:         agent.ID,
 					MountPoint: agent.Volume.MountPoint,
 					Disk:       agent.Volume.Disk,
 					Port:       agent.Port,
 					Secret:     agent.Secret,
-				})
-			}
-
-			nodeConfigs = append(nodeConfigs, nodeConfig)
-
+				},
+			},
 		}
+		nodeConfigs = append(nodeConfigs, nodeConfig)
 	}
 
-	if err = generateDeployFiles(conf, deployOption, nodeConfigs); err != nil {
+	if err = generateDeployFiles(urls, "ansible", nodeConfigs, outputDir); err != nil {
 		return fmt.Errorf("error generating deployment files: %w", err)
 	}
+
+	utils.PrintSuccess("Deployment files generated successfully in directory: " + outputDir)
 
 	return nil
 }
@@ -716,4 +499,128 @@ func getStructSchema(schemaTemplate map[string]interface{}) string {
 	}
 
 	return string(bytes)
+}
+
+func generateInventoryContent(nodeConfigs []api.NodeConfig) string {
+	var content strings.Builder
+	for _, nodeConfig := range nodeConfigs {
+		content.WriteString(fmt.Sprintf("[%s]\n%s\n", nodeConfig.Name, nodeConfig.PublicIP))
+	}
+	return content.String()
+}
+
+func generateHostNamesContent(nodeConfigs []api.NodeConfig) string {
+	var content strings.Builder
+	for _, nodeConfig := range nodeConfigs {
+		content.WriteString(fmt.Sprintf("%s\n", nodeConfig.Name))
+	}
+	return content.String()
+}
+
+func generateAgentSecretsContent(nodeConfig api.NodeConfig) map[string]interface{} {
+	agentsMap := make(map[string]interface{})
+
+	for i, agent := range nodeConfig.Agents {
+		agentsMap[strconv.Itoa(i)] = map[string]interface{}{
+			"agent_secret":         agent.Secret,
+			"mount_point":          agent.MountPoint,
+			"disk":                 agent.Disk,
+			"cccp_server_port":     agent.Port,
+			"cccp_server_local_ip": nodeConfig.PrivateIP,
+			"machine_id":           nodeConfig.ID,
+		}
+	}
+
+	return agentsMap
+}
+
+func downloadAndGenerateAnsibleTar(tarURL string, nodeConfigs []api.NodeConfig, outputPath string) error {
+	resp, err := http.Get(tarURL)
+	if err != nil {
+		return fmt.Errorf("failed to download tarball: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download tarball: %s", resp.Status)
+	}
+
+	tmpDir, err := os.MkdirTemp("", "ansible-tar")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := utils.ExtractTar(resp.Body, tmpDir); err != nil {
+		return fmt.Errorf("failed to extract tarball: %w", err)
+	}
+
+	if err := injectAnsibleFiles(tmpDir+"/cubbit-agent-playbook", nodeConfigs); err != nil {
+		return fmt.Errorf("failed to inject generated files: %w", err)
+	}
+
+	if err := utils.CreateTar(outputPath, tmpDir); err != nil {
+		return fmt.Errorf("failed to repack tarball: %w", err)
+	}
+
+	return nil
+}
+
+func injectAnsibleFiles(root string, nodes []api.NodeConfig) error {
+	filesDir := filepath.Join(root, "files")
+	invDir := filepath.Join(root, "inventory")
+
+	if err := os.MkdirAll(filesDir, 0755); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(invDir, 0755); err != nil {
+		return err
+	}
+
+	invPath := filepath.Join(invDir, "hosts.ini")
+	if err := os.WriteFile(invPath, []byte(generateInventoryContent(nodes)), 0644); err != nil {
+		return err
+	}
+
+	hostNamesPath := filepath.Join(filesDir, "host-names")
+	if err := os.WriteFile(hostNamesPath, []byte(generateHostNamesContent(nodes)), 0644); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(filepath.Join(filesDir, "ssh-public-keys"), []byte(""), 0644); err != nil {
+		return err
+	}
+
+	for _, node := range nodes {
+		path := filepath.Join(filesDir, fmt.Sprintf("%s-agent-secrets.json", node.Name))
+		data, _ := json.MarshalIndent(generateAgentSecretsContent(node), "", "  ")
+		if err := os.WriteFile(path, data, 0644); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func generateDeployFiles(conf *configuration.URLs, deployOption string, nodeConfigs []api.NodeConfig, outputDir string) error {
+	info, err := os.Stat(outputDir)
+	if os.IsNotExist(err) {
+		utils.PrintInfo(fmt.Sprintf("Output directory %s doesn't exist, creating it...", outputDir))
+		if err := os.MkdirAll(outputDir, 0755); err != nil {
+			return fmt.Errorf("failed to create output directory: %w", err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("failed to check output directory: %w", err)
+	} else if !info.IsDir() {
+		return fmt.Errorf("output path %s exists but is not a directory", outputDir)
+	}
+
+	basePath := filepath.Join(outputDir, "cubbit-agent-playbook.tar")
+
+	switch deployOption {
+	case "ansible":
+		return downloadAndGenerateAnsibleTar(constants.AnsibleTarURL, nodeConfigs, basePath)
+	default:
+		return fmt.Errorf("invalid deployment option: %s", deployOption)
+	}
 }

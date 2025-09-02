@@ -1,18 +1,20 @@
+// Package api provides functions to interact with the operator API.
 package api
 
 import (
 	"net/http"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator, error) {
+func GetOperator(urls configuration.URLs, accessToken, meOrID string) (*Operator, error) {
 	var err error
-
-	url := urls.IamUrl + constants.Operators + meOrID
 	var operator Operator
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "operators", meOrID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -26,14 +28,17 @@ func GetOperator(urls configuration.Url, accessToken, meOrID string) (*Operator,
 	return &operator, nil
 }
 
-func GetOperatorSelf(urls configuration.Url, accessToken string) (*Operator, error) {
+func GetOperatorSelf(urls configuration.URLs, accessToken string) (*Operator, error) {
 	return GetOperator(urls, accessToken, "me")
 }
 
-func PromoteOperator(urls configuration.Url, email, policyName, secret string) error {
+func PromoteOperator(urls configuration.URLs, email, policyName, secret string) error {
 	var err error
 
-	url := urls.IamUrl + constants.PromoteOperator
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "operators", "promote").
+		Build()
+
 	requestBody := map[string]interface{}{
 		"email":       email,
 		"policy_name": policyName,

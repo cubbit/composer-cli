@@ -1,3 +1,4 @@
+// Package action provides CLI actions for managing redundancy classes.
 package action
 
 import (
@@ -10,16 +11,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
+func CreateRedundancyClass(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, redundancyClassName, redundancyClassDescription, configPath string
+	var swarmID, name, description string
 	var innerK, innerN, outerK, outerN, antiAffinityGroup int
 	var conf *configuration.Config
-	var redundancyClass *api.RedundancyClass
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var nexuses []string
+	var redundancyClass *api.RedundancyClass
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -27,11 +29,7 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if redundancyClassName, err = cmd.Flags().GetString("redundancy-class-name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if redundancyClassDescription, err = cmd.Flags().GetString("redundancy-class-description"); err != nil {
+	if description, err = cmd.Flags().GetString("description"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -59,23 +57,17 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
 	bodyRequest := api.CreateRedundancyClassRequestBody{
-		Name:              redundancyClassName,
-		Description:       redundancyClassDescription,
+		Name:              name,
+		Description:       description,
 		InnerK:            innerK,
 		InnerN:            innerN,
 		OuterK:            outerK,
@@ -84,28 +76,77 @@ func CreateSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		Nexuses:           nexuses,
 	}
 
-	if redundancyClass, err = api.CreateRedundancyClassV4(conf.Urls, *accessToken, id, bodyRequest); err != nil {
+	if redundancyClass, err = api.CreateRedundancyClass(*urls, resolvedProfile.APIKey, swarmID, bodyRequest); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingRedundancyClassRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("Redundancy class %s created successfully\n", redundancyClass.ID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]api.CreateRedundancyClassRequestBody{
+			bodyRequest,
+		},
+		func(rc api.CreateRedundancyClassRequestBody) []string {
+			return []string{
+				redundancyClass.ID,
+			}
+		},
+		&utils.SmartOutputConfig[api.CreateRedundancyClassRequestBody]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
-func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
+func DescribeRedundancyClass(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var name, id, configPath, sort, filter string
+	var redundancyClassID string
 	var conf *configuration.Config
-	var redundancyClasses *api.GenericPaginatedResponse[*api.RedundancyClass]
-	var verbose, l bool
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var redundancyClass *api.RedundancyClass
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if redundancyClassID, err = cmd.Flags().GetString("rc-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if redundancyClass, err = api.GetRedundancyClass(*urls, resolvedProfile.APIKey, redundancyClassID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingRedundancyClassRequest, err)
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.RedundancyClass{redundancyClass},
+		func(rc *api.RedundancyClass) []string {
+			return []string{
+				rc.ID,
+				rc.Name,
+				rc.Description,
+			}
+		},
+		&utils.SmartOutputConfig[*api.RedundancyClass]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
+}
+
+func ListRedundancyClasses(cmd *cobra.Command, args []string) error {
+	var err error
+	var swarmID, sort, filter string
+	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var redundancyClasses *api.GenericPaginatedResponse[*api.RedundancyClass]
+
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -121,194 +162,90 @@ func ListSwarmRedundancyClasses(cmd *cobra.Command, args []string) error {
 		filter = utils.BuildFilterQuery(filter)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if redundancyClasses, err = api.ListRedundancyClasses(conf.Urls, *accessToken, id, sort, filter); err != nil {
+	if redundancyClasses, err = api.ListRedundancyClasses(*urls, resolvedProfile.APIKey, swarmID, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingRedundancyClassesRequest, err)
 	}
 
-	if len(redundancyClasses.Data) == 0 {
-		utils.PrintSuccess("No redundancy classes found")
-		return nil
-	}
-
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if verbose {
-		utils.PrintVerbose(redundancyClasses.Data, l)
-		return nil
-	}
-
-	for _, rc := range redundancyClasses.Data {
-		fmt.Printf(" • %s\n", rc.Name)
-
-		if l {
-			fmt.Println()
-		}
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		redundancyClasses.Data,
+		func(rc *api.RedundancyClass) []string {
+			return []string{
+				rc.ID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.RedundancyClass]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func DescribeSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
+func CheckRedundancyClassStatus(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var redundancyClassID, format, configPath string
+	var swarmID, redundancyClassID string
 	var conf *configuration.Config
-	var redundancyClass *api.RedundancyClass
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var status *api.SummaryDetailsWithStatusNullable
 
-	if format, err = cmd.Flags().GetString("format"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if redundancyClassID, err = cmd.Flags().GetString("rc-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	redundancyClassID = args[0]
-
-	if redundancyClass, err = api.GetRedundancyClass(conf.Urls, *accessToken, redundancyClassID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingRedundancyClassRequest, err)
-	}
-
-	utils.PrintFormattedData(*redundancyClass, format)
-
-	return nil
-}
-
-func CheckSwarmRedundancyClassStatus(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, redundancyClassID, format, configPath string
-	var conf *configuration.Config
-	var redundancyClassStatus *api.SummaryDetailsWithStatusNullable
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if redundancyClassStatus, err = api.CheckRedundancyClassStatus(conf.Urls, *accessToken, id, redundancyClassID); err != nil {
+	if status, err = api.CheckRedundancyClassStatus(*urls, resolvedProfile.APIKey, swarmID, redundancyClassID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorCheckingRedundancyClassStatusRequest, err)
 	}
 
-	utils.PrintFormattedData(*redundancyClassStatus, format)
-	return nil
+	humanReadableStatus := status.ToHumanReadableStatus("ring")
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]api.HumanReadableStatus{humanReadableStatus},
+		func(s api.HumanReadableStatus) []string {
+			return []string{
+				s.Status,
+			}
+		},
+		&utils.SmartOutputConfig[api.HumanReadableStatus]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func CheckSwarmRedundancyClassRecoveryStatus(cmd *cobra.Command, args []string) error {
+func ExpandRedundancyClass(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, redundancyClassID, format, configPath string
+	var swarmID, redundancyClassID string
 	var conf *configuration.Config
-	var redundancyClassStatus *api.RedundancyClassRecoveryStatus
-
-	if id, err = cmd.Flags().GetString("id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if redundancyClassStatus, err = api.CheckRedundancyClassRecoveryStatus(conf.Urls, *accessToken, id, redundancyClassID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCheckingRedundancyClassRecoveryStatusRequest, err)
-	}
-
-	utils.PrintFormattedData(*redundancyClassStatus, format)
-	return nil
-}
-
-func ExpandSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var id, name, redundancyClassID, format, configPath string
-	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var redundancyClassExpanded *api.RedundancyClassExpanded
 	var dryRun bool
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
+	if redundancyClassID, err = cmd.Flags().GetString("rc-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -316,49 +253,47 @@ func ExpandSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if redundancyClassExpanded, err = api.ExpandRedundancyClass(conf.Urls, *accessToken, id, redundancyClassID, dryRun); err != nil {
+	if redundancyClassExpanded, err = api.ExpandRedundancyClass(*urls, resolvedProfile.APIKey, swarmID, redundancyClassID, dryRun); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorExpandingRedundancyClassRequest, err)
 	}
 
-	utils.PrintFormattedData(*redundancyClassExpanded, format)
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.RedundancyClassExpanded{redundancyClassExpanded},
+		func(rc *api.RedundancyClassExpanded) []string {
+			return []string{
+				string(rc.Status),
+				rc.Message,
+			}
+		},
+		&utils.SmartOutputConfig[*api.RedundancyClassExpanded]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
-func RecoverSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
+func RecoverRedundancyClass(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, redundancyClassID, format, configPath string
+	var swarmID, redundancyClassID string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var redundancyClassRecover *api.RedundancyClassRecovery
 	var dryRun bool
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if redundancyClassID, err = cmd.Flags().GetString("redundancy-class-id"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if format, err = cmd.Flags().GetString("format"); err != nil {
+	if redundancyClassID, err = cmd.Flags().GetString("rc-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -366,24 +301,70 @@ func RecoverSwarmRedundancyClass(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if id, err = getSwarmByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingSwarm, err)
-		}
-	}
-
-	if redundancyClassRecover, err = api.RecoverRedundancyClass(conf.Urls, *accessToken, id, redundancyClassID, dryRun); err != nil {
+	if redundancyClassRecover, err = api.RecoverRedundancyClass(*urls, resolvedProfile.APIKey, swarmID, redundancyClassID, dryRun); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRecoveringRedundancyClassRequest, err)
 	}
 
-	utils.PrintFormattedData(*redundancyClassRecover, format)
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.RedundancyClassRecovery{redundancyClassRecover},
+		func(rc *api.RedundancyClassRecovery) []string {
+			return []string{
+				rc.Message,
+			}
+		},
+		&utils.SmartOutputConfig[*api.RedundancyClassRecovery]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
+}
+
+func CheckRedundancyClassRecoveryStatus(cmd *cobra.Command, args []string) error {
+	var err error
+	var swarmID, redundancyClassID string
+	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var status *api.RCProgress
+
+	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if redundancyClassID, err = cmd.Flags().GetString("rc-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, err = configuration.LoadConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if status, err = api.CheckRedundancyClassRecoveryStatus(*urls, resolvedProfile.APIKey, swarmID, redundancyClassID); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorCheckingRedundancyClassRecoveryStatusRequest, err)
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.RCProgress{status},
+		func(s *api.RCProgress) []string {
+			return []string{string(s.Session.Status)}
+		},
+		&utils.SmartOutputConfig[*api.RCProgress]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }

@@ -3,88 +3,28 @@ package utils
 import (
 	"encoding/csv"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"os"
 	"reflect"
 	"strings"
 	"time"
+
+	syaml "gopkg.in/yaml.v3"
 )
 
 func PrintFormattedData(data interface{}, format string) {
 	switch format {
 	case "json":
 		printJSON(data)
+	case "yaml":
+		printYAML(data)
+	case "xml":
+		printXML(data)
 	case "csv":
 		printCSV(data)
 	default:
-		printSemantic(data, 0)
-	}
-}
-
-func printSemantic(data interface{}, indentLevel int) {
-	val := reflect.ValueOf(data)
-
-	for val.Kind() == reflect.Ptr {
-		if val.IsNil() {
-			fmt.Println(indent(indentLevel) + "null")
-			return
-		}
-		val = val.Elem()
-	}
-
-	switch val.Kind() {
-	case reflect.Struct:
-		if val.Type().String() == "time.Time" {
-			fmt.Println(indent(indentLevel) + val.Interface().(time.Time).String())
-			return
-		}
-		if indentLevel > 0 {
-			fmt.Println()
-		}
-		for i := 0; i < val.NumField(); i++ {
-			field := val.Type().Field(i)
-			fieldValue := val.Field(i)
-
-			if !fieldValue.CanInterface() {
-				continue
-			}
-
-			fieldName := field.Tag.Get("json")
-			if fieldName == "" {
-				fieldName = field.Name
-			}
-			fmt.Printf("%s%s: ", indent(indentLevel), style(fieldName, boldStyle))
-
-			printSemantic(fieldValue.Interface(), indentLevel+1)
-		}
-	case reflect.Map:
-		fmt.Println()
-		iter := val.MapRange()
-		for iter.Next() {
-			key := iter.Key().Interface()
-			value := iter.Value().Interface()
-			fmt.Printf("%s%s: ", indent(indentLevel), style(fmt.Sprintf("%v", key), boldStyle))
-			printSemantic(value, indentLevel+1)
-		}
-	case reflect.Slice, reflect.Array:
-		if val.Len() == 0 {
-			fmt.Println(indent(indentLevel) + "[]")
-			return
-		}
-		for i := 0; i < val.Len(); i++ {
-			elem := val.Index(i).Interface()
-			printSemantic(elem, indentLevel+1)
-		}
-	case reflect.Bool:
-		fmt.Println(fmt.Sprintf("%v", val.Bool()))
-	case reflect.String:
-		fmt.Println(val.String())
-	case reflect.Int, reflect.Int32, reflect.Int64:
-		fmt.Println(val.Int())
-	case reflect.Float32, reflect.Float64:
-		fmt.Println(val.Float())
-	default:
-		fmt.Println(fmt.Sprintf("%v", val.Interface()))
+		PrintVerbose(data, false)
 	}
 }
 
@@ -98,7 +38,6 @@ func printJSON(data interface{}) {
 }
 
 func printCSV(data interface{}) {
-
 	val := reflect.ValueOf(data)
 	switch val.Kind() {
 	case reflect.Struct:
@@ -106,36 +45,44 @@ func printCSV(data interface{}) {
 		defer writer.Flush()
 		var header []string
 		var row []string
-
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Type().Field(i)
 			fieldValue := getString(val.Field(i))
 			header = append(header, field.Tag.Get("json"))
 			row = append(row, fieldValue)
-
 		}
 		writer.Write(header)
 		writer.Write(row)
-
 	case reflect.Map:
 		writer := csv.NewWriter(os.Stdout)
 		defer writer.Flush()
-
 		writer.Write([]string{"Key", "Value"})
-
 		iter := val.MapRange()
 		for iter.Next() {
 			key := iter.Key().Interface()
 			value := iter.Value().Interface()
 			writer.Write([]string{fmt.Sprintf("%v", key), fmt.Sprintf("%v", value)})
 		}
-
 	case reflect.Slice, reflect.Array:
 		writer := csv.NewWriter(os.Stdout)
 		defer writer.Flush()
 
+		if val.Len() == 0 {
+			fmt.Println("Empty slice/array")
+			return
+		}
+
+		firstElem := val.Index(0)
+		if firstElem.Kind() == reflect.Ptr {
+			if firstElem.IsNil() {
+				firstElem = reflect.New(firstElem.Type().Elem()).Elem()
+			} else {
+				firstElem = firstElem.Elem()
+			}
+		}
+
 		var header []string
-		elemType := val.Type().Elem()
+		elemType := firstElem.Type()
 		for i := 0; i < elemType.NumField(); i++ {
 			header = append(header, elemType.Field(i).Tag.Get("json"))
 		}
@@ -144,13 +91,27 @@ func printCSV(data interface{}) {
 		for i := 0; i < val.Len(); i++ {
 			var row []string
 			elem := val.Index(i)
-			for j := 0; j < elem.NumField(); j++ {
-				fieldValue := getString(elem.Field(j))
-				row = append(row, fieldValue)
+
+			if elem.Kind() == reflect.Ptr {
+				if elem.IsNil() {
+					for j := 0; j < elemType.NumField(); j++ {
+						row = append(row, "")
+					}
+				} else {
+					elem = elem.Elem()
+					for j := 0; j < elem.NumField(); j++ {
+						fieldValue := getString(elem.Field(j))
+						row = append(row, fieldValue)
+					}
+				}
+			} else {
+				for j := 0; j < elem.NumField(); j++ {
+					fieldValue := getString(elem.Field(j))
+					row = append(row, fieldValue)
+				}
 			}
 			writer.Write(row)
 		}
-
 	case reflect.Ptr:
 		if val.IsNil() {
 			fmt.Println("null")
@@ -158,7 +119,6 @@ func printCSV(data interface{}) {
 			derefVal := val.Elem().Interface()
 			printCSV(derefVal)
 		}
-
 	default:
 		fmt.Println("Unsupported data type")
 	}
@@ -190,6 +150,16 @@ func getString(field reflect.Value) string {
 		}
 	case reflect.Map:
 		return fmt.Sprintf("%v", field.Interface())
+	case reflect.Slice, reflect.Array:
+		if field.IsNil() {
+			return "[]"
+		}
+		var elements []string
+		for i := 0; i < field.Len(); i++ {
+			elem := field.Index(i)
+			elements = append(elements, getString(elem))
+		}
+		return "[" + strings.Join(elements, ",") + "]"
 	default:
 		return fmt.Sprintf("Unsupported type: %v", field.Kind())
 	}
@@ -213,6 +183,112 @@ func structToString(data interface{}) string {
 	return str.String()
 }
 
-func indent(level int) string {
-	return strings.Repeat("  ", level)
+func printYAML(data interface{}) {
+	yamlData, err := syaml.Marshal(data)
+	if err != nil {
+		fmt.Print("error encoding yaml:", err)
+		return
+	}
+	fmt.Println(string(yamlData))
+}
+
+func printXML(data interface{}) {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		xmlStr, err := mapToXML(v, "root")
+		if err != nil {
+			fmt.Print("error encoding xml:", err)
+			return
+		}
+		fmt.Println(xmlStr)
+	case []map[string]interface{}:
+		fmt.Println("<root>")
+		for _, item := range v {
+			xmlStr, err := mapToXML(item, "item")
+			if err != nil {
+				fmt.Print("error encoding xml:", err)
+				return
+			}
+			fmt.Println(xmlStr)
+		}
+		fmt.Println("</root>")
+	default:
+		val := reflect.ValueOf(data)
+		if val.Kind() == reflect.Slice || val.Kind() == reflect.Array {
+			fmt.Println("<root>")
+			for i := 0; i < val.Len(); i++ {
+				elem := val.Index(i).Interface()
+				b, err := json.Marshal(elem)
+				if err == nil {
+					var m map[string]interface{}
+					if err := json.Unmarshal(b, &m); err == nil {
+						xmlStr, err := mapToXML(m, "item")
+						if err != nil {
+							fmt.Print("error encoding xml:", err)
+							return
+						}
+						fmt.Println(xmlStr)
+						continue
+					}
+				}
+
+				xmlData, err := xml.MarshalIndent(elem, "", "  ")
+				if err != nil {
+					fmt.Print("error encoding xml:", err)
+					return
+				}
+				fmt.Println(string(xmlData))
+			}
+			fmt.Println("</root>")
+			return
+		}
+
+		b, err := json.Marshal(data)
+		if err == nil {
+			var m map[string]interface{}
+			if err := json.Unmarshal(b, &m); err == nil {
+				xmlStr, err := mapToXML(m, "root")
+				if err != nil {
+					fmt.Print("error encoding xml:", err)
+					return
+				}
+				fmt.Println(xmlStr)
+				return
+			}
+		}
+
+		xmlData, err := xml.MarshalIndent(data, "", "  ")
+		if err != nil {
+			fmt.Print("error encoding xml:", err)
+			return
+		}
+		fmt.Println(string(xmlData))
+	}
+}
+
+func mapToXML(data map[string]interface{}, rootName string) (string, error) {
+	var buf strings.Builder
+	buf.WriteString(fmt.Sprintf("<%s>", rootName))
+	for k, v := range data {
+		buf.WriteString(fmt.Sprintf("<%s>", k))
+		switch val := v.(type) {
+		case map[string]interface{}:
+			inner, _ := mapToXML(val, k)
+			buf.WriteString(inner)
+		case []interface{}:
+			for _, item := range val {
+				if m, ok := item.(map[string]interface{}); ok {
+					inner, _ := mapToXML(m, k)
+					buf.WriteString(inner)
+				} else {
+					buf.WriteString(fmt.Sprintf("%v", item))
+				}
+			}
+		default:
+			buf.WriteString(fmt.Sprintf("%v", val))
+		}
+		buf.WriteString(fmt.Sprintf("</%s>", k))
+	}
+	buf.WriteString(fmt.Sprintf("</%s>", rootName))
+	return buf.String(), nil
 }
