@@ -1,8 +1,8 @@
+// Package action provides CLI actions for managing tenantprojects.
 package action
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/api"
@@ -11,86 +11,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateProject(cmd *cobra.Command, args []string) error {
-	var err error
-	var accessToken *string
-	var name, description, imageUrl, configPath string
-	var response *api.GenericIDResponseModel
-	var conf *configuration.Config
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeAccount); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if description, err = cmd.Flags().GetString("description"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if len(description) > 200 {
-		return fmt.Errorf("t%s: %w", constants.ErrorDescriptionSize, err)
-	}
-
-	if imageUrl, err = cmd.Flags().GetString("image-url"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if imageUrl != "" {
-		if _, err := url.ParseRequestURI(imageUrl); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorImageURL, err)
-		}
-	}
-
-	if response, err = api.CreateProject(conf.Urls, *accessToken, name, &description, &imageUrl); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorCreatingProjectRequest, err)
-	}
-
-	utils.PrintSuccess(fmt.Sprintf("project: %s created successfully", response.ID))
-
-	return nil
-}
-
 func ListTenantProjects(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath, sort, filter string
+	var tenantID, sort, filter string
 	var conf *configuration.Config
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 	var projects *api.GenericPaginatedResponse[*api.ProjectItem]
-	var tenant *api.Tenant
-	var verbose, l bool
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if name, err = cmd.Flags().GetString("name"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if sort, err = cmd.Flags().GetString("sort"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
-	}
-
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-		id = tenant.ID
 	}
 
 	if filter, err = cmd.Flags().GetString("filter"); err != nil {
@@ -101,318 +31,265 @@ func ListTenantProjects(cmd *cobra.Command, args []string) error {
 		filter = utils.BuildFilterQuery(filter)
 	}
 
-	if projects, err = api.ListTenantProjects(conf.Urls, *accessToken, id, sort, filter); err != nil {
+	if sort, err = cmd.Flags().GetString("sort"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if conf, err = configuration.LoadConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if projects, err = api.ListTenantProjects(*urls, resolvedProfile.APIKey, tenantID, sort, filter); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorListingTenantProjectsRequest, err)
 	}
 
-	utils.PrintList("Your Tenant Projects List")
-
-	if len(projects.Data) == 0 {
-		utils.PrintEmptyList()
-		return nil
-	}
-
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if l, err = cmd.Flags().GetBool("line"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if verbose {
-		utils.PrintVerbose(projects.Data, l)
-		return nil
-	}
-
-	for _, project := range projects.Data {
-		fmt.Printf(" • %s\n", project.ProjectID)
-		if l {
-			fmt.Println()
-		}
-	}
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		projects.Data,
+		func(p *api.ProjectItem) []string {
+			return []string{
+				p.ProjectID,
+			}
+		},
+		&utils.SmartOutputConfig[*api.ProjectItem]{
+			DefaultOutput: resolvedProfile.Output,
+		},
+	)
 }
 
 func DescribeTenantProject(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath, format string
+	var tenantID, projectID string
 	var conf *configuration.Config
-	var tenant *api.Tenant
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
+	var project *api.ProjectItem
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if projectID, err = cmd.Flags().GetString("project-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
-	}
-
-	var project *api.ProjectItem
-	projectID := args[0]
-	if project, err = api.GetTenantProject(conf.Urls, *accessToken, id, projectID); err != nil {
+	if project, err = api.GetTenantProject(*urls, resolvedProfile.APIKey, tenantID, projectID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenantProjectRequest, err)
 	}
 
-	if format, err = cmd.Flags().GetString("format"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	utils.PrintFormattedData(*project, format)
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]*api.ProjectItem{project},
+		func(p *api.ProjectItem) []string {
+			return []string{
+				p.ProjectID,
+				p.ProjectName,
+				p.ProjectDescription,
+			}
+		},
+		&utils.SmartOutputConfig[*api.ProjectItem]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		},
+	)
 }
 
 func RemoveTenantProject(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, email, password, code, configPath, deleteTenantProjectToken string
+	var tenantID, projectID string
 	var conf *configuration.Config
-	var challenge *api.ChallengeResponseModel
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if projectID, err = cmd.Flags().GetString("project-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if email, err = cmd.Flags().GetString("email"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if password, err = cmd.Flags().GetString("password"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if code, err = cmd.Flags().GetString("code"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
-		}
-
-		if id == "" {
-			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
-			return nil
-		}
-	}
-
-	if challenge, err = api.GenerateOperatorChallenge(conf.Urls, email); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingOperatorChallengeRequest, err)
-	}
-
-	projectID := args[0]
-	if deleteTenantProjectToken, err = api.ForgeOperatorDeleteTenantProjectToken(conf.Urls, email, password, conf.RefreshToken, challenge, code, projectID); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorForgingTenantProjectDeleteTokenRequest, err)
-	}
-
-	if err = api.RemoveTenantProject(conf.Urls, *accessToken, id, projectID, deleteTenantProjectToken); err != nil {
+	if err = api.RemoveTenantProject(*urls, resolvedProfile.APIKey, tenantID, projectID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingTenantProjectRequest, err)
 	}
 
-	utils.PrintDelete(fmt.Sprintf("project %s removed successfully", projectID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{projectID},
+		func(s string) []string {
+			return []string{
+				s,
+			}
+		},
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
 func BanTenantProject(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath string
+	var tenantID, projectID string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if projectID, err = cmd.Flags().GetString("project-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
-		}
-
-		if id == "" {
-			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
-			return nil
-		}
-	}
-
-	projectID := args[0]
-
-	if err = api.ToggleBanProject(conf.Urls, *accessToken, id, projectID, true); err != nil {
+	if err = api.ToggleBanProject(*urls, resolvedProfile.APIKey, tenantID, projectID, true); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorFreezingTenantProjectRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("project %s freezed successfully", projectID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{projectID},
+		func(s string) []string {
+			return []string{
+				s,
+			}
+		},
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
 func UnbanTenantProject(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath string
+	var tenantID, projectID string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if projectID, err = cmd.Flags().GetString("project-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
-		}
-
-		if id == "" {
-			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
-			return nil
-		}
-	}
-
-	projectID := args[0]
-
-	if err = api.ToggleBanProject(conf.Urls, *accessToken, id, projectID, false); err != nil {
+	if err = api.ToggleBanProject(*urls, resolvedProfile.APIKey, tenantID, projectID, false); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorUnfreezingTenantProjectRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("project %s unfreezed successfully", projectID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{projectID},
+		func(s string) []string {
+			return []string{
+				s,
+			}
+		},
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
 func RestoreTenantProject(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath string
+	var tenantID, projectID string
 	var conf *configuration.Config
-	var tenants *api.GenericPaginatedResponse[*api.Tenant]
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if name, err = cmd.Flags().GetString("name"); err != nil {
+	if projectID, err = cmd.Flags().GetString("project-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenants, err = api.ListTenants(conf.Urls, *accessToken, "", ""); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorListingTenantsRequest, err)
-		}
-
-		for _, tenant := range tenants.Data {
-			if name == tenant.Name {
-				id = tenant.ID
-			}
-		}
-
-		if id == "" {
-			utils.PrintNotFound(fmt.Sprintf("Tenant %s not found", name))
-			return nil
-		}
-	}
-
-	projectID := args[0]
-
-	if err = api.RestoreTenantProject(conf.Urls, *accessToken, id, projectID); err != nil {
+	if err = api.RestoreTenantProject(*urls, resolvedProfile.APIKey, tenantID, projectID); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRestoringTenantProjectRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("project %s restored successfully", projectID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{projectID},
+		func(s string) []string {
+			return []string{
+				s,
+			}
+		},
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
 func UpdateTenantProject(cmd *cobra.Command, args []string) error {
 	var err error
-	var accessToken *string
-	var id, name, configPath, description, imageUrl string
+	var tenantID, projectID, name, description, imageURL string
 	var conf *configuration.Config
-	var tenant *api.Tenant
+	var resolvedProfile *configuration.ResolvedProfile
+	var urls *configuration.URLs
 
-	if id, err = cmd.Flags().GetString("id"); err != nil {
+	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if projectID, err = cmd.Flags().GetString("project-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
@@ -424,48 +301,54 @@ func UpdateTenantProject(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if imageUrl, err = cmd.Flags().GetString("image-url"); err != nil {
+	if imageURL, err = cmd.Flags().GetString("image-url"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	if conf, configPath, err = configuration.ReadConfig(cmd, configuration.SessionTypeOperator); err != nil {
+	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if accessToken, err = rehydrateTokenConfig(configPath, conf); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorGeneratingToken, err)
+	if resolvedProfile, urls, err = conf.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if id == "" {
-		if tenant, err = getTenantByNameOrId(conf, *accessToken, name); err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorRetrievingTenant, err)
-		}
-
-		id = tenant.ID
+	var namePtr *string
+	if name != "" {
+		namePtr = &name
 	}
-
-	projectID := args[0]
 
 	var descriptionPtr *string
 	if description != "" {
 		descriptionPtr = &description
 	}
 
-	var imageUrlPtr *string
-	if imageUrl != "" {
-		imageUrlPtr = &imageUrl
+	var imageURLPtr *string
+	if imageURL != "" {
+		imageURLPtr = &imageURL
 	}
 
 	requestBody := api.UpdateTenantProjectRequestBody{
+		Name:        namePtr,
 		Description: descriptionPtr,
-		ImageUrl:    imageUrlPtr,
+		ImageURL:    imageURLPtr,
 	}
 
-	if err = api.UpdateProject(conf.Urls, *accessToken, id, projectID, requestBody); err != nil {
+	if err = api.UpdateProject(*urls, resolvedProfile.APIKey, tenantID, projectID, requestBody); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorUpdatingTenantProjectRequest, err)
 	}
 
-	utils.PrintSuccess(fmt.Sprintf("project %s updated successfully", projectID))
-
-	return nil
+	return utils.PrintSmartOutput(
+		cmd,
+		[]api.UpdateTenantProjectRequestBody{requestBody},
+		func(r api.UpdateTenantProjectRequestBody) []string {
+			return []string{
+				projectID,
+			}
+		},
+		&utils.SmartOutputConfig[api.UpdateTenantProjectRequestBody]{
+			SingleResource: true,
+			DefaultOutput:  resolvedProfile.Output,
+		},
+	)
 }

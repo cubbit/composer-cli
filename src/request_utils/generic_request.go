@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/cubbit/cubbit/client/cli/constants"
 )
 
@@ -23,10 +22,20 @@ type RequestOptions struct {
 }
 type RequestModifier = func(*RequestOptions, *http.Response) error
 
+type Data struct {
+	Params          []string      `json:"params" example:"param1,param2"`
+	ActionsRequired []string      `json:"actions_required" example:"iam:AttachUserPolicy,iam:DetachUserPolicy"`
+	Reason          string        `json:"reason" example:"policy_id"`
+	IssueFound      []interface{} `json:"issue_found"`
+}
+
 type Error struct {
 	Message         string   `json:"message"`
 	ActionsRequired []string `json:"actions_required"`
 	Reason          string   `json:"reason"`
+	Data            Data     `json:"data"`
+	Params          []string `json:"params"`
+	Param           string   `json:"param"`
 }
 
 func DoRequest(url string, opts ...RequestModifier) error {
@@ -62,7 +71,6 @@ func DoRequest(url string, opts ...RequestModifier) error {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.ContentLength = int64(reqBody.Len())
-
 	for key, value := range opt.headers {
 		req.Header.Set(key, value)
 	}
@@ -71,48 +79,61 @@ func DoRequest(url string, opts ...RequestModifier) error {
 	if res, err = http.DefaultClient.Do(req); err != nil {
 		return fmt.Errorf("error while performing the request: %w", err)
 	}
-
 	defer res.Body.Close()
 	if opt.status != -1 && res.StatusCode != opt.status {
 		body, _ := ioutil.ReadAll(res.Body)
-		var err Error
-		if err := json.Unmarshal(body, &err); err != nil {
-			return fmt.Errorf("error while unmarshaling the request response : %w", err)
+		var apiErr Error
+		if err := json.Unmarshal(body, &apiErr); err != nil {
+			return fmt.Errorf("error while unmarshaling '%s' the request response: %w", string(body), err)
 		}
 
-		keyStyle := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("12"))
+		var errorLines []string
+		errorLines = append(errorLines, fmt.Sprintf("code status expected %d, but received %d instead", opt.status, res.StatusCode))
 
-		valueStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("15"))
-		redStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("9"))
-		yellowStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("11"))
-
-		var formattedError string
-
-		formattedError += keyStyle.Render("INF ") + "code status expected " + yellowStyle.Render(fmt.Sprint(opt.status)) + ", but recieved " + redStyle.Render(fmt.Sprint(res.StatusCode)) + " instead\n"
-
-		if err.Message != "" {
-			formattedError += keyStyle.Render("INF ") + valueStyle.Render(err.Message) + "\n"
+		if apiErr.Message != "" {
+			errorLines = append(errorLines, apiErr.Message)
 		}
 
-		if len(err.ActionsRequired) > 0 {
-			formattedError += keyStyle.Render("INF ") + "actions required [" + valueStyle.Render(strings.Join(err.ActionsRequired, ", ")) + "]\n"
+		if len(apiErr.ActionsRequired) > 0 {
+			errorLines = append(errorLines, fmt.Sprintf("actions required [%s]", strings.Join(apiErr.ActionsRequired, ", ")))
 		}
 
-		if err.Reason != "" {
-			formattedError += keyStyle.Render("INF ") + "reason" + valueStyle.Render(err.Reason) + "\n"
+		if len(apiErr.Data.ActionsRequired) > 0 {
+			errorLines = append(errorLines, fmt.Sprintf("actions required [%s]", strings.Join(apiErr.Data.ActionsRequired, ", ")))
 		}
-		return fmt.Errorf(fmt.Sprintf("\n%s", formattedError))
+
+		if apiErr.Reason != "" {
+			errorLines = append(errorLines, fmt.Sprintf("reason %s", apiErr.Reason))
+		}
+
+		if len(apiErr.Params) > 0 {
+			errorLines = append(errorLines, fmt.Sprintf("params [%s]", strings.Join(apiErr.Params, ", ")))
+		}
+
+		if len(apiErr.Data.IssueFound) > 0 {
+			var issues []string
+			for _, issue := range apiErr.Data.IssueFound {
+				switch v := issue.(type) {
+				case map[string]interface{}:
+					var parts []string
+					for k, val := range v {
+						parts = append(parts, fmt.Sprintf("%s: %v", k, val))
+					}
+					issues = append(issues, strings.Join(parts, ", "))
+				default:
+					issues = append(issues, fmt.Sprintf("%v", v))
+				}
+			}
+			errorLines = append(errorLines, fmt.Sprintf("issue found [%s]", strings.Join(issues, ", ")))
+		}
+
+		return fmt.Errorf(strings.Join(errorLines, "\n"))
 	}
-
 	for _, modifier := range opts {
 		if err = modifier(nil, res); err != nil {
 			return fmt.Errorf("error while applying modifier after request: %w", err)
 		}
 	}
-
 	return nil
 }
 
@@ -134,19 +155,7 @@ func WithAccessToken(accessToken string) RequestModifier {
 			return nil
 		}
 
-		opt.headers[constants.Authorization] = constants.Bearer + " " + accessToken
-
-		return nil
-	}
-}
-
-func WithRefreshToken(refreshToken string) RequestModifier {
-	return func(opt *RequestOptions, res *http.Response) error {
-		if opt == nil {
-			return nil
-		}
-
-		opt.headers["Cookie"] = constants.RefreshTokenName + "=" + refreshToken
+		opt.headers[constants.Authorization] = constants.APIKey + " " + accessToken
 
 		return nil
 	}

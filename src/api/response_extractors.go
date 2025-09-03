@@ -11,36 +11,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
-	"github.com/cubbit/cubbit/client/cli/utils"
 )
 
-func extractRefreshCookie(response *string) request_utils.RequestModifier {
+func extractReport(response any) request_utils.RequestModifier {
 	return func(opt *request_utils.RequestOptions, res *http.Response) error {
-		if res == nil {
-			return nil
-		}
-
-		refreshTokenCookie, found := utils.Find(res.Cookies(), func(c *http.Cookie) bool {
-			return c.Name == constants.RefreshTokenName
-		})
-		if !found {
-			return fmt.Errorf(constants.ErrorTokenNotFound)
-		}
-
-		if refreshTokenCookie.Value == "" {
-			return fmt.Errorf(constants.ErrorEmptyToken)
-		}
-
-		*response = refreshTokenCookie.Value
-		return nil
-	}
-}
-
-func extractReport(response *DistributorReportResponseModel) request_utils.RequestModifier {
-	return func(opt *request_utils.RequestOptions, res *http.Response) error {
-
 		var err error
 		var body []byte
 

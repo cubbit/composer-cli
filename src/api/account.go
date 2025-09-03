@@ -1,3 +1,4 @@
+// Package api provides functions to interact with the account API.
 package api
 
 import (
@@ -6,17 +7,20 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func ListTenantAccounts(urls configuration.Url, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*Account], error) {
+func ListTenantAccounts(urls configuration.URLs, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*Account], error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
 	var finalResponse GenericPaginatedResponse[*Account]
-
 	var nextPage *int
+
+	url := NewURLBuilder(urls.IamURL).Path("v1", "tenants", tenantID, "accounts").
+		QueryParam("sort_key", sort).
+		QueryParam("q", url.QueryEscape(filter)).
+		Build()
+
 	page := 1
 
 	for {
@@ -43,9 +47,12 @@ func ListTenantAccounts(urls configuration.Url, accessToken, tenantID, sort, fil
 	return &finalResponse, nil
 }
 
-func RemoveTenantAccount(urls configuration.Url, accessToken, tenantID, accountID, deleteTenantAccountToken string) error {
+func RemoveTenantAccount(urls configuration.URLs, accessToken, tenantID, accountID string) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "?token=" + deleteTenantAccountToken
+
+	url := NewURLBuilder(urls.IamURL).Path("v1", "tenants", tenantID, "accounts", accountID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -58,13 +65,18 @@ func RemoveTenantAccount(urls configuration.Url, accessToken, tenantID, accountI
 	return nil
 }
 
-func ToggleBanAccount(urls configuration.Url, accessToken, tenantID string, accountID string, banned bool) error {
+func ToggleBanAccount(urls configuration.URLs, accessToken, tenantID string, accountID string, banned bool) error {
 	var err error
-	banUrl := "ban"
+
+	banURL := "ban"
 	if !banned {
-		banUrl = "unban"
+		banURL = "unban"
 	}
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "/" + banUrl
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "accounts", accountID, banURL).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
@@ -77,10 +89,12 @@ func ToggleBanAccount(urls configuration.Url, accessToken, tenantID string, acco
 	return nil
 }
 
-func RestoreTenantAccount(urls configuration.Url, accessToken, tenantID, accountID string) error {
+func RestoreTenantAccount(urls configuration.URLs, accessToken, tenantID, accountID string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "/restore"
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "accounts", accountID, "restore").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -93,10 +107,12 @@ func RestoreTenantAccount(urls configuration.Url, accessToken, tenantID, account
 	return nil
 }
 
-func DeleteTenantAccountSessions(urls configuration.Url, accessToken, tenantID, accountID string) error {
+func DeleteTenantAccountSessions(urls configuration.URLs, accessToken, tenantID, accountID string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID + "/sessions"
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "accounts", accountID, "sessions").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -109,16 +125,22 @@ func DeleteTenantAccountSessions(urls configuration.Url, accessToken, tenantID, 
 	return nil
 }
 
-func CreateTenantAccounts(urls configuration.Url, accessToken, tenantID string, emails []string) error {
+func CreateTenantAccounts(urls configuration.URLs, accessToken, tenantID string, emails []string) error {
 	var err error
+	var postBody []byte
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts"
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "accounts").
+		Build()
 
 	requestBody := map[string]interface{}{
 		"emails": emails,
 	}
 
-	postBody, _ := json.Marshal(requestBody)
+	postBody, err = json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
 
 	if err = request_utils.DoRequest(
 		url,
@@ -133,11 +155,35 @@ func CreateTenantAccounts(urls configuration.Url, accessToken, tenantID string, 
 	return nil
 }
 
-func UpdateAccount(urls configuration.Url, accessToken, tenantID, accountID string, accountBody UpdateAccountRequest) error {
+func GetTenantAccount(urls configuration.URLs, accessToken, tenantID, accountID string) (*Account, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/accounts/" + accountID
+	var response Account
 
-	requestBody, err := json.Marshal(accountBody)
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "accounts", accountID).
+		Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func UpdateAccount(urls configuration.URLs, accessToken, tenantID, accountID string, accountBody UpdateAccountRequest) error {
+	var err error
+	var requestBody []byte
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "accounts", accountID).
+		Build()
+
+	requestBody, err = json.Marshal(accountBody)
 	if err != nil {
 		return err
 	}

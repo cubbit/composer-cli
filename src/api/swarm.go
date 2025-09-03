@@ -1,32 +1,33 @@
+// Package api provides functions to interact with the swarm API.
 package api
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
-	"github.com/cubbit/cubbit/client/cli/utils"
 )
 
-func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name string, description string, swarmConfig map[string]interface{}) (*GenericIDResponseModel, error) {
+func CreateSwarm(urls configuration.URLs, accessToken string, req CreateSwarmRequest) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
+	var bodyRequest []byte
 
-	requestBody := map[string]interface{}{
-		"name":          name,
-		"description":   description,
-		"owner_id":      ownerID,
-		"configuration": swarmConfig,
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "swarms").
+		Build()
+
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return nil, err
 	}
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBody(requestBody),
+		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
@@ -37,10 +38,13 @@ func CreateSwarm(urls configuration.Url, accessToken, ownerID string, name strin
 	return &response, nil
 }
 
-func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]*Swarm, error) {
+func GetSwarm(urls configuration.URLs, accessToken, ownerID string, swarmID string) (*Swarm, error) {
 	var err error
-	url := fmt.Sprintf("%s%s", urls.HiveUrl, constants.Swarms)
-	var response []*Swarm
+	var response Swarm
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "swarms", swarmID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -50,13 +54,62 @@ func ListSwarms(urls configuration.Url, accessToken, ownerID string) ([]*Swarm, 
 	); err != nil {
 		return nil, err
 	}
+
+	return &response, nil
+}
+
+func EditSwarm(urls configuration.URLs, accessToken string, swarmID string, req UpdateSwarmRequest) error {
+	var err error
+	var bodyRequest []byte
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "swarms", swarmID).Build()
+
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return err
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBodyByte(bodyRequest),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(nil),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ListSwarms(urls configuration.URLs, accessToken, ownerID string) ([]*Swarm, error) {
+	var err error
+	var response []*Swarm
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "swarms").
+		Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
 	return response, nil
 }
 
-func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID string) (*Swarm, error) {
+func GetSwarmOperator(urls configuration.URLs, accessToken, swarmID, operatorID string) (*Operator, error) {
 	var err error
-	url := fmt.Sprintf("%s%s/%s", urls.HiveUrl, constants.Swarms, swarmID)
-	var response Swarm
+	var response Operator
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "swarms", swarmID, "operators", operatorID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -69,16 +122,18 @@ func GetSwarm(urls configuration.Url, accessToken, ownerID string, swarmID strin
 	return &response, nil
 }
 
-func RemoveSwarm(urls configuration.Url, accessToken, swarmId, deleteSwarmToken string) error {
+func RemoveSwarm(urls configuration.URLs, accessToken, swarmID string) error {
 	var err error
 
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmId + "?token=" + deleteSwarmToken
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "swarms", swarmID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
 		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
 		return err
 	}
@@ -86,83 +141,22 @@ func RemoveSwarm(urls configuration.Url, accessToken, swarmId, deleteSwarmToken 
 	return nil
 }
 
-func EditSwarmDescription(urls configuration.Url, accessToken, swarmID, description string) error {
+func InviteOperatorToSwarm(urls configuration.URLs, accessToken, swarmID string, req InviteOperatorRequestBody) error {
 	var err error
+	var bodyRequest []byte
 
-	requestBody := map[string]interface{}{
-		"description": description,
-	}
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "swarms", swarmID, "invites").
+		Build()
 
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID
-
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodPut),
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithRequestBody(requestBody),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(nil),
-	); err != nil {
+	if bodyRequest, err = json.Marshal(req); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func EditSwarmName(urls configuration.Url, accessToken, swarmID, name string) error {
-	var err error
-
-	requestBody := map[string]interface{}{
-		"name": name,
-	}
-
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID
-
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodPut),
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithRequestBody(requestBody),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(nil),
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func ListSwarmPolicies(urls configuration.Url, accessToken, swarmID string) (*PolicyList, error) {
-	var err error
-	url := urls.IamUrl + constants.Policies + "?swarm=" + swarmID
-	var response PolicyList
-
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
-	); err != nil {
-		return nil, err
-	}
-	return &response, nil
-}
-
-func InviteOperatorToSwarm(urls configuration.Url, accessToken, swarmID, email, role, firstName, lastName string) error {
-	var err error
-	url := urls.IamUrl + constants.Swarms + "/" + swarmID + constants.Invites
-
-	requestBody := map[string]interface{}{
-		"email":      email,
-		"policy_id":  role,
-		"first_name": firstName,
-		"last_name":  lastName,
 	}
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBody(requestBody),
+		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
@@ -172,10 +166,13 @@ func InviteOperatorToSwarm(urls configuration.Url, accessToken, swarmID, email, 
 	return nil
 }
 
-func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*OperatorList, error) {
+func ListSwarmOperators(urls configuration.URLs, accessToken, swarmID string) (*OperatorList, error) {
 	var err error
-	url := urls.IamUrl + constants.Swarms + "/" + swarmID + "/operators"
 	var response OperatorList
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "swarms", swarmID, "operators").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -188,9 +185,13 @@ func ListSwarmOperators(urls configuration.Url, accessToken, swarmID string) (*O
 	return &response, nil
 }
 
-func RemoveSwarmOperator(urls configuration.Url, accessToken, swarmID, operatorID string) error {
+func RemoveSwarmOperator(urls configuration.URLs, accessToken, swarmID, operatorID string) error {
 	var err error
-	url := urls.IamUrl + constants.Swarms + "/" + swarmID + "/operators/" + operatorID
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "swarms", swarmID, "operators", operatorID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -203,40 +204,42 @@ func RemoveSwarmOperator(urls configuration.Url, accessToken, swarmID, operatorI
 	return nil
 }
 
-func EditOperatorRoleInSwarm(urls configuration.Url, accessToken, tenantID, operatorID, role string) error {
+func GetSwarmStatus(urls configuration.URLs, accessToken, swarmID string) (*SummaryDetailsWithStatusNullable, error) {
 	var err error
-	url := urls.IamUrl + constants.Swarms + "/" + tenantID + "/operators/" + operatorID + "/roles"
+	var response SummaryDetailsWithStatusNullable
 
-	requestBody := map[string]interface{}{
-		"policy_id": role,
-	}
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "swarms", swarmID, "status").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithRequestMethod(http.MethodPut),
-		request_utils.WithRequestBody(requestBody),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
 	); err != nil {
-		return err
+		return nil, err
 	}
-
-	return nil
+	return &response, nil
 }
 
-func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*ProviderList, error) {
-
+func ListSwarmsV2(urls configuration.URLs, accessToken string, sort string, filter string) (*GenericPaginatedResponse[*Swarm], error) {
 	var err error
-	var finalResponse ProviderList
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/providers"
+	var finalResponse GenericPaginatedResponse[*Swarm]
+	var nextPage *int
 
-	page := 0
-	resultsPerPage := 1000
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "swarms").
+		QueryParam("sort_key", sort).
+		QueryParam("q", url.QueryEscape(filter)).
+		Build()
+
+	page := 1
 
 	for {
-		var response ProviderList
+		var response GenericPaginatedResponse[*Swarm]
 		if err = request_utils.DoRequest(
-			url+"?start_page="+strconv.Itoa(page)+"&results_per_page="+strconv.Itoa(resultsPerPage),
+			url+"&page="+strconv.Itoa(page),
 			request_utils.WithAccessToken(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
@@ -244,10 +247,11 @@ func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*P
 			return nil, err
 		}
 
-		finalResponse.Providers = append(finalResponse.Providers, response.Providers...)
+		finalResponse.Data = append(finalResponse.Data, response.Data...)
 		finalResponse.Count = response.Count
+		finalResponse.NextPage = response.NextPage
 
-		if len(response.Providers) == 0 {
+		if nextPage = response.NextPage; nextPage == nil {
 			break
 		}
 		page++
@@ -256,32 +260,27 @@ func ListSwarmProviders(urls configuration.Url, accessToken, swarmID string) (*P
 	return &finalResponse, nil
 }
 
-func CreateSwarmSecret(urls configuration.Url, accessToken, swarmID, providerID string) (*GenericIDResponseModel, error) {
+func EditOperatorRoleInSwarm(urls configuration.URLs, accessToken, swarmID, operatorID string, req ChangeOperatorPolicyRequestBody) error {
 	var err error
-	var secret string
-	var ID GenericIDResponseModel
-	url := urls.HiveUrl + constants.Swarms + "/" + swarmID + "/secrets"
+	var bodyRequest []byte
 
-	secret, err = utils.GenerateSecret()
-	if err != nil {
-		return nil, err
-	}
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "swarms", swarmID, "operators", operatorID, "roles").
+		Build()
 
-	requestBody := map[string]interface{}{
-		"provider_id": providerID,
-		"secret":      secret,
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return err
 	}
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBody(requestBody),
-		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithRequestMethod(http.MethodPut),
+		request_utils.WithRequestBodyByte(bodyRequest),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAccessToken(accessToken),
-		ExtractGenericModel(&ID),
 	); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &ID, nil
+	return nil
 }

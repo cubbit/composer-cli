@@ -1,43 +1,33 @@
+// Package api provides functions to interact with the tenant API.
 package api
 
 import (
+	"encoding/json"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateTenant(urls configuration.Url, accessToken, name string, description *string, imageUrl *string, settings TenantSettings, couponCode, zone string) (*GenericIDResponseModel, error) {
+func CreateTenant(urls configuration.URLs, accessToken string, req CreateTenantRequestBody) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Tenants
+	var bodyRequest []byte
 
-	requestBody := map[string]interface{}{
-		"name":        name,
-		"settings":    settings,
-		"coupon_code": strings.ToUpper(couponCode),
-	}
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "tenants").
+		Build()
 
-	if description != nil {
-		requestBody["description"] = *description
-	}
-
-	if imageUrl != nil {
-		requestBody["image_url"] = *imageUrl
-	}
-
-	if zone != "" {
-		requestBody["zone"] = zone
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return nil, err
 	}
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBody(requestBody),
+		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
 		request_utils.WithAccessToken(accessToken),
@@ -48,11 +38,15 @@ func CreateTenant(urls configuration.Url, accessToken, name string, description 
 	return &response, nil
 }
 
-func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*GenericPaginatedResponse[*Tenant], error) {
+func ListTenants(urls configuration.URLs, accessToken, sort, filter string) (*GenericPaginatedResponse[*Tenant], error) {
 	var err error
 	var finalResponse GenericPaginatedResponse[*Tenant]
 
-	url := urls.IamUrl + constants.Tenants + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants").
+		QueryParam("sort_key", sort).
+		QueryParam("q", filter).
+		Build()
 
 	var nextPage *int
 	page := 1
@@ -81,9 +75,13 @@ func ListTenants(urls configuration.Url, accessToken, sort, filter string) (*Gen
 	return &finalResponse, nil
 }
 
-func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantToken string) error {
+func RemoveTenant(urls configuration.URLs, accessToken, tenantID string) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantId + "?token=" + deleteTenantToken
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -96,14 +94,41 @@ func RemoveTenant(urls configuration.Url, accessToken, tenantId, deleteTenantTok
 	return nil
 }
 
-func EditTenantDescription(urls configuration.Url, accessToken, tenantID, description string) error {
+func EditTenant(urls configuration.URLs, accessToken string, tenantID string, req UpdateTenantRequestBody) error {
 	var err error
+	var bodyRequest []byte
 
-	requestBody := map[string]interface{}{
-		"description": description,
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "tenants", tenantID).
+		Build()
+
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return err
 	}
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBodyByte(bodyRequest),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EditTenantImage(urls configuration.URLs, accessToken, tenantID, imageURL string) error {
+	var err error
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID).
+		Build()
+
+	requestBody := map[string]interface{}{
+		"image_url": imageURL,
+	}
 
 	if err = request_utils.DoRequest(
 		url,
@@ -118,32 +143,13 @@ func EditTenantDescription(urls configuration.Url, accessToken, tenantID, descri
 	return nil
 }
 
-func EditTenantImage(urls configuration.Url, accessToken, tenantID, imageUrl string) error {
+func ListAvailableTenantSwarms(urls configuration.URLs, accessToken, tenantID string) (*TenantSwarmList, error) {
 	var err error
+	var response TenantSwarmList
 
-	requestBody := map[string]interface{}{
-		"image_url": imageUrl,
-	}
-
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
-
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithRequestBody(requestBody),
-		request_utils.WithExpectedStatusCode(http.StatusCreated),
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
-	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/swarms"
-	var response SwarmList
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "swarms").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -156,11 +162,15 @@ func ListAvailableTenantSwarms(urls configuration.Url, accessToken, tenantID str
 	return &response, nil
 }
 
-func ListTenantPolicies(urls configuration.Url, accessToken, tenantID string) (*PolicyList, error) {
+func ListTenantPolicies(urls configuration.URLs, accessToken, tenantID string) (*PolicyList, error) {
 	var err error
-	url := urls.IamUrl + constants.Policies + "?tenant=" + tenantID
 	var response PolicyList
 
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "policies").
+		QueryParam("tenant", tenantID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithAccessToken(accessToken),
@@ -172,21 +182,22 @@ func ListTenantPolicies(urls configuration.Url, accessToken, tenantID string) (*
 	return &response, nil
 }
 
-func InviteOperatorToTenant(urls configuration.Url, accessToken, tenantID, email, role, firstName, lastName string) error {
+func InviteOperatorToTenant(urls configuration.URLs, accessToken, tenantID string, req InviteOperatorRequestBody) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + constants.Invites
+	var bodyRequest []byte
 
-	requestBody := map[string]interface{}{
-		"email":      email,
-		"policy_id":  role,
-		"first_name": firstName,
-		"last_name":  lastName,
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "invites").
+		Build()
+
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return err
 	}
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBody(requestBody),
+		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
@@ -196,10 +207,13 @@ func InviteOperatorToTenant(urls configuration.Url, accessToken, tenantID, email
 	return nil
 }
 
-func ListTenantOperators(urls configuration.Url, accessToken, tenantID string) (*OperatorList, error) {
+func ListTenantOperators(urls configuration.URLs, accessToken, tenantID string) (*OperatorList, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/operators"
 	var response OperatorList
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "operators").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -212,9 +226,32 @@ func ListTenantOperators(urls configuration.Url, accessToken, tenantID string) (
 	return &response, nil
 }
 
-func RemoveTenantOperator(urls configuration.Url, accessToken, tenantID, operatorID string) error {
+func GetTenantOperator(urls configuration.URLs, accessToken, tenantID, operatorID string) (*Operator, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/operators/" + operatorID
+	var response Operator
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "operators", operatorID).
+		Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func RemoveTenantOperator(urls configuration.URLs, accessToken, tenantID, operatorID string) error {
+	var err error
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "operators", operatorID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -227,10 +264,13 @@ func RemoveTenantOperator(urls configuration.Url, accessToken, tenantID, operato
 	return nil
 }
 
-func GetTenant(urls configuration.Url, accessToken, tenantID string) (*Tenant, error) {
+func GetTenant(urls configuration.URLs, accessToken, tenantID string) (*Tenant, error) {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
 	var response Tenant
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID).
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -243,15 +283,23 @@ func GetTenant(urls configuration.Url, accessToken, tenantID string) (*Tenant, e
 	return &response, nil
 }
 
-func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string) error {
+func ConnectSwarm(urls configuration.URLs, accessToken, tenantID, swarmID string, redundancyClassID string, isDefault bool) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/swarms/" + swarmID
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "tenants", tenantID, "swarms", swarmID).
+		Build()
+
+	requestBody := map[string]interface{}{
+		"redundancy_class_id": redundancyClassID,
+		"default":             isDefault,
+	}
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPut),
 		request_utils.WithAccessToken(accessToken),
+		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
 		return err
@@ -260,12 +308,13 @@ func ConnectSwarm(urls configuration.Url, accessToken, tenantID, swarmID string)
 	return nil
 }
 
-func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string) (*SwarmList, error) {
+func GetTenantCouponSwarms(urls configuration.URLs, accessToken, tenantID string) (*SwarmList, error) {
 	var err error
-
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/coupons/default/swarms"
-
 	var response SwarmList
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "coupons", "default", "swarms").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -278,12 +327,13 @@ func GetTenantCouponSwarms(urls configuration.Url, accessToken, tenantID string)
 	return &response, nil
 }
 
-func GetGatwayZones(urls configuration.Url) (*ZoneMap, error) {
+func GetGatewayZones(urls configuration.URLs) (*ZoneMap, error) {
 	var err error
-
-	url := urls.IamUrl + constants.Zones
-
 	var response ZoneMap
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "zones").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -295,10 +345,13 @@ func GetGatwayZones(urls configuration.Url) (*ZoneMap, error) {
 	return &response, nil
 }
 
-func AssignTenantToCoupon(urls configuration.Url, accessToken, tenantID, CouponCode string) (*GenericIDResponseModel, error) {
+func AssignTenantToCoupon(urls configuration.URLs, accessToken, tenantID, CouponCode string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/coupon"
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "coupons").
+		Build()
 
 	requestBody := map[string]interface{}{
 		"coupon_code": CouponCode,
@@ -317,14 +370,16 @@ func AssignTenantToCoupon(urls configuration.Url, accessToken, tenantID, CouponC
 	return &response, nil
 }
 
-func EditTenantSettings(urls configuration.Url, accessToken string, tenantID string, settings TenantSettings) error {
+func EditTenantSettings(urls configuration.URLs, accessToken string, tenantID string, settings TenantSettings) error {
 	var err error
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v2", "tenants", tenantID).
+		Build()
 
 	requestBody := map[string]interface{}{
 		"settings": settings,
 	}
-
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID
 
 	if err = request_utils.DoRequest(
 		url,
@@ -339,18 +394,22 @@ func EditTenantSettings(urls configuration.Url, accessToken string, tenantID str
 	return nil
 }
 
-func EditOperatorRoleInTenant(urls configuration.Url, accessToken, tenantID, operatorID, role string) error {
+func EditOperatorRoleInTenant(urls configuration.URLs, accessToken, tenantID, operatorID string, req ChangeOperatorPolicyRequestBody) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/operators/" + operatorID + "/roles"
+	var bodyRequest []byte
 
-	requestBody := map[string]interface{}{
-		"policy_id": role,
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "tenants", tenantID, "operators", operatorID, "roles").
+		Build()
+
+	if bodyRequest, err = json.Marshal(req); err != nil {
+		return err
 	}
 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPut),
-		request_utils.WithRequestBody(requestBody),
+		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAccessToken(accessToken),
 	); err != nil {
@@ -358,4 +417,48 @@ func EditOperatorRoleInTenant(urls configuration.Url, accessToken, tenantID, ope
 	}
 
 	return nil
+}
+
+func DownloadTenantReport(urls configuration.URLs, accessToken, tenantID, from, to, output string) (*string, error) {
+	var err error
+	var response string
+
+	url := NewURLBuilder(urls.DashURL).
+		Path(constants.BaseDashURI, "v1", "tenants", tenantID, "projects", "report").
+		QueryParam("from_date", from).
+		QueryParam("to_date", to).Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAttachement(),
+		DownloadReport(output, &response),
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func GetTenantReport(urls configuration.URLs, accessToken, tenantID, from, to string) (*TenantReportResponseModel, error) {
+	var err error
+	var response TenantReportResponseModel
+
+	url := NewURLBuilder(urls.DashURL).
+		Path(constants.BaseDashURI, "v1", "tenants", tenantID, "projects", "report").
+		QueryParam("from_date", from).
+		QueryParam("to_date", to).Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		extractReport(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, err
 }

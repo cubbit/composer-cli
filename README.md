@@ -1,549 +1,301 @@
-# Cubbit cli
+# Cubbit CLI
 
-## Usage
+[![Go Version](https://img.shields.io/badge/Go-1.24+-blue.svg)](https://golang.org/)
+[![Version](https://img.shields.io/badge/version-0.22.1-green.svg)](https://github.com/cubbit/go-cli/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-### Signup an operator
+The official Cubbit CLI (Command-Line Interface) for managing your DS3 composer infrastructure.
 
-```bash
-cubbit-operator-cli operator signup --api-server-url <api-server-url> --email <email> --password <password> --first-name <first-name> --last-name <last-name> --secret <secret>
-```
-
-> **_NOTE:_** The --api-server-url can either be the backend url or a keyword that identifies the file containing the service endpoint.
-
-Keyword file example
-
-./.env.local
-
-```bash
-iam: http://localhost:8181
-hive: http://localhost:9151
-dash:  http://localhost:3000
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli operator signup --interactive
-```
-
-### Signin an operator
-
-```bash
-cubbit-operator-cli signin/login --interactive
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli signin/login --api-server-url <api-server-url> --email <email> --password <password> --code <code> --profile <profile> --config <config>
-```
-
-### sign out an operator
-
-```bash
-cubbit-operator-cli logout --profile default
-```
-
-### Create a tenant
-
-```bash
-cubbit-operator-cli tenant create --name <name> --description <description> --image-url <image-url> --settings <settings>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant create --interactive
-```
-
-### Describe a tenant
-
-```bash
-cubbit-operator-cli tenant describe --name <name> --id <id>  --format <json|csv|semantic>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant describe --interactive
-```
-
-### List all of the available tenants
-
-```bash
-cubbit-operator-cli tenant list --verbose --line --query <query> --sort <sort_key> --page <page> --page-size <page-size>
-```
-
-### Delete a tenant
-
-```bash
-cubbit-operator-cli tenant remove --name <name> --id <id>  --email <email> --password <password> --code <code>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant remove --interactive
-```
-
-### Edit the description of a tenant
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  edit-description <description>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant edit-description --interactive
-```
-
-### Edit the image of a tenant
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  edit-image <image-url>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant edit-image --interactive
-```
-
-### Invite an operator to a tenant
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> add-operator --email <email> --first-name <first-name> --last-name <last-name> --role <role>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant add-operator --interactive
-```
-
-### List operators of a tenant
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  list-operators --sort <sort_key> --page <page> --page-size <page-size>
-```
-
-### Remove an operator of a tenant
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  remove-operator <operator-id|operator-email>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant remove-operator --interactive
-```
-
-### Create a swarm
-
-```bash
-cubbit-operator-cli swarm create --name <name> --description <description> --configuration <configuration>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm create --interactive
-```
-
-### Describe a swarm
-
-```bash
-cubbit-operator-cli swarm describe --name <name> --id <id> --format <json|csv|semantic>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm describe --interactive
-```
-
-### List all of the available swarms
-
-```bash
-cubbit-operator-cli swarm list --verbose --line --sort <sort_key> --page <page> --page-size <page-size>
-```
-
-### Delete a swarm
-
-```bash
-cubbit-operator-cli swarm remove --name <name> --id <id>  --email <email> --password <password> --code <code>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm remove --interactive
-```
-
-### Edit the description of a swarm
-
-```bash
-cubbit-operator-cli swarm --name <name> --id <id>  edit-description <description>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm edit-description --interactive
-```
-
-### Edit the name of a swarm
-
-```bash
-cubbit-operator-cli swarm --name <name> --id <id>  edit-name <name>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm edit-name --interactive
-```
-
-### Invite an operator to a swarm
-
-```bash
-cubbit-operator-cli swarm --name <name> --id <id> add-operator --email <email> --first-name <first-name> --last-name <last-name> --role <role>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm add-operator --interactive
-```
-
-### List operators of a swarm
-
-```bash
-cubbit-operator-cli swarm --name <name> --id <id> list-operators --sort <sort_key> --page <page> --page-size <page-size>
-```
-
-### Remove an operator of a swarm
-
-```bash
-cubbit-operator-cli swarm --name <name> --id <id>  remove-operator <operator-id|operator-email>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli swarm remove-operator --interactive
-```
-
-### Connect a swarm to a tenant
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  connect-swarm <swarm-name|swarm-id>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant connect-swarm --interactive
-```
-
-### List tenant available swarms
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> list-available-swarms --sort <sort_key> --page <page> --page-size <page-size>
-```
-
-Interactively
-
-```bash
-cubbit-operator-cli tenant list-available-swarms --interactive
-```
-
-### Create a distributor
-
-```bash
-cubbit-operator-cli distributor create/new --name <name> --description <description> --first-name <first-name> --image-url <image-url> --owner <owner> --swarms <swarm-ids> 
-```
-
-Interactively
+## Overview
 
-```bash
-cubbit-operator-cli distributor create/new --interactive
-```
+The Cubbit CLI is a powerful command-line tool designed to provide comprehensive management capabilities for your DS3 composer environment. Built with Go and featuring an intuitive interface, it streamlines operations across your entire infrastructure stack.
 
-### List distributors
+### Key Capabilities
 
-```bash
-cubbit-operator-cli distributor list --sort <sort_key> --page <page> --page-size <page-size>
-```
+- **Swarm Management** - Create, configure, and manage distributed swarms
+- **Tenant Operations** - Complete tenant lifecycle management and configuration
+- **Infrastructure Control** - Deploy and manage Nexus, Redundancy Classes, nodes, and agents
+- **User & Account Management** - Handle tenant accounts and user administration
+- **Gateway Configuration** - Set up and manage gateway operations
+- **Interactive Workflows** - User-friendly guided processes for complex tasks
 
-Interactively
+The CLI leverages modern Go libraries including Cobra for command structure and Bubble Tea for terminal user interfaces, supporting both automated scripting and interactive modes.
 
-```bash
-cubbit-operator-cli distributor list --interactive
-```
+## Installation
 
-### Remove distributor
+### Prerequisites
 
-```bash
-cubbit-operator-cli distributor remove --name <name> --id <id>  --email <email> --password <password> --code <code>
-```
+- Go 1.24.1 or higher
+- Git (for source installation)
 
-Interactively
+### Option 1: Pre-built Binaries (Recommended)
 
-```bash
-cubbit-operator-cli distributor remove --interactive
-```
+Download the latest release for your platform from our [releases page](https://github.com/cubbit/go-cli/releases).
 
-### Generate distributors report
+### Option 2: Build from Source
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id>  report --coupon <coupon> --format <json|csv|semantic> --from <from> --to <to> --output <output>
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/cubbit/go-cli.git
+   cd go-cli
+   ```
 
-Interactively
+2. **Build the CLI:**
+   ```bash
+   # Build for current platform
+   go build -o build/cubbit .
 
-```bash
-cubbit-operator-cli distributor report --interactive
-```
+   # Cross-compile for specific platform (example for macOS)
+   env GOOS=darwin GOARCH=amd64 go build -o build/cubbit .
+   ```
 
-### Create a distributor coupon
+3. **Install to your PATH:**
+   ```bash
+   # Linux/macOS
+   sudo cp build/cubbit /usr/local/bin/
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id> create-coupon/new-coupon --coupon-name <coupon-name> --description <description> --redemption-count <redemption-count> --swarms <swarm-ids> --zone <zone>
-```
+   # Windows: Copy build/cubbit.exe to a directory in your PATH
+   ```
 
-Interactively
+### Option 3: Build with Bazel
 
-```bash
-cubbit-operator-cli distributor create-coupon/new-coupon --interactive
-```
+For developers using Bazel build system:
 
-### Describe a distributor coupon
+1. **Prerequisites:**
+   ```bash
+   # Install Bazel (if not already installed)
+   # Visit https://bazel.build/install for platform-specific instructions
+   ```
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id> describe-coupon <coupon-id|coupon-name>
-```
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/cubbit/go-cli.git
+   cd go-cli
+   ```
 
-Interactively
+3. **Build with Bazel:**
+   ```bash
+   # Build the CLI binary
+   bazel build //:cli
 
-```bash
-cubbit-operator-cli distributor describe-coupon --interactive
-```
+   # Build for specific platform
+   bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //:cli
+   bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //:cli
+   bazel build --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //:cli
+   ```
 
-### Edit a distributor coupon
+4. **Run directly with Bazel:**
+   ```bash
+   # Run without building separately
+   bazel run //:cli -- --help
+   bazel run //:cli -- --version
+   ```
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id>  edit-coupon <coupon-id|coupon-name> --coupon-name <new-coupon-name> --description <description> --redemption-count <redemption-count>
-```
+5. **Install the built binary:**
+   ```bash
+   # Copy from Bazel output directory
+   cp bazel-bin/cli_/cli /usr/local/bin/
+   ```
 
-Interactively
+### Verify Installation
 
 ```bash
-cubbit-operator-cli distributor edit-coupon --interactive
+cubbit --version
 ```
 
-### List distributor coupons
+## Quick Start
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id>  list-coupons --sort <sort_key> --page <page> --page-size <page-size>
-```
+### Initial Setup
 
-Interactively
+1. **Initialize configuration** (optional - creates config file at `$XDG_CONFIG/cubbit/config.yaml`):
+   ```bash
+   cubbit config init
+   ```
 
-```bash
-cubbit-operator-cli distributor list -coupons--interactive
-```
+2. **Authenticate with your composer account:**
+   ```bash
+   cubbit auth login --profile <profile_name>
+   ```
 
-### Remove a distributor coupon
+   This will open your browser for secure authentication and automatically configure your API key.
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id> remove-coupon <coupon-id|coupon-name>
-```
+3. **Verify your setup:**
+   ```bash
+   cubbit config view
+   ```
 
-Interactively
+### Basic Commands
 
 ```bash
-cubbit-operator-cli distributor remove-coupon --interactive
-```
+# Display help and available commands
+cubbit --help
 
-### Revoke a distributor coupon
+# View command structure
+cubbit docs tree
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id> revoke-coupon <coupon-id|coupon-name>
-```
+# Manage configuration profiles
+cubbit config [command]
 
-Interactively
+# Manage tenants
+cubbit tenant [command]
 
-```bash
-cubbit-operator-cli distributor revoke-coupon --interactive
+# Manage swarms
+cubbit swarm [command]
 ```
 
-### Assign a tenant to a distributor coupon
+## Configuration
 
-```bash
-cubbit-operator-cli distributor --name <name> --id <id>  assign-tenant --tenant-id <tenant-id> --tenant-name <tenant-name> --coupon-code <coupon-code>
-```
+The CLI uses a profile-based configuration system stored in `$XDG_CONFIG/cubbit/config.yaml`. This allows you to manage multiple environments and accounts efficiently.
 
-Interactively
+### Configuration Example
 
-```bash
-cubbit-operator-cli distributor assign-tenant --interactive
-```
+```toml
+[default]
+endpoint = "https://api.eu00wi.cubbit.services"
+output = "json"
 
-## Build
+[profile.composer]
+inherits = "default"
+type = "composer"
+api_key = "<your_api_key>"
 
-```bash
-go build -o build/cubbit github.com/cubbit/cubbit/client/cli
+[profile.dev-composer]
+inherits = "default"
+type = "composer"
+endpoint = "localhost"
+api_key = "<your_api_key>"
 ```
 
-## TODO
+### Configuration Options
 
-### Tenant Commands
+| Option | Description | Default |
+|--------|-------------|---------|
+| `endpoint` | API endpoint for your DS3 composer | - |
+| `output` | Output format: `json`, `yaml`, `xml`, `csv` | Human-readable |
+| `type` | Profile type (`composer` for DS3 management) | - |
+| `api_key` | Your authentication API key | - |
+| `inherits` | Inherit settings from another profile | - |
 
-Edit tenant settings:
+### Profile Management
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  edit-settings {settings} 
-```
+# Switch between profiles
+cubbit config switch-profile <profile_name>
 
-List users registered under a tenant:
-
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> list-users --query <query> --sort <sort_key> --page <page> --page-size <page-size>
+# List available profiles
+cubbit config list-profiles
 ```
 
-Create multiple users under a tenant:
+## Authentication
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  create-user --emails <email1,email2>
-```
+Authentication is handled through API keys generated via secure browser-based login.
 
-Describe a user:
+### Login Process
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> describe-user <user-id>
-```
+1. Run the login command:
+   ```bash
+   cubbit auth login --profile <profile_name>
+   ```
 
-Delete a user:
+2. Your browser will open automatically for authentication
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> delete-user <user-id>
-```
+3. After successful login, copy the 8-digit verification code from the CLI prompt
 
-Edit a user:
+4. Enter the code in your browser to complete authorization
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  edit-user <user-id> --first-name <first-name> --last-name <last-name> --internal <true|false> --max-allowed-projects <max-allowed-projects> --endpoint-gateway <endpoint-gateway>
-```
+5. The CLI will automatically update your configuration with the new API key
 
-Freeze a user:
+![Authentication Flow](./assets/auth.gif)
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> freeze-user <user-id>
-```
+## Interactive Mode
 
-Unfreeze a user:
+For complex operations and guided workflows, use interactive mode:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  unfreeze-user <user-id>
+cubbit --interactive
 ```
 
-Restore a user:
+Interactive mode provides step-by-step assistance for gateway configuration and installation processes.
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  restore-user <user-id>
-```
+## Advanced Usage
 
-Invalidate a user sessions:
+### Scripting and Automation
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id>  delete-user-sessions <user-id>
-```
+The CLI provides multiple modes for automation and scripting:
 
-Update tenant coupon:
+- **Quiet mode** - Suppresses non-essential output
+- **Silent mode** - Designed for background operations
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id>  edit-coupon --coupon-code <coupon-code>
-```
-
-Get the operator with at least get access to the tenant:
+# Quiet mode example
+cubbit tenant list --quiet
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> describe-operator <operator-id>
+# Silent mode example
+cubbit swarm deploy --silent
 ```
 
-Edit the role of an operator inside a tenant:
+### Output Formats
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> edit-operator <operator-id> --role <role>
-```
-  
-List projects registered under a tenant:
+The CLI supports multiple output formats to suit different use cases:
 
 ```bash
-cubbit-operator-cli tenant --name <name> --id <id> list-projects --query <query> --sort <sort_key> --page <page> --page-size <page-size>
-```
+# Human-readable (default)
+cubbit tenant list
 
-Describe a project:
+# JSON for scripting
+cubbit tenant list --output json
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> describe-project <project-id>
+# YAML for configuration
+cubbit tenant list --output yaml
 ```
-
-Delete a project:
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> delete-project <project-id>
-```
+## Features
 
-Edit a project:
+- ✅ **Cross-platform Support** - Linux, macOS, Windows
+- ✅ **Profile-based Configuration** - Manage multiple environments and accounts
+- ✅ **Interactive Workflows** - Guided setup processes
+- ✅ **Automation-friendly** - Scriptable with multiple output formats
+- ✅ **Comprehensive Documentation** - Built-in help system
+- ✅ **Secure Authentication** - Browser-based OAuth flow
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> edit-project <project-id> --image-url <image-url> --description <description> --name <name>
-```
+## Documentation
 
-Freeze a project:
+- **Cubbit Official Documentation**: [docs.cubbit.io](https://docs.cubbit.io)
+- **Command Reference**: Run `cubbit docs` for detailed command documentation
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> freeze-project <project-id>
-```
+## Support
 
-Unfreeze a project:
+### Getting Help
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> unfreeze-project <project-id>
-```
+- **Issues**: [GitHub Issues](https://github.com/cubbit/go-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/cubbit/go-cli/discussions)
+- **Documentation**: [docs.cubbit.io](https://docs.cubbit.io)
 
-Restore a project:
+### Reporting Bugs
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> restore-project <project-id>
-```
+Please include the following information when reporting issues:
+- CLI version (`cubbit --version`)
+- Operating system and version
+- Complete error messages
+- Steps to reproduce
 
-List swarms associated with a tenant:
+## Contributing
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> list-swarms --sort <sort_key> --page <page> --page-size <page-size>
-```
+We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for:
 
-### Swarm Commands
+- Code style guidelines
+- Development setup instructions
+- Pull request process
+- Issue reporting guidelines
 
-Get the swarm operator:
+## License
 
-```bash
-cubbit-operator-cli swarm --name <name> --id <id> describe-operator <operator-id>
-```
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for complete details.
 
-Edit the role of a swarm operator:
+## Changelog
 
-```bash
-cubbit-operator-cli swarm --name <name> --id <id> edit-operator <operator-id> edit --role <role>
-```
+For a complete history of changes and new features, see [CHANGELOG.md](CHANGELOG.md).
 
-### Generate project report
+---
 
-```bash
-cubbit-operator-cli tenant --name <name> --id <id> report-projects <project-id> --format <json|csv|semantic> --from <from> --to <to> --output <output>
-```
+**Need help?** Check our [documentation](https://docs.cubbit.io) or open an [issue](https://github.com/cubbit/go-cli/issues).

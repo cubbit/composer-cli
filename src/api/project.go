@@ -1,3 +1,4 @@
+// Package api provides functions to interact with the project API.
 package api
 
 import (
@@ -6,15 +7,17 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
 	"github.com/cubbit/cubbit/client/cli/src/configuration"
 	"github.com/cubbit/cubbit/client/cli/src/request_utils"
 )
 
-func CreateProject(urls configuration.Url, accessToken, name string, description *string, imageUrl *string) (*GenericIDResponseModel, error) {
+func CreateProject(urls configuration.URLs, accessToken, name string, description *string, imageUrl *string) (*GenericIDResponseModel, error) {
 	var err error
 	var response GenericIDResponseModel
-	url := urls.IamUrl + constants.Projects
+
+	url := NewURLBuilder(urls.IamURL).
+		Path("v1", "projects").
+		Build()
 
 	requestBody := map[string]interface{}{
 		"name": name,
@@ -42,12 +45,42 @@ func CreateProject(urls configuration.Url, accessToken, name string, description
 	return &response, nil
 }
 
-func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*ProjectItem], error) {
+func UpdateProject(urls configuration.URLs, accessToken, tenantID, projectID string, projectBody UpdateTenantProjectRequestBody) error {
 	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects" + "?sort_key=" + sort + "&q=" + url.QueryEscape(filter)
-	var finalResponse GenericPaginatedResponse[*ProjectItem]
 
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "projects", projectID).
+		Build()
+
+	requestBody, err := json.Marshal(projectBody)
+	if err != nil {
+		return err
+	}
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithRequestBodyByte(requestBody),
+		request_utils.WithAccessToken(accessToken),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ListTenantProjects(urls configuration.URLs, accessToken, tenantID, sort, filter string) (*GenericPaginatedResponse[*ProjectItem], error) {
+	var err error
+	var finalResponse GenericPaginatedResponse[*ProjectItem]
 	var nextPage *int
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "projects").
+		QueryParam("sort_key", sort).
+		QueryParam("q", url.QueryEscape(filter)).
+		Build()
+
 	page := 1
 
 	for {
@@ -74,10 +107,13 @@ func ListTenantProjects(urls configuration.Url, accessToken, tenantID, sort, fil
 	return &finalResponse, nil
 }
 
-func RemoveTenantProject(urls configuration.Url, accessToken, tenantID, projectID, deleteTenantProjectToken string) error {
+func RemoveTenantProject(urls configuration.URLs, accessToken, tenantID, projectID string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "?token=" + deleteTenantProjectToken
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "projects", projectID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
@@ -90,13 +126,17 @@ func RemoveTenantProject(urls configuration.Url, accessToken, tenantID, projectI
 	return nil
 }
 
-func ToggleBanProject(urls configuration.Url, accessToken, tenantID string, projectID string, banned bool) error {
+func ToggleBanProject(urls configuration.URLs, accessToken, tenantID string, projectID string, banned bool) error {
 	var err error
-	banUrl := "ban"
+	banURL := "ban"
 	if !banned {
-		banUrl = "unban"
+		banURL = "unban"
 	}
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/" + banUrl
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "projects", projectID, banURL).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
@@ -109,10 +149,12 @@ func ToggleBanProject(urls configuration.Url, accessToken, tenantID string, proj
 	return nil
 }
 
-func RestoreTenantProject(urls configuration.Url, accessToken, tenantID, projectID string) error {
+func RestoreTenantProject(urls configuration.URLs, accessToken, tenantID, projectID string) error {
 	var err error
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID + "/restore"
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "projects", projectID, "restore").
+		Build()
 
 	if err = request_utils.DoRequest(
 		url,
@@ -125,33 +167,14 @@ func RestoreTenantProject(urls configuration.Url, accessToken, tenantID, project
 	return nil
 }
 
-func UpdateProject(urls configuration.Url, accessToken, tenantID, projectID string, projectBody UpdateTenantProjectRequestBody) error {
-	var err error
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
-
-	requestBody, err := json.Marshal(projectBody)
-	if err != nil {
-		return err
-	}
-
-	if err = request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithRequestBodyByte(requestBody),
-		request_utils.WithAccessToken(accessToken),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GetTenantProject(urls configuration.Url, accessToken, tenantID, projectID string) (*ProjectItem, error) {
+func GetTenantProject(urls configuration.URLs, accessToken, tenantID, projectID string) (*ProjectItem, error) {
 	var err error
 	var response ProjectItem
 
-	url := urls.IamUrl + constants.Tenants + "/" + tenantID + "/projects/" + projectID
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "projects", projectID).
+		Build()
+
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithAccessToken(accessToken),
