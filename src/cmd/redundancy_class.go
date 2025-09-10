@@ -105,7 +105,7 @@ func init() {
 
 	redundancyClassCmd.AddCommand(listRedundancyClassesSubCmd)
 	listRedundancyClassesSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listRedundancyClassesSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listRedundancyClassesSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	redundancyClassCmd.AddCommand(CheckRedundancyClassStatusSubCmd)
 	CheckRedundancyClassStatusSubCmd.Flags().String("rc-id", "", "ID of the redundancy class")

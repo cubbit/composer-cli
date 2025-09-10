@@ -138,7 +138,7 @@ func init() {
 
 	projectCmd.AddCommand(listTenantProjectsSubCmd)
 	listTenantProjectsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listTenantProjectsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listTenantProjectsSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	tenantCmd.AddCommand(projectCmd)
 	projectCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")

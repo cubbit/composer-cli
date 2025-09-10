@@ -174,7 +174,7 @@ func init() {
 
 	userCmd.AddCommand(listTenantUsersSubCmd)
 	listTenantUsersSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listTenantUsersSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listTenantUsersSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	tenantCmd.AddCommand(userCmd)
 	userCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")

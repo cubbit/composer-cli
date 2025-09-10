@@ -34,6 +34,11 @@ func printJSON(data interface{}) {
 		fmt.Print("error encoding json:", err)
 		return
 	}
+
+	if string(jsonData) == "null" {
+		return
+	}
+
 	fmt.Println(string(jsonData))
 }
 

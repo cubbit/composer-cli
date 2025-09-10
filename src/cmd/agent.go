@@ -172,7 +172,7 @@ func init() {
 
 	agentCmd.AddCommand(listAgentsSubCmd)
 	listAgentsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listAgentsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listAgentsSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 	listAgentsSubCmd.Flags().String("redundancy-class-id", "", "ID of the redundancy class")
 
 	agentCmd.AddCommand(editAgentSubCmd)

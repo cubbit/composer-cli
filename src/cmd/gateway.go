@@ -119,7 +119,7 @@ func init() {
 
 	gatewayCmd.AddCommand(listGatewaysSubCmd)
 	listGatewaysSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listGatewaysSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listGatewaysSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	gatewayCmd.AddCommand(describeGatewaySubCmd)
 	describeGatewaySubCmd.Flags().String("gateway-id", "", "ID of the gateway")

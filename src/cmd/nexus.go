@@ -110,7 +110,7 @@ func init() {
 
 	nexusCmd.AddCommand(listNexusesSubCmd)
 	listNexusesSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listNexusesSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listNexusesSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	nexusCmd.AddCommand(describeNexusSubCmd)
 	describeNexusSubCmd.Flags().String("nexus-id", "", "ID of the nexus")

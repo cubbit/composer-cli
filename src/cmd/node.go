@@ -189,7 +189,7 @@ func init() {
 
 	nodeCmd.AddCommand(listNodesSubCmd)
 	listNodesSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listNodesSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listNodesSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	nodeCmd.AddCommand(deployNodeSubCmd)
 	deployNodeSubCmd.Flags().String("node-id", "", "ID of the node")

@@ -120,7 +120,7 @@ func init() {
 
 	swarmCmd.AddCommand(listSwarmSubCmd)
 	listSwarmSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listSwarmSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listSwarmSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 
 	swarmCmd.AddCommand(removeSwarmSubCmd)
 	removeSwarmSubCmd.Flags().String("swarm-id", "", "ID of the swarm")

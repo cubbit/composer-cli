@@ -177,7 +177,6 @@ func PrintSimpleList(items []string) {
 
 func PrintVerbose(data interface{}, noHeaders bool) {
 	printMarkdownTable(data, noHeaders)
-
 }
 
 func printMarkdownTable(data interface{}, noHeaders bool) {
@@ -419,7 +418,9 @@ func PrintSmartOutput[T any](
 		return fmt.Errorf("failed to get output flag: %w", err)
 	}
 
-	if config != nil && config.DefaultOutput != "" && !cmd.Flags().Changed("output") {
+	if config != nil && config.DefaultOutput != "" &&
+		!cmd.Flags().Changed("output") &&
+		!cmd.Flags().Changed("quiet") {
 		output = string(config.DefaultOutput)
 	}
 

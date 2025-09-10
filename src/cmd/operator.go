@@ -123,7 +123,7 @@ func init() {
 
 	IAMUserCmd.AddCommand(listIAMOperatorsSubCmd)
 	listIAMOperatorsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
-	listIAMOperatorsSubCmd.Flags().String("filter", "", "Filters the output based on the given field")
+	listIAMOperatorsSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
 	listIAMOperatorsSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
 	listIAMOperatorsSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
