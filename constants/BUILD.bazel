@@ -1,0 +1,11 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "constants",
+    srcs = [
+        "constants.go",
+        "errors.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/constants",
+    visibility = ["//visibility:public"],
+)

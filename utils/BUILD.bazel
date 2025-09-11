@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "utils",
+    srcs = [
+        "compute.go",
+        "crypto.go",
+        "file.go",
+        "filter.go",
+        "formatter.go",
+        "printer.go",
+        "secret.go",
+        "slices.go",
+        "string.go",
+        "validate.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/utils",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/configuration",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+        "@com_github_spf13_cobra//:cobra",
+        "@in_gopkg_yaml_v3//:yaml_v3",
+    ],
+)

@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cmd",
+    srcs = [
+        "agent.go",
+        "auth.go",
+        "config.go",
+        "docs.go",
+        "gateway.go",
+        "iam.go",
+        "nexus.go",
+        "node.go",
+        "operator.go",
+        "policy.go",
+        "project.go",
+        "redundancy_class.go",
+        "redundancy_class_recovery.go",
+        "root.go",
+        "swarm.go",
+        "tenant.go",
+        "user.go",
+    ],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/action",
+        "//src/configuration",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//doc",
+        "@com_github_spf13_pflag//:pflag",
+    ],
+)

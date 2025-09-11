@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "configuration",
+    srcs = ["configuration.go"],
+    importpath = "github.com/cubbit/cubbit/client/cli/src/configuration",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/tui",
+        "@com_github_burntsushi_toml//:toml",
+        "@com_github_spf13_cobra//:cobra",
+        "@in_gopkg_yaml_v2//:yaml_v2",
+    ],
+)

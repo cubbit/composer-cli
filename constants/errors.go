@@ -1,0 +1,131 @@
+package constants
+
+const (
+	ErrorConfiguringAPIURL  = "error while configuring API server URL"
+	ErrorRetrievingOperator = "error while retrieving operator id"
+
+	ErrorSavingConfig        = "error while saving configuration"
+	ErrorLoadingConfig       = "error while loading file path configuration"
+	ErrorParsingJSONSettings = "error while parsing json settings"
+	ErrorRetrievingField     = "error while retrieving field"
+	ErrorRunningField        = "error while running input(s)"
+
+	ErrorCreatingTenant       = "error while creating tenant"
+	ErrorEditingTenant        = "error while editing tenant"
+	ErrorRetrievingTenant     = "error while retrieving tenant"
+	ErrorRetrievingTenantList = "error while retrieving tenant list"
+	ErrorDeletingTenant       = "error while deleting tenant"
+
+	ErrorInvitingOperator = "error while inviting operator"
+	ErrorListingOperators = "error while listing operators"
+	ErrorRemovingOperator = "error while removing operator"
+
+	ErrorGettingOperatorRequest = "failed request to get operator"
+	ErrorSignRequest            = "failed request to sign in"
+
+	ErrorCreatingOperatorRequest    = "failed to create operator request"
+	ErrorPromotingOperatorRequest   = "failed to promote operator request"
+	ErrorListingTenantsRequest      = "failed request to list tenants request"
+	ErrorDeletingTenantRequest      = "failed request to delete tenant"
+	ErrorEditingTenantRequest       = "failed request to edit tenant "
+	ErrorListingTenantSwarmsRequest = "failed request to list tenant available swarms"
+	ErrorInvitingOperatorRequest    = "failed request to invite operator"
+	ErrorListingOperatorsRequest    = "failed request to list operators"
+	ErrorRemovingOperatorRequest    = "failed request to remove operator"
+	ErrorEditingOperatorRoleRequest = "failed request to edit operator role"
+
+	ErrorIamConfigNotFound          = "iam api server url is not defined in configuration"
+	ErrorTokenConfigNotFound        = "refresh token is not defined in configuration file"
+	ErrorDashConfigNotFound         = "dash api server url is not defined in configuration"
+	ErrorChConfigNotFound           = "ch api server url is not defined in configuration"
+	ErrorMetricsConfigNotFound      = "metrics api server url is not defined in configuration"
+	ErrorSwarmGatewayConfigNotFound = "swarm gateway api server url is not defined in configuration"
+	ErrorSessionTypeConfigNotFound  = "session type is not defined in configuration"
+	ErrorSessionTypeConfigInvalid   = "session type is invalid for this request"
+
+	ErrorConnectingSwarm              = "error while connecting swarm "
+	ErrorCreatingSwarmRequest         = "failed request to create the swarm"
+	ErrorListingSwarmsRequest         = "failed request to list swarms"
+	ErrorRetrievingSwarmRequest       = "failed request to get swarm"
+	ErrorEditingSwarmRequest          = "failed request to edit swarm"
+	ErrorRetrievingSwarmStatusRequest = "failed request to get swarm status"
+	ErrorDeletingSwarmRequest         = "failed request to delete swarm"
+	ErrorConnectingSwarmRequest       = "failed request to connect swarm"
+
+	ErrorListingPolicies        = "error while retrieving list policies"
+	ErrorListingPoliciesRequest = "failed request to list policies"
+	ErrorRetrievingPolicy       = "error while retrieving policy"
+
+	ErrorRetrievingOperatorRequest = "failed request to retrieve operator"
+	ErrorCreatingTenantRequest     = "failed request to create the tenant"
+
+	ErrorInvalidZone            = "invalid zone"
+	ErrorRetrievingZonesRequest = "failed request to retrieve zones"
+
+	ErrorCreatingProjectRequest = "failed request to create the project"
+
+	ErrorListingTenantAccountsRequest         = "failed request to list tenant users"
+	ErrorDeletingTenantAccountRequest         = "failed request to delete tenant user"
+	ErrorDescribingTenantAccountRequest       = "failed request to describe tenant user"
+	ErrorEditingTenantAccountRequest          = "failed request to edit tenant user"
+	ErrorFreezingTenantAccountRequest         = "failed request to freeze tenant user"
+	ErrorUnfreezingTenantAccountRequest       = "failed request to unfreeze tenant user"
+	ErrorRestoringTenantAccountRequest        = "failed request to restore tenant user"
+	ErrorDeletingTenantAccountSessionsRequest = "failed request to delete tenant user sessions"
+	ErrorRetrievingTenantAccountRequest       = "failed request to retrieve tenant user"
+	ErrorCreatingTenantAccountsRequest        = "failed request to create tenant users"
+	ErrorUpdatingTenantAccountRequest         = "failed request to update tenant user"
+
+	ErrorInvalidInternalValue = "invalid internal value"
+
+	ErrorListingTenantProjectsRequest   = "failed request to list tenant projects"
+	ErrorDeletingTenantProjectRequest   = "failed request to delete tenant project"
+	ErrorDescribingTenantProjectRequest = "failed request to describe tenant project"
+	ErrorEditingTenantProjectRequest    = "failed request to edit tenant project"
+	ErrorFreezingTenantProjectRequest   = "failed request to freeze tenant project"
+	ErrorUnfreezingTenantProjectRequest = "failed request to unfreeze tenant project"
+	ErrorRestoringTenantProjectRequest  = "failed request to restore tenant project"
+	ErrorRetrievingTenantProjectRequest = "failed request to retrieve tenant project"
+	ErrorUpdatingTenantProjectRequest   = "failed request to update tenant project"
+
+	ErrorCreatingNexusRequest   = "failed request to create nexus"
+	ErrorListingNexusesRequest  = "failed request to list nexuses"
+	ErrorDeletingNexusRequest   = "failed request to delete nexus"
+	ErrorEditingNexusRequest    = "failed request to edit nexus"
+	ErrorRetrievingNexusRequest = "failed request to retrieve nexus"
+
+	ErrorCreatingNodeRequest   = "failed request to create node"
+	ErrorListingNodesRequest   = "failed request to list nodes"
+	ErrorDeletingNodeRequest   = "failed request to delete node"
+	ErrorEditingNodeRequest    = "failed request to edit node"
+	ErrorRetrievingNodeRequest = "failed request to retrieve node"
+
+	ErrorCreatingRedundancyClassRequest   = "failed request to create redundancy class"
+	ErrorListingRedundancyClassesRequest  = "failed request to list redundancy classes"
+	ErrorRetrievingRedundancyClassRequest = "failed request to retrieve redundancy class"
+
+	ErrorParsingJSONConfiguration = "error while parsing json configuration"
+
+	ErrorRetrievingAgentRequest                       = "failed request to retrieve agent"
+	ErrorEditingAgentRequest                          = "failed request to edit agent"
+	ErrorListingAgentsRequest                         = "failed request to list agents"
+	ErrorCheckingRedundancyClassStatusRequest         = "failed request to check redundancy class status"
+	ErrorCheckingRedundancyClassRecoveryStatusRequest = "failed request to check redundancy class recovery status"
+	ErrorRecoveringRedundancyClassRequest             = "failed request to recover redundancy class"
+	ErrorExpandingRedundancyClassRequest              = "failed request to expand redundancy class"
+
+	ErrorRetrievingTenantReportRequest  = "failed request to retrieve tenant report"
+	ErrorDownloadingTenantReportRequest = "failed request to download tenant report"
+	ErrorCreatingGatewayRequest         = "failed request to create gateway"
+	ErrorListingGatewaysRequest         = "failed request to list gateways"
+	ErrorRetrievingGatewayRequest       = "failed request to retrieve gateway"
+	ErrorDeletingGatewayRequest         = "failed request to delete gateway"
+	ErrorEditingGatewayRequest          = "failed request to edit gateway"
+	ErrorListingGatewayInstancesRequest = "failed request to list gateway instances"
+	ErrorTenantDNSAlreadyConfigured     = "tenant DNS is already configured"
+	ErrorWhileConfiguringTenantDNS      = "error while configuring tenant DNS"
+	ErrorWhileVerifyingTenantDNS        = "error while verifying tenant DNS"
+
+	ErrorDeletingProfile              = "error while deleting profile"
+	ErrorRetrievingAgentStatusRequest = "failed request to retrieve agent status"
+)
