@@ -2,11 +2,10 @@
 package api
 
 import (
-
 	"net/http"
 
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/src/request_utils"
+	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 func RegisterDevice(urls configuration.URLs, uuid string) (*DeviceRegistrationResponse, error) {

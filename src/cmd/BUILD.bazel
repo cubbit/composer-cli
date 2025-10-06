@@ -21,7 +21,7 @@ go_library(
         "tenant.go",
         "user.go",
     ],
-    importpath = "github.com/cubbit/cubbit/client/cli/src/cmd",
+    importpath = "github.com/cubbit/composer-cli/src/cmd",
     visibility = ["//visibility:public"],
     deps = [
         "//src/action",

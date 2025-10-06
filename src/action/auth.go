@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cubbit/cubbit/client/cli/constants"
-	"github.com/cubbit/cubbit/client/cli/src/api"
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
+	"github.com/cubbit/composer-cli/constants"
+	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/google/uuid"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"

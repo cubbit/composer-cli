@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
+	"github.com/cubbit/composer-cli/constants"
 )
 
 type RequestBody = map[string]interface{}

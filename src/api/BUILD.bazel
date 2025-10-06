@@ -19,7 +19,7 @@ go_library(
         "tenant.go",
         "url_builder.go",
     ],
-    importpath = "github.com/cubbit/cubbit/client/cli/src/api",
+    importpath = "github.com/cubbit/composer-cli/src/api",
     visibility = ["//visibility:public"],
     deps = [
         "//constants",

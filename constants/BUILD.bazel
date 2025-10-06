@@ -6,6 +6,6 @@ go_library(
         "constants.go",
         "errors.go",
     ],
-    importpath = "github.com/cubbit/cubbit/client/cli/constants",
+    importpath = "github.com/cubbit/composer-cli/constants",
     visibility = ["//visibility:public"],
 )

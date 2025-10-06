@@ -1,4 +1,4 @@
-module github.com/cubbit/cubbit/client/cli
+module github.com/cubbit/composer-cli
 
 go 1.24.1
 

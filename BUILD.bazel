@@ -22,7 +22,7 @@ go_library(
     name = "cli_lib",
     srcs = ["main.go"],
     embedsrcs = ["package.json"],
-    importpath = "github.com/cubbit/cubbit/client/cli",
+    importpath = "github.com/cubbit/composer-cli",
     visibility = ["//visibility:private"],
     deps = ["//src/cmd"],
 )

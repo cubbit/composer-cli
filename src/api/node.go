@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/src/request_utils"
+	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 func CreateNodes(urls configuration.URLs, accessToken string, swarmID string, nexusID string, nodesBody BulkInsertNewNodeRequestBody) (*NewNodesResponse, error) {

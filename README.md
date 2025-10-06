@@ -1,7 +1,7 @@
 # Cubbit CLI
 
 [![Go Version](https://img.shields.io/badge/Go-1.24+-blue.svg)](https://golang.org/)
-[![Version](https://img.shields.io/badge/version-0.22.1-green.svg)](https://github.com/cubbit/composer-cli/releases)
+[![Version](https://img.shields.io/github/package-json/v/cubbit/composer-cli)](https://github.com/cubbit/composer-cli/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 The official Cubbit CLI (Command-Line Interface) for managing your DS3 composer infrastructure.
@@ -32,7 +32,17 @@ The CLI leverages modern Go libraries including Cobra for command structure and 
 
 Download the latest release for your platform from our [releases page](https://github.com/cubbit/composer-cli/releases).
 
-### Option 2: Build from Source
+### Option 2: Go Install
+
+Install directly using Go's package manager:
+
+```bash
+go install github.com/cubbit/composer-cli@latest
+```
+
+This will download, compile, and install the `composer-cli` binary to your `$GOPATH/bin` directory. Make sure `$GOPATH/bin` is in your system's PATH.
+
+### Option 3: Build from Source
 
 1. **Clone the repository:**
    ```bash
@@ -57,7 +67,7 @@ Download the latest release for your platform from our [releases page](https://g
    # Windows: Copy build/cubbit.exe to a directory in your PATH
    ```
 
-### Option 3: Build with Bazel
+### Option 4: Build with Bazel
 
 For developers using Bazel build system:
 

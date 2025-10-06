@@ -14,7 +14,7 @@ go_library(
         "string.go",
         "validate.go",
     ],
-    importpath = "github.com/cubbit/cubbit/client/cli/utils",
+    importpath = "github.com/cubbit/composer-cli/utils",
     visibility = ["//visibility:public"],
     deps = [
         "//src/configuration",

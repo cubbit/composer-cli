@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"encoding/json"
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/spf13/cobra"
 )
 
 var interactive bool

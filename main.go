@@ -5,7 +5,7 @@ import (
 
 	_ "embed"
 
-	"github.com/cubbit/cubbit/client/cli/src/cmd"
+	"github.com/cubbit/composer-cli/src/cmd"
 )
 
 //go:embed package.json

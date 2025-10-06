@@ -6,9 +6,9 @@ import (
 	"os/exec"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cubbit/cubbit/client/cli/constants"
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/utils"
+	"github.com/cubbit/composer-cli/constants"
+	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 

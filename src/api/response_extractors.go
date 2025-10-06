@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cubbit/cubbit/client/cli/src/request_utils"
+	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 func extractReport(response any) request_utils.RequestModifier {

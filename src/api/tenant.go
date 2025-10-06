@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cubbit/cubbit/client/cli/constants"
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
-	"github.com/cubbit/cubbit/client/cli/src/request_utils"
+	"github.com/cubbit/composer-cli/constants"
+	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 func CreateTenant(urls configuration.URLs, accessToken string, req CreateTenantRequestBody) (*GenericIDResponseModel, error) {

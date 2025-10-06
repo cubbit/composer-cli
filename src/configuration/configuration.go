@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cubbit/cubbit/client/cli/constants"
-	"github.com/cubbit/cubbit/client/cli/src/tui"
+	"github.com/cubbit/composer-cli/constants"
+	"github.com/cubbit/composer-cli/src/tui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )

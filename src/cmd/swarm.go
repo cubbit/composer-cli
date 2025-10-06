@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cubbit/cubbit/client/cli/src/action"
-	"github.com/cubbit/cubbit/client/cli/utils"
+	"github.com/cubbit/composer-cli/src/action"
+	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 

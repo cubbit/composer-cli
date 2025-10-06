@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cubbit/cubbit/client/cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/spf13/cobra"
 )
 
