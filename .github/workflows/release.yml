@@ -1,51 +1,89 @@
 name: Release
+
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'package.json'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'alpha'
+        type: choice
+        options:
+          - alpha
+          - production
+      target_branch:
+        description: 'Branch to release from'
+        required: true
+        default: 'main'
+
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
         with:
+          ref: ${{ inputs.target_branch }}
           fetch-depth: 0
-      - name: Get version from package.json
-        id: get-version
+
+      - name: Validate Branch for Production
+        if: ${{ inputs.release_type == 'production' && inputs.target_branch != 'main' }}
         run: |
-          VERSION=$(jq -r '.version' package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION"
+          echo "::error::Production releases must be deployed from the 'main' branch only. You selected '${{ inputs.target_branch }}'."
+          exit 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.1'
+
+      - name: Calculate Tag Name
+        id: calculate-version
+        run: |
+          BASE_VERSION=$(jq -r '.version' package.json)
+          echo "Base version from package.json: $BASE_VERSION"
+
+          if [[ "${{ inputs.release_type }}" == "alpha" ]]; then
+            echo "Alpha release selected, appending '-alpha' suffix."
+            FINAL_TAG="v${BASE_VERSION}-alpha"
+          else
+            FINAL_TAG="v${BASE_VERSION}"
+          fi
+
+          echo "Calculated Tag: $FINAL_TAG"
+          echo "tag=$FINAL_TAG" >> $GITHUB_OUTPUT
+
       - name: Check if tag already exists
         id: check-tag
         run: |
-          TAG="v${{ steps.get-version.outputs.version }}"
-          if git tag -l "$TAG" | grep -q "$TAG"; then
-            echo "tag_exists=true" >> $GITHUB_OUTPUT
-            echo "Tag $TAG already exists, skipping release"
-          else
-            echo "tag_exists=false" >> $GITHUB_OUTPUT
-            echo "Tag $TAG does not exist, will create release"
+          TAG="${{ steps.calculate-version.outputs.tag }}"
+          if git tag -l "$TAG" | grep -q "^$TAG$"; then
+            echo "::error::Tag $TAG already exists! You must bump the version in package.json before releasing again."
+            exit 1 # Fail the job to prevent overwriting
           fi
-      - name: Create and push tag
-        if: steps.check-tag.outputs.tag_exists == 'false'
+
+      - name: Push Git Tag
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          TAG="v${{ steps.get-version.outputs.version }}"
+
+          TAG="${{ steps.calculate-version.outputs.tag }}"
+
+          echo "Tagging commit as $TAG..."
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
+
       - name: Run GoReleaser
-        if: steps.check-tag.outputs.tag_exists == 'false'
         uses: goreleaser/goreleaser-action@v6.0.0
         with:
           distribution: goreleaser
-          version: "latest"
+          version: latest
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GoReleaser usually detects the tag on HEAD, but strictly ensures it matches
+          GORELEASER_CURRENT_TAG: ${{ steps.calculate-version.outputs.tag }}
