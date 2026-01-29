@@ -3,8 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "cmd",
     srcs = [
-        "agent.go",
-        "auth.go",
         "config.go",
         "docs.go",
         "gateway.go",
@@ -25,7 +23,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/action",
+        "//src/cmd/agent:cmd_agent",
+        "//src/cmd/auth",
         "//src/configuration",
+        "//src/service",
         "//utils",
         "@com_github_spf13_cobra//:cobra",
         "@com_github_spf13_cobra//doc",

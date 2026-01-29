@@ -1,5 +1,4 @@
-// Package action provides CLI actions for managing auth.
-package action
+package service
 
 import (
 	"context"
@@ -23,10 +22,26 @@ const (
 
 var boldStyle = lipgloss.NewStyle().Bold(true)
 
-func SignInComposer(cmd *cobra.Command, args []string) error {
+type AuthServiceInterface interface {
+	Login(cmd *cobra.Command, args []string) error
+	Logout(cmd *cobra.Command, args []string) error
+}
+
+type AuthService struct {
+	configuration *configuration.Config
+}
+
+func NewAuthService(
+	configuration *configuration.Config,
+) *AuthService {
+	return &AuthService{
+		configuration: configuration,
+	}
+}
+
+func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 	var err error
 	var profile string
-	var conf *configuration.Config
 	var urls *configuration.URLs
 	var endpoint string
 
@@ -38,17 +53,12 @@ func SignInComposer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	conf, err = configuration.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
 	resolvedEndpoint := endpoint
 	if resolvedEndpoint == "" {
-		if existingProfile, err := conf.ResolveProfile(profile); err == nil {
+		if existingProfile, err := as.configuration.ResolveProfile(profile); err == nil {
 			resolvedEndpoint = existingProfile.Endpoint
 		} else {
-			resolvedEndpoint = conf.Default.Endpoint
+			resolvedEndpoint = as.configuration.Default.Endpoint
 		}
 	}
 
@@ -57,7 +67,7 @@ func SignInComposer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
-	return performBrowserLogin(*urls, conf, profile, resolvedEndpoint)
+	return performBrowserLogin(*urls, as.configuration, profile, resolvedEndpoint)
 }
 
 func performBrowserLogin(urls configuration.URLs, conf *configuration.Config, profile string, resolvedEndpoint string) error {
@@ -172,7 +182,7 @@ func pollForAPIKey(urls configuration.URLs, deviceID string) (string, error) {
 	}
 }
 
-func Logout(cmd *cobra.Command, args []string) error {
+func (as *AuthService) Logout(cmd *cobra.Command, args []string) error {
 	var err error
 	var profile string
 	var allProfiles bool
@@ -185,23 +195,18 @@ func Logout(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
-	config, err := configuration.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
 	if allProfiles {
-		config.Profile = make(map[string]*configuration.Profile)
+		as.configuration.Profile = make(map[string]*configuration.Profile)
 	} else {
 		if profile == "" {
 		} else {
-			if err = config.DeleteProfile(profile); err != nil {
+			if err = as.configuration.DeleteProfile(profile); err != nil {
 				return fmt.Errorf("failed to logout from profile '%s': %w", profile, err)
 			}
 		}
 	}
 
-	if err = config.SaveConfig(); err != nil {
+	if err = as.configuration.SaveConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
 	}
 

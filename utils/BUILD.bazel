@@ -9,6 +9,7 @@ go_library(
         "filter.go",
         "formatter.go",
         "printer.go",
+        "schema.go",
         "secret.go",
         "slices.go",
         "string.go",

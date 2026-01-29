@@ -179,5 +179,4 @@ func init() {
 	tenantCmd.AddCommand(userCmd)
 	userCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
 	userCmd.MarkPersistentFlagRequired("tenant-id")
-
 }

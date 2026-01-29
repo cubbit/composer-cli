@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "cmd_agent",
+    srcs = [
+        "agent_cmd.go",
+        "agent_sub_cmd_create.go",
+        "agent_sub_cmd_describe.go",
+        "agent_sub_cmd_edit.go",
+        "agent_sub_cmd_list.go",
+        "agent_sub_cmd_remove.go",
+        "agent_sub_cmd_status.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd/agent",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/service",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "cmd_agent_test",
+    srcs = [
+        "agent_sub_cmd_create_test.go",
+        "agent_sub_cmd_describe_test.go",
+        "agent_sub_cmd_edit_test.go",
+        "agent_sub_cmd_list_test.go",
+        "agent_sub_cmd_remove_test.go",
+        "agent_sub_cmd_status_test.go",
+    ],
+    embed = [":cmd_agent"],
+    deps = [
+        "//src/service",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

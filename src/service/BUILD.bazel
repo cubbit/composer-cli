@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "service",
+    srcs = [
+        "agent_service.go",
+        "agent_service_mock.go",
+        "auth_service.go",
+        "auth_service_mock.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration",
+        "//utils",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_pkg_browser//:browser",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

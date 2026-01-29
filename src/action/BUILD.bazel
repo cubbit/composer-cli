@@ -4,8 +4,6 @@ go_library(
     name = "action",
     srcs = [
         "account.go",
-        "agent.go",
-        "auth.go",
         "config.go",
         "gateway.go",
         "gateway_interactive.go",
@@ -26,9 +24,6 @@ go_library(
         "//src/tui",
         "//utils",
         "@com_github_burntsushi_toml//:toml",
-        "@com_github_charmbracelet_lipgloss//:lipgloss",
-        "@com_github_google_uuid//:uuid",
-        "@com_github_pkg_browser//:browser",
         "@com_github_spf13_cobra//:cobra",
     ],
 )
