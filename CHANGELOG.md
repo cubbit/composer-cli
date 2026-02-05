@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+### Minor Changes
+
+- 8bdc75e: Introduce command structure tests
+
 ## 1.0.1
 
 ### Patch Changes
