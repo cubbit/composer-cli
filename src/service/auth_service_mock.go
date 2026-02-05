@@ -3,6 +3,7 @@ package service
 import "github.com/spf13/cobra"
 
 type AuthServiceMock struct {
+	SignUpFunc func(cmd *cobra.Command, args []string) error
 	LoginFunc  func(cmd *cobra.Command, args []string) error
 	LogoutFunc func(cmd *cobra.Command, args []string) error
 }
@@ -16,6 +17,13 @@ func NewAuthServiceMock() *AuthServiceMock {
 			return nil
 		},
 	}
+}
+
+func (m *AuthServiceMock) SignUp(cmd *cobra.Command, args []string) error {
+	if m.SignUpFunc != nil {
+		return m.SignUpFunc(cmd, args)
+	}
+	return nil
 }
 
 func (m *AuthServiceMock) Login(cmd *cobra.Command, args []string) error {

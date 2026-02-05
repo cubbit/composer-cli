@@ -23,6 +23,7 @@ type RequestOptions struct {
 type RequestModifier = func(*RequestOptions, *http.Response) error
 
 type Data struct {
+	Param           string        `json:"param" example:"param1"`
 	Params          []string      `json:"params" example:"param1,param2"`
 	ActionsRequired []string      `json:"actions_required" example:"iam:AttachUserPolicy,iam:DetachUserPolicy"`
 	Reason          string        `json:"reason" example:"policy_id"`
@@ -104,6 +105,10 @@ func DoRequest(url string, opts ...RequestModifier) error {
 
 		if apiErr.Reason != "" {
 			errorLines = append(errorLines, fmt.Sprintf("reason %s", apiErr.Reason))
+		}
+
+		if apiErr.Data.Param != "" {
+			errorLines = append(errorLines, fmt.Sprintf("param %s", apiErr.Data.Param))
 		}
 
 		if len(apiErr.Params) > 0 {

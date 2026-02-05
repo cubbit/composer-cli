@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
+	b64 "encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/utils"
 	"github.com/google/uuid"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
@@ -23,20 +26,122 @@ const (
 var boldStyle = lipgloss.NewStyle().Bold(true)
 
 type AuthServiceInterface interface {
+	SignUp(cmd *cobra.Command, args []string) error
 	Login(cmd *cobra.Command, args []string) error
 	Logout(cmd *cobra.Command, args []string) error
 }
 
 type AuthService struct {
 	configuration *configuration.Config
+	authAPI       api.AuthAPIInterface
 }
 
 func NewAuthService(
 	configuration *configuration.Config,
+	authAPI api.AuthAPIInterface,
 ) *AuthService {
 	return &AuthService{
 		configuration: configuration,
+		authAPI:       authAPI,
 	}
+}
+
+func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
+	email, err := cmd.Flags().GetString("email")
+	if err != nil {
+		return fmt.Errorf("%s email: %w", constants.ErrorRetrievingField, err)
+	}
+
+	username, err := cmd.Flags().GetString("username")
+	if err != nil {
+		return fmt.Errorf("%s username: %w", constants.ErrorRetrievingField, err)
+	}
+
+	firstName, err := utils.GetOptionalStringFlag(cmd, "first-name")
+	if err != nil {
+		return fmt.Errorf("%s first-name: %w", constants.ErrorRetrievingField, err)
+	}
+
+	lastName, err := utils.GetOptionalStringFlag(cmd, "last-name")
+	if err != nil {
+		return fmt.Errorf("%s last-name: %w", constants.ErrorRetrievingField, err)
+	}
+
+	password, err := utils.GetOptionalStringFlag(cmd, "password")
+	if err != nil {
+		return fmt.Errorf("%s password: %w", constants.ErrorRetrievingField, err)
+	}
+
+	orgName, err := cmd.Flags().GetString("organization")
+	if err != nil {
+		return fmt.Errorf("%s organization name: %w", constants.ErrorRetrievingField, err)
+	}
+
+	basePolicy, err := utils.JSONMapFromCommand(cmd, "base-policy")
+	if err != nil {
+		return fmt.Errorf("%s base-policy: %w", constants.ErrorRetrievingField, err)
+	}
+
+	settings, err := utils.JSONMapFromCommand(cmd, "settings")
+	if err != nil {
+		return fmt.Errorf("%s settings: %w", constants.ErrorRetrievingField, err)
+	}
+
+	resolvedProfile, urls, err := as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	if err != nil {
+		return fmt.Errorf("failed to resolve provide and urls: %w", err)
+	}
+
+	var authenticationPublicKey *string
+	if password != nil {
+		challenge, err := as.authAPI.GenerateChallenge(
+			*urls,
+			&email,
+			nil,
+			nil,
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to generate challenge: %w", err)
+		}
+
+		h := sha256.New()
+		h.Write([]byte(*password + challenge.Salt))
+		seed := h.Sum(nil)
+
+		publicKey, _, err := utils.GenerateKeyPairFromSeed(seed)
+		if err != nil {
+			return fmt.Errorf("failed to generate key pair from seed: %w", err)
+		}
+
+		base64PublicKey := b64.StdEncoding.EncodeToString(publicKey)
+		authenticationPublicKey = &base64PublicKey
+	}
+
+	if err := as.authAPI.SignUp(
+		*urls,
+		email,
+		username,
+		firstName,
+		lastName,
+		authenticationPublicKey,
+		orgName,
+		basePolicy,
+		settings,
+	); err != nil {
+		return fmt.Errorf("failed during sign up request: %w", err)
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{"Sign up completed successfully. Please check your email to verify your account."},
+		func(s string) []string { return []string{s} },
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
 func (as *AuthService) Login(cmd *cobra.Command, args []string) error {

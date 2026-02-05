@@ -23,12 +23,12 @@ go_library(
 go_test(
     name = "cmd_agent_test",
     srcs = [
-        "agent_sub_cmd_create_test.go",
-        "agent_sub_cmd_describe_test.go",
-        "agent_sub_cmd_edit_test.go",
-        "agent_sub_cmd_list_test.go",
-        "agent_sub_cmd_remove_test.go",
-        "agent_sub_cmd_status_test.go",
+        "agent_sub_cmd_create_structure_test.go",
+        "agent_sub_cmd_describe_structure_test.go",
+        "agent_sub_cmd_edit_structure_test.go",
+        "agent_sub_cmd_list_structure_test.go",
+        "agent_sub_cmd_remove_structure_test.go",
+        "agent_sub_cmd_status_structure_test.go",
     ],
     embed = [":cmd_agent"],
     deps = [

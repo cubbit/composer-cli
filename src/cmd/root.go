@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
+	api "github.com/cubbit/composer-cli/src/api"
 	cmd_agent "github.com/cubbit/composer-cli/src/cmd/agent"
 	cmd_auth "github.com/cubbit/composer-cli/src/cmd/auth"
 	"github.com/cubbit/composer-cli/src/configuration"
@@ -44,8 +45,10 @@ var rootCmd = func() *cobra.Command {
 		panic("failed to load config: " + err.Error())
 	}
 
+	authAPI := api.NewAuthAPI(configuration)
+
 	agentService := service.NewAgentService(configuration)
-	authService := service.NewAuthService(configuration)
+	authService := service.NewAuthService(configuration, authAPI)
 
 	return NewRootCommand(agentService, authService)
 }()

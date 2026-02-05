@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "account.go",
         "agents.go",
+        "auth_api.go",
         "authentication_client.go",
         "gateway.go",
         "nexus.go",

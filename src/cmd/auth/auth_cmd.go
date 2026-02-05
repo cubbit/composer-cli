@@ -18,5 +18,9 @@ func NewAuthCmd(
 
 	authLogoutSubCmd := NewAuthSubCmdLogout(authService)
 	authCmd.AddCommand(authLogoutSubCmd)
+
+	authSignUpSubCmd := NewAuthSubCmdSignUp(authService)
+	authCmd.AddCommand(authSignUpSubCmd)
+
 	return authCmd
 }

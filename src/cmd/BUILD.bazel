@@ -23,6 +23,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/action",
+        "//src/api",
         "//src/cmd/agent:cmd_agent",
         "//src/cmd/auth",
         "//src/configuration",

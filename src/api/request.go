@@ -1,7 +1,5 @@
 package api
 
-import ()
-
 type UpdateAccountRequest struct {
 	FirstName          *string `json:"first_name"`
 	LastName           *string `json:"last_name"`
@@ -139,3 +137,70 @@ type InviteOperatorRequestBody struct {
 	LastName  *string `json:"last_name"`
 	PolicyID  string  `json:"policy_id"`
 }
+
+// #region auth
+
+type SignUpRequestBody struct {
+	Operator     CreateOperatorRequestBodyV2     `json:"operator"`
+	Organization CreateOrganizationRequestBodyV2 `json:"organization"`
+}
+
+type CreateOrganizationRequestBodyV2 struct {
+	Name       string                 `json:"name"`
+	BasePolicy map[string]interface{} `json:"base_policy"`
+	Settings   map[string]interface{} `json:"settings"`
+}
+
+type CreateOperatorRequestBodyV2 struct {
+	Email                   string  `json:"email"`
+	FirstName               *string `json:"first_name"`
+	LastName                *string `json:"last_name"`
+	Username                string  `json:"username"`
+	AuthenticationPublicKey *string `json:"authentication_public_key"`
+}
+
+func CreateSignUpRequestBody(
+	email string,
+	username string,
+	firstName *string,
+	lastName *string,
+	authenticationPublicKey *string,
+	organizationName string,
+	organizationBasePolicy map[string]interface{},
+	organizationSettings map[string]interface{},
+) SignUpRequestBody {
+	return SignUpRequestBody{
+		Operator: CreateOperatorRequestBodyV2{
+			Email:                   email,
+			Username:                username,
+			FirstName:               firstName,
+			LastName:                lastName,
+			AuthenticationPublicKey: authenticationPublicKey,
+		},
+		Organization: CreateOrganizationRequestBodyV2{
+			Name:       organizationName,
+			BasePolicy: organizationBasePolicy,
+			Settings:   organizationSettings,
+		},
+	}
+}
+
+type ChallengeRequestBodyV3 struct {
+	Email            *string `json:"email,omitempty"`
+	Username         *string `json:"username,omitempty"`
+	OrganizationName *string `json:"organization_name,omitempty"`
+}
+
+func CreateChallengeRequestBodyV3(
+	email *string,
+	username *string,
+	organizationName *string,
+) ChallengeRequestBodyV3 {
+	return ChallengeRequestBodyV3{
+		Email:            email,
+		Username:         username,
+		OrganizationName: organizationName,
+	}
+}
+
+// #endregion
