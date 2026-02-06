@@ -4,6 +4,7 @@ go_library(
     name = "auth",
     srcs = [
         "auth_cmd.go",
+        "auth_sub_cmd_activate.go",
         "auth_sub_cmd_login.go",
         "auth_sub_cmd_logout.go",
         "auth_sub_cmd_signup.go",
@@ -20,6 +21,7 @@ go_library(
 go_test(
     name = "auth_test",
     srcs = [
+        "auth_sub_cmd_activate_test.go",
         "auth_sub_cmd_login_structure_test.go",
         "auth_sub_cmd_logout_structure_test.go",
         "auth_sub_cmd_signup_structure_test.go",

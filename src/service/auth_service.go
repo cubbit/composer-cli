@@ -26,6 +26,7 @@ const (
 var boldStyle = lipgloss.NewStyle().Bold(true)
 
 type AuthServiceInterface interface {
+	Activate(cmd *cobra.Command, args []string) error
 	SignUp(cmd *cobra.Command, args []string) error
 	Login(cmd *cobra.Command, args []string) error
 	Logout(cmd *cobra.Command, args []string) error
@@ -44,6 +45,34 @@ func NewAuthService(
 		configuration: configuration,
 		authAPI:       authAPI,
 	}
+}
+
+func (as *AuthService) Activate(cmd *cobra.Command, args []string) error {
+	token, err := cmd.Flags().GetString("token")
+	if err != nil {
+		return fmt.Errorf("%s token: %w", constants.ErrorRetrievingField, err)
+	}
+
+	resolvedProfile, urls, err := as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	if err != nil {
+		return fmt.Errorf("failed to resolve provide and urls: %w", err)
+	}
+
+	err = as.authAPI.Activate(*urls, token)
+	if err != nil {
+		return fmt.Errorf("failed during activation request: %w", err)
+	}
+
+	return utils.PrintSmartOutput(
+		cmd,
+		[]string{"Activation completed successfully. You can now log in."},
+		func(s string) []string { return []string{s} },
+		&utils.SmartOutputConfig[string]{
+			SingleResource:              true,
+			SingleResourceCompactOutput: true,
+			DefaultOutput:               resolvedProfile.Output,
+		},
+	)
 }
 
 func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {

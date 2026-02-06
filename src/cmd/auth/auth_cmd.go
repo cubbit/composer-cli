@@ -13,6 +13,9 @@ func NewAuthCmd(
 		Short: "Execute commands in auth sections",
 	}
 
+	authActivateSubCmd := NewAuthSubCmdActivate(authService)
+	authCmd.AddCommand(authActivateSubCmd)
+
 	authLoginSubCmd := NewAuthSubCmdLogin(authService)
 	authCmd.AddCommand(authLoginSubCmd)
 

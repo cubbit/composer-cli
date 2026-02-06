@@ -9,6 +9,11 @@ import (
 )
 
 type AuthAPIInterface interface {
+	Activate(
+		urlConfig configuration.URLs,
+		token string,
+	) error
+
 	SignUp(
 		urlConfig configuration.URLs,
 		email string,
@@ -20,6 +25,7 @@ type AuthAPIInterface interface {
 		organizationBasePolicy map[string]interface{},
 		organizationSettings map[string]interface{},
 	) error
+
 	GenerateChallenge(
 		urlConfig configuration.URLs,
 		email *string,
@@ -36,6 +42,26 @@ func NewAuthAPI(config *configuration.Config) *AuthAPI {
 	return &AuthAPI{
 		config: *config,
 	}
+}
+
+func (api *AuthAPI) Activate(
+	urlConfig configuration.URLs,
+	token string,
+) error {
+	url := NewURLBuilder(urlConfig.IamURL).
+		Path("v1", "operators", "activate").
+		QueryParam("token", token).
+		Build()
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+	); err != nil {
+		return fmt.Errorf("failed to perform activation request: %w", err)
+	}
+
+	return nil
 }
 
 func (api *AuthAPI) SignUp(
