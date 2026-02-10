@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	b64 "encoding/base64"
 	"fmt"
+	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/tui"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/google/uuid"
 	"github.com/pkg/browser"
@@ -125,9 +128,9 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 	if password != nil {
 		challenge, err := as.authAPI.GenerateChallenge(
 			*urls,
-			&email,
 			nil,
-			nil,
+			&username,
+			&orgName,
 		)
 
 		if err != nil {
@@ -175,7 +178,7 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 
 func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 	var err error
-	var profile string
+	var profile, username, orgName string
 	var urls *configuration.URLs
 	var endpoint string
 
@@ -201,7 +204,168 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
-	return performBrowserLogin(*urls, as.configuration, profile, resolvedEndpoint)
+	if username, err = cmd.Flags().GetString("username"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if orgName, err = cmd.Flags().GetString("organization"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	apiKey, err := cmd.Flags().GetString("api-key")
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if apiKey == "" {
+		value, exists := os.LookupEnv("API_KEY")
+		if exists {
+			apiKey = value
+		}
+	}
+
+	if apiKey != "" {
+		return as.configureAPIKey(cmd, *urls, as.configuration, profile, apiKey, resolvedEndpoint)
+	}
+
+	password, err := cmd.Flags().GetString("password")
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if password == "" {
+		value, exists := os.LookupEnv("PASSWORD")
+		if exists {
+			password = value
+		}
+	}
+
+	if password != "" && (username == "" || orgName == "") {
+		return fmt.Errorf("when using the --password flag, both --username and --organization must also be provided; alternatively, omit --password to be prompted interactively")
+	}
+
+	if password != "" {
+		return as.performInlineLogin(cmd, *urls, as.configuration, username, orgName, password, "", profile, resolvedEndpoint)
+	}
+
+	var choice string
+	choices := []string{
+		"Yes, open browser for authentication",
+		"No, I want to login inline with username and password",
+		"No, I want to provide an API key",
+	}
+	if choice, err = tui.ChooseOne("Can you currently access the composer dashboard", false, false, choices); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
+	}
+
+	switch choice {
+	case choices[0]:
+		return performBrowserLogin(*urls, as.configuration, profile, resolvedEndpoint)
+	case choices[1]:
+		var password string
+		var tfa string
+		if _, err = tui.TextInputs(
+			"Please provide your login details",
+			false,
+			tui.Input{Placeholder: "username", IsPassword: false, Value: &username},
+			tui.Input{Placeholder: "organization", IsPassword: false, Value: &orgName},
+			tui.Input{Placeholder: "password", IsPassword: true, Value: &password},
+			tui.Input{Placeholder: "two-factor code (if enabled)", IsPassword: false, Value: &tfa},
+		); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
+		}
+		return as.performInlineLogin(cmd, *urls, as.configuration, username, orgName, password, tfa, profile, resolvedEndpoint)
+	case choices[2]:
+		var apiKey string
+		if _, err = tui.TextInputs(
+			"Please provide your API key for authentication",
+			false,
+			tui.Input{Placeholder: "API key", IsPassword: true, Value: &apiKey},
+		); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
+		}
+
+		return as.configureAPIKey(cmd, *urls, as.configuration, profile, apiKey, resolvedEndpoint)
+	default:
+		return fmt.Errorf("invalid choice: %s", choice)
+	}
+}
+
+func (as *AuthService) configureAPIKey(cmd *cobra.Command, urls configuration.URLs, conf *configuration.Config, profile string, apiKey string, resolvedEndpoint string) error {
+	if err := conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey); err != nil {
+		return fmt.Errorf("failed to create profile: %w", err)
+	}
+
+	if err := conf.SaveConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
+	}
+
+	fmt.Fprintf(cmd.OutOrStdout(), "✅ Authentication successful!\n")
+
+	return nil
+}
+
+func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration.URLs, conf *configuration.Config, username, orgName, password, tfa, profile string, resolvedEndpoint string) error {
+	var err error
+	var tokens *api.SignInToken
+	var apiKey string
+	var hostname string
+	fmt.Fprintf(cmd.OutOrStdout(), "🔐 Starting inline authentication...\n")
+
+	if tokens, err = as.authAPI.SignIn(urls, username, orgName, password, tfa); err != nil {
+		return fmt.Errorf("failed to perform sign in: %w", err)
+	}
+
+	rawHostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown-host"
+	} else {
+		hostname = strings.ReplaceAll(rawHostname, " ", "-")
+	}
+	date := time.Now().Format("20060102")
+	nozzle := uuid.New().String()[:8]
+	apiKeyName := fmt.Sprintf("composer-cli-%s-%s-%s-%s-%s", runtime.GOOS, runtime.GOARCH, hostname, date, nozzle)
+
+	operator, err := api.GetOperatorSelf(urls, tokens.AccessToken, "")
+	if err != nil {
+		return fmt.Errorf("failed to retrieve operator information: %w", err)
+	}
+
+	if tfa != "" {
+		if _, err = tui.TextInputs(
+			"Please provide another two-factor code to forge an API key",
+			false,
+			tui.Input{Placeholder: "two-factor code", IsPassword: false, Value: &tfa},
+		); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
+		}
+	}
+
+	if len(operator.Emails) == 0 {
+		return fmt.Errorf("operator email is missing, cannot forge API key")
+	}
+
+	operatorApiKeyToken, err := as.authAPI.ForgeToken(urls, operator.ID, operator.Emails[0].Email, password, tfa, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("failed to forge token: %w", err)
+	}
+
+	if apiKey, err = as.authAPI.CreateApiKey(urls, operator.ID, apiKeyName, tokens.AccessToken, operatorApiKeyToken); err != nil {
+		return fmt.Errorf("failed to create API key: %w", err)
+	}
+
+	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey); err != nil {
+		return fmt.Errorf("failed to create profile: %w", err)
+	}
+
+	if err = conf.SaveConfig(); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
+	}
+
+	fmt.Fprintf(cmd.OutOrStdout(), "✅ Authentication successful!\n")
+	fmt.Fprintf(cmd.OutOrStdout(), "📜 Created API Key: %s\n", apiKeyName)
+
+	return nil
 }
 
 func performBrowserLogin(urls configuration.URLs, conf *configuration.Config, profile string, resolvedEndpoint string) error {

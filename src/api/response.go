@@ -51,6 +51,18 @@ type ChallengeResponseModel struct {
 	Salt      string `json:"salt" example:"SGVsbG8gd29ybGQ="`
 }
 
+type OperatorAPIKey struct {
+	ID         string     `json:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
+	Name       string     `json:"name" example:"API Key for Mario Rossi"`
+	Key        string     `json:"key" example:"4f2a1b3c5d6e7f8a9b0c1d2e3f4a5b6c"`
+	OperatorID string     `json:"operator_id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
+	CreatedAt  time.Time  `json:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	ExpiresAt  *time.Time `json:"expires_at" example:"2023-01-18T12:42:59.089247Z"`
+	DeletedAt  *time.Time `json:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	BannedAt   *time.Time `json:"banned_at" example:"2023-01-18T12:42:59.089247Z"`
+	Enabled    bool       `json:"enabled" example:"true"`
+}
+
 type TokenAndExpirationResponseModel struct {
 	Token   string    `json:"token"`
 	Exp     int       `json:"exp"`
@@ -717,4 +729,9 @@ type APIKeyResponse struct {
 
 type GetAgentEvaluatedStatusResponse struct {
 	Status EvaluatedStatusType `json:"status"`
+}
+
+type SignInToken struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }

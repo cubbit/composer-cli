@@ -28,7 +28,7 @@ func ListRedundancyClasses(urls configuration.URLs, accessToken, swamID, sort, f
 		var response GenericPaginatedResponse[*RedundancyClass]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -58,7 +58,7 @@ func GetRedundancyClass(urls configuration.URLs, accessToken, redundancyClassID 
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -86,7 +86,7 @@ func CreateRedundancyClass(urls configuration.URLs, accessToken, swamID string, 
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func CheckRedundancyClassStatus(urls configuration.URLs, accessToken, swarmID, r
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -125,7 +125,7 @@ func CheckRedundancyClassRecoveryStatus(urls configuration.URLs, accessToken, sw
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -147,7 +147,7 @@ func RecoverRedundancyClass(urls configuration.URLs, accessToken, swarmID, redun
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -170,7 +170,7 @@ func ExpandRedundancyClass(urls configuration.URLs, accessToken, swarmID, redund
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte([]byte(`{}`)),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
 	); err != nil {

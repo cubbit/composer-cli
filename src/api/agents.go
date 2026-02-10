@@ -29,7 +29,7 @@ func CreateAgent(urls configuration.URLs, accessToken string, swarmID string, ne
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
@@ -57,7 +57,7 @@ func ListAgents(urls configuration.URLs, accessToken string, swarmID string, nex
 		var response GenericPaginatedResponse[*NewAgent]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -88,7 +88,7 @@ func GetAgent(urls configuration.URLs, accessToken string, swarmID, nexusID, nod
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -114,7 +114,7 @@ func UpdateAgent(urls configuration.URLs, accessToken string, swarmID string, ne
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 		ExtractGenericModel(nil),
@@ -135,7 +135,7 @@ func DeleteAgent(urls configuration.URLs, accessToken string, swarmID string, ne
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 		ExtractGenericModel(nil),
 	); err != nil {
@@ -162,7 +162,7 @@ func ListAgentsForRC(urls configuration.URLs, accessToken string, swarmID string
 		var response GenericPaginatedResponse[*NewAgent]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -196,7 +196,7 @@ func GetAgentStatus(urls configuration.URLs, accessToken, swarmID, nexusID, node
 
 		url,
 
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 

@@ -12,6 +12,8 @@ const (
 	// Authentication
 	Authorization = "Authorization"
 	APIKey        = "ApiKey"
+	Bearer        = "Bearer"
+	RefreshCookie = "_refresh"
 
 	// Base API URL
 	BaseAPIURL = "https://api.eu00wi.cubbit.services"

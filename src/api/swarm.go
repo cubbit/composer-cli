@@ -30,7 +30,7 @@ func CreateSwarm(urls configuration.URLs, accessToken string, req CreateSwarmReq
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func GetSwarm(urls configuration.URLs, accessToken, ownerID string, swarmID stri
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -72,7 +72,7 @@ func EditSwarm(urls configuration.URLs, accessToken string, swarmID string, req 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(nil),
@@ -93,7 +93,7 @@ func ListSwarms(urls configuration.URLs, accessToken, ownerID string) ([]*Swarm,
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -113,7 +113,7 @@ func GetSwarmOperator(urls configuration.URLs, accessToken, swarmID, operatorID 
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -132,7 +132,7 @@ func RemoveSwarm(urls configuration.URLs, accessToken, swarmID string) error {
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
 		return err
@@ -158,7 +158,7 @@ func InviteOperatorToSwarm(urls configuration.URLs, accessToken, swarmID string,
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func ListSwarmOperators(urls configuration.URLs, accessToken, swarmID string) (*
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -195,7 +195,7 @@ func RemoveSwarmOperator(urls configuration.URLs, accessToken, swarmID, operator
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
 		return err
@@ -214,7 +214,7 @@ func GetSwarmStatus(urls configuration.URLs, accessToken, swarmID string) (*Summ
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -240,7 +240,7 @@ func ListSwarmsV2(urls configuration.URLs, accessToken string, sort string, filt
 		var response GenericPaginatedResponse[*Swarm]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -277,7 +277,7 @@ func EditOperatorRoleInSwarm(urls configuration.URLs, accessToken, swarmID, oper
 		request_utils.WithRequestMethod(http.MethodPut),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}

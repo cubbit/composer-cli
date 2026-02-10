@@ -30,7 +30,7 @@ func CreateTenant(urls configuration.URLs, accessToken string, req CreateTenantR
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func ListTenants(urls configuration.URLs, accessToken, sort, filter string) (*Ge
 		var response GenericPaginatedResponse[*Tenant]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -85,7 +85,7 @@ func RemoveTenant(urls configuration.URLs, accessToken, tenantID string) error {
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
 		return err
@@ -109,7 +109,7 @@ func EditTenant(urls configuration.URLs, accessToken string, tenantID string, re
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
@@ -133,7 +133,7 @@ func EditTenantImage(urls configuration.URLs, accessToken, tenantID, imageURL st
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
@@ -153,7 +153,7 @@ func ListAvailableTenantSwarms(urls configuration.URLs, accessToken, tenantID st
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -173,7 +173,7 @@ func ListTenantPolicies(urls configuration.URLs, accessToken, tenantID string) (
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -199,7 +199,7 @@ func InviteOperatorToTenant(urls configuration.URLs, accessToken, tenantID strin
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func ListTenantOperators(urls configuration.URLs, accessToken, tenantID string) 
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -236,7 +236,7 @@ func GetTenantOperator(urls configuration.URLs, accessToken, tenantID, operatorI
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -255,7 +255,7 @@ func RemoveTenantOperator(urls configuration.URLs, accessToken, tenantID, operat
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
 		return err
@@ -274,7 +274,7 @@ func GetTenant(urls configuration.URLs, accessToken, tenantID string) (*Tenant, 
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -298,7 +298,7 @@ func ConnectSwarm(urls configuration.URLs, accessToken, tenantID, swarmID string
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPut),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
@@ -318,7 +318,7 @@ func GetTenantCouponSwarms(urls configuration.URLs, accessToken, tenantID string
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -360,7 +360,7 @@ func AssignTenantToCoupon(urls configuration.URLs, accessToken, tenantID, Coupon
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
@@ -384,7 +384,7 @@ func EditTenantSettings(urls configuration.URLs, accessToken string, tenantID st
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
@@ -411,7 +411,7 @@ func EditOperatorRoleInTenant(urls configuration.URLs, accessToken, tenantID, op
 		request_utils.WithRequestMethod(http.MethodPut),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
@@ -431,7 +431,7 @@ func DownloadTenantReport(urls configuration.URLs, accessToken, tenantID, from, 
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodGet),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		request_utils.WithAttachement(),
 		DownloadReport(output, &response),
@@ -453,7 +453,7 @@ func GetTenantReport(urls configuration.URLs, accessToken, tenantID, from, to st
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodGet),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		extractReport(&response),
 	); err != nil {

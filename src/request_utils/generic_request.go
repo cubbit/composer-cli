@@ -160,7 +160,36 @@ func WithAccessToken(accessToken string) RequestModifier {
 			return nil
 		}
 
-		opt.headers[constants.Authorization] = constants.APIKey + " " + accessToken
+		opt.headers[constants.Authorization] = constants.Bearer + " " + accessToken
+
+		return nil
+	}
+}
+
+func WithApiKey(apiKey string) RequestModifier {
+	return func(opt *RequestOptions, res *http.Response) error {
+		if opt == nil {
+			return nil
+		}
+
+		opt.headers[constants.Authorization] = constants.APIKey + " " + apiKey
+
+		return nil
+	}
+}
+
+func WithRefreshToken(refreshToken string) RequestModifier {
+	return func(opt *RequestOptions, res *http.Response) error {
+		if opt == nil {
+			return nil
+		}
+
+		existingCookieHeader := opt.headers["Cookie"]
+		if existingCookieHeader == "" {
+			opt.headers["Cookie"] = constants.RefreshCookie + "=" + refreshToken
+		} else {
+			opt.headers["Cookie"] = existingCookieHeader + "; " + constants.RefreshCookie + "=" + refreshToken
+		}
 
 		return nil
 	}

@@ -37,7 +37,7 @@ func CreateProject(urls configuration.URLs, accessToken, name string, descriptio
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func UpdateProject(urls configuration.URLs, accessToken, tenantID, projectID str
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithRequestBodyByte(requestBody),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
 		return err
@@ -87,7 +87,7 @@ func ListTenantProjects(urls configuration.URLs, accessToken, tenantID, sort, fi
 		var response GenericPaginatedResponse[*ProjectItem]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -117,7 +117,7 @@ func RemoveTenantProject(urls configuration.URLs, accessToken, tenantID, project
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
 		return err
@@ -140,7 +140,7 @@ func ToggleBanProject(urls configuration.URLs, accessToken, tenantID string, pro
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
 		return err
@@ -159,7 +159,7 @@ func RestoreTenantProject(urls configuration.URLs, accessToken, tenantID, projec
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func GetTenantProject(urls configuration.URLs, accessToken, tenantID, projectID 
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {

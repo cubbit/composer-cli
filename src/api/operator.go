@@ -8,7 +8,7 @@ import (
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
-func GetOperator(urls configuration.URLs, accessToken, meOrID string) (*Operator, error) {
+func GetOperator(urls configuration.URLs, accessToken, apiKey string, meOrID string) (*Operator, error) {
 	var err error
 	var operator Operator
 
@@ -16,11 +16,22 @@ func GetOperator(urls configuration.URLs, accessToken, meOrID string) (*Operator
 		Path("v1", "operators", meOrID).
 		Build()
 
+	options := []request_utils.RequestModifier{
+		ExtractGenericModel(&operator),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+	}
+
+	if accessToken != "" {
+		options = append(options, request_utils.WithAccessToken(accessToken))
+	}
+	if apiKey != "" {
+		options = append(options, request_utils.WithApiKey(apiKey))
+	}
+
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(accessToken),
-		ExtractGenericModel(&operator),
+
+		options...,
 	); err != nil {
 		return nil, err
 	}
@@ -28,8 +39,8 @@ func GetOperator(urls configuration.URLs, accessToken, meOrID string) (*Operator
 	return &operator, nil
 }
 
-func GetOperatorSelf(urls configuration.URLs, accessToken string) (*Operator, error) {
-	return GetOperator(urls, accessToken, "me")
+func GetOperatorSelf(urls configuration.URLs, accessToken, apiKey string) (*Operator, error) {
+	return GetOperator(urls, accessToken, apiKey, "me")
 }
 
 func PromoteOperator(urls configuration.URLs, email, policyName, secret string) error {

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -11,7 +12,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/request_utils"
+	"github.com/cubbit/composer-cli/utils"
 )
 
 func extractReport(response any) request_utils.RequestModifier {
@@ -92,6 +95,32 @@ func ExtractGenericModel(response any) request_utils.RequestModifier {
 			return err
 		}
 
+		return nil
+	}
+}
+
+func ExtractRefreshCookie(response *string) request_utils.RequestModifier {
+	return func(opt *request_utils.RequestOptions, res *http.Response) error {
+		if res == nil {
+			return nil
+		}
+
+		refreshTokenCookie, found := utils.Find(res.Cookies(), func(c *http.Cookie) bool {
+			return c.Name == constants.RefreshCookie
+		})
+		if !found {
+			return fmt.Errorf("refresh token not found in cookies")
+		}
+
+		if refreshTokenCookie.Value == "" {
+			return errors.New("refresh token cannot be empty")
+		}
+
+		if response == nil {
+			return errors.New("response cannot be nil")
+		}
+
+		*response = refreshTokenCookie.Value
 		return nil
 	}
 }

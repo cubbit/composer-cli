@@ -3,6 +3,7 @@ package constants
 const (
 	ErrorConfiguringAPIURL  = "error while configuring API server URL"
 	ErrorRetrievingOperator = "error while retrieving operator id"
+	ErrorSignIn             = "error while signing in"
 
 	ErrorSavingConfig        = "error while saving configuration"
 	ErrorLoadingConfig       = "error while loading file path configuration"

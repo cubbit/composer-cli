@@ -27,7 +27,7 @@ func CreateNodes(urls configuration.URLs, accessToken string, swarmID string, ne
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		ExtractGenericModel(&response),
@@ -48,7 +48,7 @@ func GetNode(urls configuration.URLs, accessToken string, swarmID, nexusID, node
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -73,7 +73,7 @@ func UpdateNode(urls configuration.URLs, accessToken string, swarmID, nexusID, n
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithRequestBodyByte(bodyRequest),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 		ExtractGenericModel(nil),
@@ -94,7 +94,7 @@ func DeleteNode(urls configuration.URLs, accessToken string, swarmID, nexusID, n
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
 		return err
@@ -120,7 +120,7 @@ func ListNodes(urls configuration.URLs, accessToken string, swarmID string, nexu
 		var response GenericPaginatedResponse[*NewNode]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {

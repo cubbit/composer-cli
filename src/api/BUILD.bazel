@@ -26,5 +26,6 @@ go_library(
         "//constants",
         "//src/configuration",
         "//src/request_utils",
+        "//utils",
     ],
 )

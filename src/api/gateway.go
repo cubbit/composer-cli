@@ -30,7 +30,7 @@ func CreateGateway(urls configuration.URLs, accessToken string, tenantID string,
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func UpdateGateway(urls configuration.URLs, accessToken string, tenantID string,
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithRequestBodyByte(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func GetGateway(urls configuration.URLs, accessToken string, tenantID string, ga
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func ListGateways(urls configuration.URLs, accessToken string, tenantID string, 
 		var response GenericPaginatedResponse[*Gateway]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -133,7 +133,7 @@ func DeleteGateway(urls configuration.URLs, accessToken string, tenantID string,
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func VerifyDNS(urls configuration.URLs, accessToken string, tenantID string) err
 		url,
 		request_utils.WithRequestMethod(http.MethodPut),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}

@@ -25,6 +25,10 @@ func NewAuthSubCmdLogin(
 
 	authLoginSubCmd.Flags().String("endpoint", "", "Endpoint to connect to (default: use configured endpoint)")
 	authLoginSubCmd.Flags().StringP("profile", "P", "", "Profile to use for login (default: use active profile)")
+	authLoginSubCmd.Flags().StringP("username", "u", "", "Username of the operator")
+	authLoginSubCmd.Flags().StringP("organization", "o", "", "Organization name of the operator")
+	authLoginSubCmd.Flags().StringP("password", "p", "", "Password of the operator (WARNING: providing passwords via CLI flags may expose them in shell history, process lists, and logs; prefer PASSWORD environment variables, or interactive prompts)")
+	authLoginSubCmd.Flags().StringP("api-key", "k", "", "API Key to use for login (WARNING: providing API keys via CLI flags may expose them in shell history, process lists, and logs; prefer API_KEY environment variables, or interactive prompts)")
 
 	return authLoginSubCmd
 }

@@ -27,7 +27,7 @@ func ListTenantAccounts(urls configuration.URLs, accessToken, tenantID, sort, fi
 		var response GenericPaginatedResponse[*Account]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -56,7 +56,7 @@ func RemoveTenantAccount(urls configuration.URLs, accessToken, tenantID, account
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
 		return err
@@ -80,7 +80,7 @@ func ToggleBanAccount(urls configuration.URLs, accessToken, tenantID string, acc
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
 	); err != nil {
 		return err
@@ -99,7 +99,7 @@ func RestoreTenantAccount(urls configuration.URLs, accessToken, tenantID, accoun
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func DeleteTenantAccountSessions(urls configuration.URLs, accessToken, tenantID,
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent)); err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func CreateTenantAccounts(urls configuration.URLs, accessToken, tenantID string,
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte(postBody),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 	); err != nil {
 		return err
@@ -165,7 +165,7 @@ func GetTenantAccount(urls configuration.URLs, accessToken, tenantID, accountID 
 
 	if err = request_utils.DoRequest(
 		url,
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 		ExtractGenericModel(&response),
 	); err != nil {
@@ -192,7 +192,7 @@ func UpdateAccount(urls configuration.URLs, accessToken, tenantID, accountID str
 		url,
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithRequestBodyByte(requestBody),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	); err != nil {
 		return err

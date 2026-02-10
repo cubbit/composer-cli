@@ -30,7 +30,7 @@ func CreateNexus(urls configuration.URLs, accessToken string, swarmID string, ne
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBodyByte(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func GetNexus(urls configuration.URLs, accessToken string, swarmID string, nexus
 	if err = request_utils.DoRequest(
 		url,
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func UpdateNexus(urls configuration.URLs, accessToken string, swarmID string, ne
 		request_utils.WithRequestMethod(http.MethodPatch),
 		request_utils.WithRequestBodyByte(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func ListNexuses(urls configuration.URLs, accessToken string, swarmID string, so
 		var response GenericPaginatedResponse[*Nexus]
 		if err = request_utils.DoRequest(
 			url+"&page="+strconv.Itoa(page),
-			request_utils.WithAccessToken(accessToken),
+			request_utils.WithApiKey(accessToken),
 			request_utils.WithExpectedStatusCode(http.StatusOK),
 			ExtractGenericModel(&response),
 		); err != nil {
@@ -133,7 +133,7 @@ func DeleteNexus(urls configuration.URLs, accessToken string, swarmID string, ne
 		url,
 		request_utils.WithRequestMethod(http.MethodDelete),
 		request_utils.WithExpectedStatusCode(http.StatusNoContent),
-		request_utils.WithAccessToken(accessToken),
+		request_utils.WithApiKey(accessToken),
 	); err != nil {
 		return err
 	}
