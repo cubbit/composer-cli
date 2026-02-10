@@ -22,6 +22,7 @@ go_library(
 
 go_test(
     name = "cmd_agent_test",
+    tags = ["unit"],
     srcs = [
         "agent_sub_cmd_create_structure_test.go",
         "agent_sub_cmd_describe_structure_test.go",

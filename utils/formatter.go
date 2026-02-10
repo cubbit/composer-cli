@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	syaml "gopkg.in/yaml.v3"
 )
 
-func PrintFormattedData(data interface{}, format string) {
+func PrintFormattedData(writer io.Writer, data interface{}, format string) {
 	switch format {
 	case "json":
 		printJSON(data)
@@ -24,7 +25,7 @@ func PrintFormattedData(data interface{}, format string) {
 	case "csv":
 		printCSV(data)
 	default:
-		PrintVerbose(data, false)
+		PrintVerbose(writer, data, false)
 	}
 }
 

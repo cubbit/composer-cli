@@ -44,6 +44,7 @@ type Profile struct {
 	Output    OutputFormat `toml:"output,omitempty"`
 	APIKey    string       `toml:"api_key,omitempty"`
 	UpdatedAt time.Time    `toml:"updated_at,omitempty"`
+	URLs      *URLs        `toml:"urls,omitempty"`
 }
 
 type ActiveConfig struct {
@@ -66,13 +67,25 @@ type ResolvedProfile struct {
 	Output    OutputFormat
 	APIKey    string
 	UpdatedAt time.Time
+	URLs      *URLs
+}
+
+func NewURLs(
+	baseURL, iamURL, dashURL, chURL string,
+) URLs {
+	return URLs{
+		BaseURL: baseURL,
+		IamURL:  iamURL,
+		DashURL: dashURL,
+		ChURL:   chURL,
+	}
 }
 
 type URLs struct {
-	BaseURL string `yaml:"base_url"`
-	IamURL  string `yaml:"iam"`
-	DashURL string `yaml:"dash"`
-	ChURL   string `yaml:"ch"`
+	BaseURL string `yaml:"base_url" toml:"base_url"`
+	IamURL  string `yaml:"iam" toml:"iam"`
+	DashURL string `yaml:"dash" toml:"dash"`
+	ChURL   string `yaml:"ch" toml:"ch"`
 }
 
 func NewConfig() *Config {
@@ -163,6 +176,33 @@ func LoadConfig() (*Config, error) {
 					profile.UpdatedAt = updatedAt
 				}
 
+				if rawUrls, ok := profileMap["urls"].(map[string]interface{}); ok && profile.Endpoint == "" {
+					baseUrl, ok := rawUrls["base_url"].(string)
+					if !ok {
+						return config, fmt.Errorf("invalid base_url in urls for profile '%s'", profileName)
+					}
+					iamUrl, ok := rawUrls["iam"].(string)
+					if !ok {
+						return config, fmt.Errorf("invalid iam in urls for profile '%s'", profileName)
+					}
+					dashUrl, ok := rawUrls["dash"].(string)
+					if !ok {
+						return config, fmt.Errorf("invalid dash in urls for profile '%s'", profileName)
+					}
+					chUrl, ok := rawUrls["ch"].(string)
+					if !ok {
+						return config, fmt.Errorf("invalid ch in urls for profile '%s'", profileName)
+					}
+
+					urls := NewURLs(
+						baseUrl,
+						iamUrl,
+						dashUrl,
+						chUrl,
+					)
+					profile.URLs = &urls
+				}
+
 				config.Profile[profileName] = profile
 			}
 
@@ -231,6 +271,9 @@ func (c *Config) SaveConfig() error {
 		if !profile.UpdatedAt.IsZero() {
 			profileData["updated_at"] = profile.UpdatedAt
 		}
+		if profile.URLs != nil {
+			profileData["urls"] = profile.URLs
+		}
 
 		for key, value := range profileData {
 			switch v := value.(type) {
@@ -245,6 +288,24 @@ func (c *Config) SaveConfig() error {
 			case time.Time:
 				if _, err := fmt.Fprintf(file, "  %s = %s\n", key, v.Format(time.RFC3339Nano)); err != nil {
 					return fmt.Errorf("failed to write profile field: %w", err)
+				}
+			case *URLs:
+				if v != nil {
+					if _, err := fmt.Fprintf(file, "  [profile.%s.urls]\n", name); err != nil {
+						return fmt.Errorf("failed to write urls section: %w", err)
+					}
+					if _, err := fmt.Fprintf(file, "    base_url = %q\n", v.BaseURL); err != nil {
+						return fmt.Errorf("failed to write base_url: %w", err)
+					}
+					if _, err := fmt.Fprintf(file, "    iam = %q\n", v.IamURL); err != nil {
+						return fmt.Errorf("failed to write iam: %w", err)
+					}
+					if _, err := fmt.Fprintf(file, "    dash = %q\n", v.DashURL); err != nil {
+						return fmt.Errorf("failed to write dash: %w", err)
+					}
+					if _, err := fmt.Fprintf(file, "    ch = %q\n", v.ChURL); err != nil {
+						return fmt.Errorf("failed to write ch: %w", err)
+					}
 				}
 			}
 		}
@@ -269,6 +330,7 @@ func (c *Config) ResolveProfile(profileName string) (*ResolvedProfile, error) {
 		UpdatedAt: profile.UpdatedAt,
 		Endpoint:  profile.Endpoint,
 		APIKey:    profile.APIKey,
+		URLs:      profile.URLs,
 	}
 
 	if err := c.applyInheritance(resolved, profile, make(map[string]bool)); err != nil {
@@ -558,6 +620,11 @@ func (c *Config) ResolveURLs(profileName string) (*URLs, error) {
 	resolved, err := c.ResolveProfile(profileName)
 	if err != nil {
 		return nil, err
+	}
+
+	// TODO apply profile inheritance to URLs
+	if resolved.URLs != nil {
+		return resolved.URLs, nil
 	}
 
 	urls, err := ConfigureAPIServerURL(resolved.Endpoint)

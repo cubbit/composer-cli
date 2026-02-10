@@ -15,6 +15,7 @@ go_library(
         "redundancy_class.go",
         "redundancy_class_recovery.go",
         "root.go",
+        "root_init.go",
         "swarm.go",
         "tenant.go",
         "user.go",

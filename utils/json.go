@@ -26,10 +26,21 @@ func JSONMapFromCommand(cmd *cobra.Command, flagName string, validators ...JSONM
 		return nil, fmt.Errorf("failed to parse flag '%s': %w", flagName, err)
 	}
 
-	for _, validate := range validators {
-		if err := validate(jm); err != nil {
-			return nil, fmt.Errorf("validation for flag '%s' failed: %w", flagName, err)
-		}
+	if err := jm.Validate(validators...); err != nil {
+		return nil, fmt.Errorf("validation for flag '%s' failed: %w", flagName, err)
+	}
+
+	return jm, nil
+}
+
+func NewJSONMapFromString(value string, validators ...JSONMapValidator) (JSONMap, error) {
+	var jm JSONMap
+	if err := jm.Set(value); err != nil {
+		return nil, err
+	}
+
+	if err := jm.Validate(validators...); err != nil {
+		return nil, err
 	}
 
 	return jm, nil
@@ -43,6 +54,15 @@ func (j *JSONMap) String() string {
 func (j *JSONMap) Set(value string) error {
 	if err := json.Unmarshal([]byte(value), j); err != nil {
 		return fmt.Errorf("invalid json map: %w", err)
+	}
+	return nil
+}
+
+func (j *JSONMap) Validate(validators ...JSONMapValidator) error {
+	for _, validate := range validators {
+		if err := validate(*j); err != nil {
+			return err
+		}
 	}
 	return nil
 }

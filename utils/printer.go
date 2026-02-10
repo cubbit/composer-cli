@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -117,6 +118,10 @@ func PrintDelete(s string) {
 }
 
 func PrintError(err error) {
+	PrintErrorWithWriter(os.Stderr, err)
+}
+
+func PrintErrorWithWriter(writer io.Writer, err error) {
 	errStr, _ := strings.CutSuffix(err.Error(), "\n")
 	lines := strings.Split(errStr, "\n")
 
@@ -125,13 +130,13 @@ func PrintError(err error) {
 		for i, line := range lines {
 			if i == 0 {
 				l, _ := strings.CutSuffix(line, ": ")
-				fmt.Fprintf(os.Stderr, "%s %s\n", style("ERR", RedBg), l)
+				fmt.Fprintf(writer, "%s %s\n", style("ERR", RedBg), l)
 			} else {
-				fmt.Fprintf(os.Stderr, "%s %s\n", style("INF", blueStyle), line)
+				fmt.Fprintf(writer, "%s %s\n", style("INF", blueStyle), line)
 			}
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		fmt.Fprintf(writer, "%s\n", err.Error())
 	}
 }
 
@@ -175,11 +180,11 @@ func PrintSimpleList(items []string) {
 	}
 }
 
-func PrintVerbose(data interface{}, noHeaders bool) {
-	printMarkdownTable(data, noHeaders)
+func PrintVerbose(writer io.Writer, data interface{}, noHeaders bool) {
+	printMarkdownTable(writer, data, noHeaders)
 }
 
-func printMarkdownTable(data interface{}, noHeaders bool) {
+func printMarkdownTable(writer io.Writer, data interface{}, noHeaders bool) {
 	value := reflect.ValueOf(data)
 
 	if value.Kind() == reflect.Ptr {
@@ -305,34 +310,34 @@ func printMarkdownTable(data interface{}, noHeaders bool) {
 	}
 
 	if !noHeaders {
-		fmt.Print("| ")
+		fmt.Fprint(writer, "| ")
 		for i, h := range headers {
 			if i > 0 {
-				fmt.Print(" | ")
+				fmt.Fprint(writer, " | ")
 			}
-			fmt.Print(padRight(h, colWidths[i]))
+			fmt.Fprint(writer, padRight(h, colWidths[i]))
 		}
-		fmt.Println(" |")
+		fmt.Fprintln(writer, " |")
 
-		fmt.Print("| ")
+		fmt.Fprint(writer, "| ")
 		for i, w := range colWidths {
 			if i > 0 {
-				fmt.Print(" | ")
+				fmt.Fprint(writer, " | ")
 			}
-			fmt.Print(strings.Repeat("-", w))
+			fmt.Fprint(writer, strings.Repeat("-", w))
 		}
-		fmt.Println(" |")
+		fmt.Fprintln(writer, " |")
 	}
 
 	for _, row := range rows {
-		fmt.Print("| ")
+		fmt.Fprint(writer, "| ")
 		for i, cell := range row {
 			if i > 0 {
-				fmt.Print(" | ")
+				fmt.Fprint(writer, " | ")
 			}
-			fmt.Print(padRight(cell, colWidths[i]))
+			fmt.Fprint(writer, padRight(cell, colWidths[i]))
 		}
-		fmt.Println(" |")
+		fmt.Fprintln(writer, " |")
 	}
 }
 
@@ -403,8 +408,8 @@ func formatValue(v reflect.Value) string {
 	return ""
 }
 
-func PrintQuiet(fields ...string) {
-	fmt.Println(strings.Join(fields, "\t"))
+func PrintQuiet(writer io.Writer, fields ...string) {
+	fmt.Fprintln(writer, strings.Join(fields, "\t"))
 }
 
 func PrintSmartOutput[T any](
@@ -444,23 +449,23 @@ func PrintSmartOutput[T any](
 				return nil
 			}
 			for _, item := range items {
-				PrintQuiet(fieldsFunc(item)...)
+				PrintQuiet(cmd.OutOrStdout(), fieldsFunc(item)...)
 			}
 			return nil
 		}
 		if compactOutput && fieldsFunc != nil {
-			PrintQuiet(fieldsFunc(items[0])...)
+			PrintQuiet(cmd.OutOrStdout(), fieldsFunc(items[0])...)
 			return nil
 		}
 
-		PrintVerbose(items, noHeaders)
+		printMarkdownTable(cmd.OutOrStdout(), items, noHeaders)
 		return nil
 
 	default:
 		if isSingleResource {
-			PrintFormattedData(items[0], output)
+			PrintFormattedData(cmd.OutOrStdout(), items[0], output)
 		} else {
-			PrintFormattedData(items, output)
+			PrintFormattedData(cmd.OutOrStdout(), items, output)
 		}
 		return nil
 	}

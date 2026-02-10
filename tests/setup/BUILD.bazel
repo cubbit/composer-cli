@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "setup",
+    srcs = [
+        "test_runner.go",
+        "test_runner_models.go",
+        "test_runner_options.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/tests/setup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/api",
+        "//src/cmd",
+        "//src/configuration",
+        "//src/service",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

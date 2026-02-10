@@ -1,0 +1,11 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_test(
+    name = "auth_test",
+    tags = ["e2e"],
+    srcs = ["signup_test.go"],
+    deps = [
+        "//tests/setup",
+        "//tests/utils",
+    ],
+)

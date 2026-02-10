@@ -121,7 +121,7 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 
 	resolvedProfile, urls, err := as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
 	if err != nil {
-		return fmt.Errorf("failed to resolve provide and urls: %w", err)
+		return fmt.Errorf("failed to resolve profile and urls: %w", err)
 	}
 
 	var authenticationPublicKey *string

@@ -17,6 +17,7 @@ require (
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
+	github.com/go-faker/faker/v4 v4.7.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
 )
@@ -36,7 +37,7 @@ require (
 	github.com/muesli/termenv v0.15.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.9
-	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 )

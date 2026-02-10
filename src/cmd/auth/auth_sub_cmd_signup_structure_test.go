@@ -151,7 +151,7 @@ func TestAuthSubCmd_Structure_SignUp_WithInvalidJSONStringFlags(t *testing.T) {
 	}
 
 	if err != nil &&
-		!strings.Contains(err.Error(), "invalid argument") &&
+		!strings.Contains(err.Error(), "invalid json map") &&
 		!strings.Contains(err.Error(), "--base-policy") {
 		t.Fatalf("Expected JSON parsing error for --base-policy, got %s", err)
 	}
@@ -174,7 +174,7 @@ func TestAuthSubCmd_Structure_SignUp_WithInvalidJSONStringFlags(t *testing.T) {
 	}
 
 	if err != nil &&
-		!strings.Contains(err.Error(), "invalid argument") &&
+		!strings.Contains(err.Error(), "invalid json map") &&
 		!strings.Contains(err.Error(), "--settings") {
 		t.Fatalf("Expected JSON parsing error for --settings, got %s", err)
 	}

@@ -20,6 +20,7 @@ go_library(
 
 go_test(
     name = "auth_test",
+    tags = ["unit"],
     srcs = [
         "auth_sub_cmd_activate_test.go",
         "auth_sub_cmd_login_structure_test.go",
