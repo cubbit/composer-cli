@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+### Minor Changes
+
+- 56a1844: Activate operator command
+- 6606b27: Add root operator signup command
+
 ## 1.1.0
 
 ### Minor Changes
