@@ -1,64 +1,50 @@
-// Package api provides functions to interact with the operator API.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
-func GetOperator(urls configuration.URLs, accessToken, apiKey string, meOrID string) (*Operator, error) {
-	var err error
-	var operator Operator
+type OperatorAPIInterface interface {
+	Connect(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+	) (string, error)
+}
 
-	url := NewURLBuilder(urls.IamURL).
-		Path("v1", "operators", meOrID).
+type OperatorAPI struct {
+	config configuration.Config
+}
+
+func NewOperatorAPI(config *configuration.Config) *OperatorAPI {
+	return &OperatorAPI{
+		config: *config,
+	}
+}
+
+func (api *OperatorAPI) Connect(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+) (string, error) {
+
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v1", "organizations", organizationID, "infra", "generate-connect-cmd").
 		Build()
 
-	options := []request_utils.RequestModifier{
-		ExtractGenericModel(&operator),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-	}
-
-	if accessToken != "" {
-		options = append(options, request_utils.WithAccessToken(accessToken))
-	}
-	if apiKey != "" {
-		options = append(options, request_utils.WithApiKey(apiKey))
-	}
-
-	if err = request_utils.DoRequest(
+	var command InfraClusterConnectCmdResponse
+	if err := request_utils.DoRequest(
 		url,
-
-		options...,
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		ExtractGenericModel(&command),
 	); err != nil {
-		return nil, err
+		return "", fmt.Errorf("failed to perform connect request: %w", err)
 	}
 
-	return &operator, nil
-}
-
-func GetOperatorSelf(urls configuration.URLs, accessToken, apiKey string) (*Operator, error) {
-	return GetOperator(urls, accessToken, apiKey, "me")
-}
-
-func PromoteOperator(urls configuration.URLs, email, policyName, secret string) error {
-	var err error
-
-	url := NewURLBuilder(urls.IamURL).
-		Path("v1", "operators", "promote").
-		Build()
-
-	requestBody := map[string]interface{}{
-		"email":       email,
-		"policy_name": policyName,
-		"secret":      secret,
-	}
-
-	if err = request_utils.DoRequest(url, request_utils.WithRequestMethod(http.MethodPost), request_utils.WithRequestBody(requestBody), request_utils.WithExpectedStatusCode(http.StatusCreated)); err != nil {
-		return err
-	}
-
-	return nil
+	return command.Command, nil
 }

@@ -19,6 +19,7 @@ go_library(
         "swarm.go",
         "tenant.go",
         "url_builder.go",
+        "user.go",
     ],
     importpath = "github.com/cubbit/composer-cli/src/api",
     visibility = ["//visibility:public"],

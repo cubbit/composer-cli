@@ -25,8 +25,9 @@ go_library(
     deps = [
         "//src/action",
         "//src/api",
-        "//src/cmd/agent:cmd_agent",
+        "//src/cmd/agent",
         "//src/cmd/auth",
+        "//src/cmd/operator",
         "//src/configuration",
         "//src/service",
         "//utils",

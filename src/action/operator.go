@@ -36,7 +36,7 @@ func PromoteOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
 	}
 
-	if err = api.PromoteOperator(*url, email, policyName, secret); err != nil {
+	if err = api.PromoteIAMUser(*url, email, policyName, secret); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorPromotingOperatorRequest, err)
 	}
 

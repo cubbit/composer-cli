@@ -20,7 +20,6 @@ go_library(
 
 go_test(
     name = "auth_test",
-    tags = ["unit"],
     srcs = [
         "auth_sub_cmd_activate_test.go",
         "auth_sub_cmd_login_structure_test.go",
@@ -28,6 +27,7 @@ go_test(
         "auth_sub_cmd_signup_structure_test.go",
     ],
     embed = [":auth"],
+    tags = ["unit"],
     deps = [
         "//src/service",
         "@com_github_spf13_cobra//:cobra",

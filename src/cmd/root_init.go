@@ -44,11 +44,13 @@ var rootCmd = func() *cobra.Command {
 	}
 
 	authAPI := api.NewAuthAPI(configuration)
+	operatorAPI := api.NewOperatorAPI(configuration)
 
 	agentService := service.NewAgentService(configuration)
 	authService := service.NewAuthService(configuration, authAPI)
+	operatorService := service.NewOperatorService(configuration, operatorAPI)
 
-	return NewRootCommand(agentService, authService)
+	return NewRootCommand(agentService, authService, operatorService)
 }()
 
 func Execute(packageJSON []byte) {

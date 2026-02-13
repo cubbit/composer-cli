@@ -34,13 +34,15 @@ func GetTestRunner(opts ...RunnerOption) (CLIRunner, error) {
 	}
 
 	authAPI := api.NewAuthAPI(configuration)
+	operatorAPI := api.NewOperatorAPI(configuration)
 
 	agentService := service.NewAgentService(configuration)
 	authService := service.NewAuthService(configuration, authAPI)
+	operatorService := service.NewOperatorService(configuration, operatorAPI)
 
 	return &InProcessRunner{
 		RunnerBase: *runnerBase,
-		Root:       cmd.NewRootCommand(agentService, authService),
+		Root:       cmd.NewRootCommand(agentService, authService, operatorService),
 	}, nil
 }
 

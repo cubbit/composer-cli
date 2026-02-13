@@ -206,6 +206,7 @@ type Operator struct {
 	TwoFactorEnabled   bool            `json:"two_factor_enabled"`
 	Status             string          `json:"status"`
 	PolicyName         string          `json:"policy_name"`
+	OrganizationID     *string         `json:"organization_id"`
 }
 
 type OperatorList struct {
@@ -213,11 +214,12 @@ type OperatorList struct {
 }
 
 type OperatorEmail struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	Verified  bool      `json:"verified"`
-	Default   bool      `json:"default"`
-	CreatedAt time.Time `json:"created_at"`
+	ID             string    `json:"id"`
+	Email          string    `json:"email"`
+	Verified       bool      `json:"verified"`
+	Default        bool      `json:"default"`
+	CreatedAt      time.Time `json:"created_at"`
+	OrganizationID *string   `json:"organization_id"`
 }
 
 type Policy struct {
@@ -734,4 +736,9 @@ type GetAgentEvaluatedStatusResponse struct {
 type SignInToken struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type InfraClusterConnectCmdResponse struct {
+	// mandatory, the generated command to use to execute a cluster-connect. It will contains the orgranization-id and its api-key
+	Command string `json:"command" example:"curl -fsSL https://download.operator.cubbit.eu/install-kubectl-plugin.sh | bash && kubectl cubbit cluster-connect --api-key=b9716863-5a0d-4e40-93e9-53f21f442f57 --org-id=00000000-0000-0000-0000-000000000000"`
 }

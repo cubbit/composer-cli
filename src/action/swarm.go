@@ -78,7 +78,7 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if operator, err = api.GetOperatorSelf(*urls, "", resolvedProfile.APIKey); err != nil {
+	if operator, err = api.GetIAMUserSelf(*urls, "", resolvedProfile.APIKey); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingOperatorRequest, err)
 	}
 
