@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0
+
+### Minor Changes
+
+- 429ae80: - Implemented new functionality to allow users to log in using their username and password
+  - Added the ability to enter an existing API key for authentication purposes
+- ea77b57: Implement a new command to connect a cluster to an organization
+
+### Patch Changes
+
+- 219d7e5: Introduce E2E test for signup command
+
 ## 1.2.0
 
 ### Minor Changes
