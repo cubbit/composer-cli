@@ -7,6 +7,8 @@ go_library(
         "agent_service_mock.go",
         "auth_service.go",
         "auth_service_mock.go",
+        "location_service.go",
+        "location_service_mock.go",
         "operator_service.go",
         "operator_service_mock.go",
     ],

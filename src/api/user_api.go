@@ -1,4 +1,3 @@
-// Package api provides functions to interact with the operator API.
 package api
 
 import (
@@ -8,16 +7,42 @@ import (
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
-func GetIAMUser(urls configuration.URLs, accessToken, apiKey string, meOrID string) (*IAMUser, error) {
+type UserAPIInterface interface {
+	GetIAMUser(
+		urls configuration.URLs,
+		accessToken, apiKey string,
+		meOrID string,
+	) (*IAMUser, error)
+
+	GetIAMUserSelf(
+		urls configuration.URLs,
+		accessToken, apiKey string,
+	) (*IAMUser, error)
+
+	PromoteIAMUser(
+		urls configuration.URLs,
+		email,
+		policyName,
+		secret string,
+	) error
+}
+
+type UserAPI struct{}
+
+func NewUserAPI() *UserAPI {
+	return &UserAPI{}
+}
+
+func (a *UserAPI) GetIAMUser(urls configuration.URLs, accessToken, apiKey string, meOrID string) (*IAMUser, error) {
 	var err error
-	var user IAMUser
+	var operator IAMUser
 
 	url := NewURLBuilder(urls.IamURL).
 		Path("v1", "operators", meOrID).
 		Build()
 
 	options := []request_utils.RequestModifier{
-		ExtractGenericModel(&user),
+		ExtractGenericModel(&operator),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
 	}
 
@@ -36,14 +61,14 @@ func GetIAMUser(urls configuration.URLs, accessToken, apiKey string, meOrID stri
 		return nil, err
 	}
 
-	return &user, nil
+	return &operator, nil
 }
 
-func GetIAMUserSelf(urls configuration.URLs, accessToken, apiKey string) (*IAMUser, error) {
-	return GetIAMUser(urls, accessToken, apiKey, "me")
+func (a *UserAPI) GetIAMUserSelf(urls configuration.URLs, accessToken, apiKey string) (*IAMUser, error) {
+	return a.GetIAMUser(urls, accessToken, apiKey, "me")
 }
 
-func PromoteIAMUser(urls configuration.URLs, email, policyName, secret string) error {
+func (a *UserAPI) PromoteIAMUser(urls configuration.URLs, email, policyName, secret string) error {
 	var err error
 
 	url := NewURLBuilder(urls.IamURL).

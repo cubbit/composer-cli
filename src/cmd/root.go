@@ -5,6 +5,7 @@ import (
 
 	cmd_agent "github.com/cubbit/composer-cli/src/cmd/agent"
 	cmd_auth "github.com/cubbit/composer-cli/src/cmd/auth"
+	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
 	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/cubbit/composer-cli/src/service"
@@ -15,6 +16,7 @@ func NewRootCommand(
 	newAgentService service.AgentServiceInterface,
 	authService service.AuthServiceInterface,
 	operatorService service.OperatorServiceInterface,
+	locationService service.LocationServiceInterface,
 ) *cobra.Command {
 	rootCommand := &cobra.Command{
 		Use:   "cubbit",
@@ -56,6 +58,9 @@ func NewRootCommand(
 
 	operatorCmd := cmd_operator.NewOperatorCmd(operatorService)
 	rootCommand.AddCommand(operatorCmd)
+
+	infrastructureCmd := cmd_infrastructure.NewInfrastructureCmd(locationService)
+	rootCommand.AddCommand(infrastructureCmd)
 
 	return rootCommand
 }

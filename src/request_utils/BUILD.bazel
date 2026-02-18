@@ -2,7 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "request_utils",
-    srcs = ["generic_request.go"],
+    srcs = [
+        "bound_request.go",
+        "generic_request.go",
+    ],
     importpath = "github.com/cubbit/composer-cli/src/request_utils",
     visibility = ["//visibility:public"],
     deps = ["//constants"],

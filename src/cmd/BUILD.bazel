@@ -27,6 +27,7 @@ go_library(
         "//src/api",
         "//src/cmd/agent",
         "//src/cmd/auth",
+        "//src/cmd/infrastructure",
         "//src/cmd/operator",
         "//src/configuration",
         "//src/service",

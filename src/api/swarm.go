@@ -103,9 +103,9 @@ func ListSwarms(urls configuration.URLs, accessToken, ownerID string) ([]*Swarm,
 	return response, nil
 }
 
-func GetSwarmOperator(urls configuration.URLs, accessToken, swarmID, operatorID string) (*Operator, error) {
+func GetSwarmOperator(urls configuration.URLs, accessToken, swarmID, operatorID string) (*IAMUser, error) {
 	var err error
-	var response Operator
+	var response IAMUser
 
 	url := NewURLBuilder(urls.IamURL).
 		Path("v1", "swarms", swarmID, "operators", operatorID).
@@ -166,9 +166,9 @@ func InviteOperatorToSwarm(urls configuration.URLs, accessToken, swarmID string,
 	return nil
 }
 
-func ListSwarmOperators(urls configuration.URLs, accessToken, swarmID string) (*OperatorList, error) {
+func ListSwarmOperators(urls configuration.URLs, accessToken, swarmID string) (*IAMUserList, error) {
 	var err error
-	var response OperatorList
+	var response IAMUserList
 
 	url := NewURLBuilder(urls.IamURL).
 		Path("v1", "swarms", swarmID, "operators").

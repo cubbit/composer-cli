@@ -110,7 +110,7 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
-	var operators *api.OperatorList
+	var operators *api.IAMUserList
 
 	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -131,10 +131,10 @@ func ListTenantOperators(cmd *cobra.Command, args []string) error {
 	return utils.PrintSmartOutput(
 		cmd,
 		operators.Operators,
-		func(o *api.Operator) []string {
+		func(o *api.IAMUser) []string {
 			return []string{o.ID}
 		},
-		&utils.SmartOutputConfig[*api.Operator]{
+		&utils.SmartOutputConfig[*api.IAMUser]{
 			DefaultOutput: resolvedProfile.Output,
 		},
 	)
@@ -186,7 +186,7 @@ func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
-	var operator *api.Operator
+	var operator *api.IAMUser
 
 	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -210,8 +210,8 @@ func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
 
 	return utils.PrintSmartOutput(
 		cmd,
-		[]*api.Operator{operator},
-		func(o *api.Operator) []string {
+		[]*api.IAMUser{operator},
+		func(o *api.IAMUser) []string {
 			return []string{o.ID,
 				o.Email,
 				o.FirstName,
@@ -219,7 +219,7 @@ func DescribeTenantOperator(cmd *cobra.Command, args []string) error {
 				o.PolicyName,
 			}
 		},
-		&utils.SmartOutputConfig[*api.Operator]{
+		&utils.SmartOutputConfig[*api.IAMUser]{
 			DefaultOutput: resolvedProfile.Output,
 		},
 	)
@@ -337,7 +337,7 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
-	var operators *api.OperatorList
+	var operators *api.IAMUserList
 
 	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -358,12 +358,12 @@ func ListSwarmOperators(cmd *cobra.Command, args []string) error {
 	return utils.PrintSmartOutput(
 		cmd,
 		operators.Operators,
-		func(o *api.Operator) []string {
+		func(o *api.IAMUser) []string {
 			return []string{
 				o.ID,
 			}
 		},
-		&utils.SmartOutputConfig[*api.Operator]{
+		&utils.SmartOutputConfig[*api.IAMUser]{
 			DefaultOutput: resolvedProfile.Output,
 		},
 	)
@@ -416,7 +416,7 @@ func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
-	var operator *api.Operator
+	var operator *api.IAMUser
 
 	if swarmID, err = cmd.Flags().GetString("swarm-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -440,11 +440,11 @@ func DescribeSwarmOperator(cmd *cobra.Command, args []string) error {
 
 	return utils.PrintSmartOutput(
 		cmd,
-		[]*api.Operator{operator},
-		func(o *api.Operator) []string {
+		[]*api.IAMUser{operator},
+		func(o *api.IAMUser) []string {
 			return []string{o.ID, o.Email, o.FirstName, o.LastName, o.PolicyName}
 		},
-		&utils.SmartOutputConfig[*api.Operator]{
+		&utils.SmartOutputConfig[*api.IAMUser]{
 			DefaultOutput: resolvedProfile.Output,
 		},
 	)

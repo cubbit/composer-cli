@@ -207,9 +207,9 @@ func InviteOperatorToTenant(urls configuration.URLs, accessToken, tenantID strin
 	return nil
 }
 
-func ListTenantOperators(urls configuration.URLs, accessToken, tenantID string) (*OperatorList, error) {
+func ListTenantOperators(urls configuration.URLs, accessToken, tenantID string) (*IAMUserList, error) {
 	var err error
-	var response OperatorList
+	var response IAMUserList
 
 	url := NewURLBuilder(urls.IamURL).
 		Path("v1", "tenants", tenantID, "operators").
@@ -226,9 +226,9 @@ func ListTenantOperators(urls configuration.URLs, accessToken, tenantID string) 
 	return &response, nil
 }
 
-func GetTenantOperator(urls configuration.URLs, accessToken, tenantID, operatorID string) (*Operator, error) {
+func GetTenantOperator(urls configuration.URLs, accessToken, tenantID, operatorID string) (*IAMUser, error) {
 	var err error
-	var response Operator
+	var response IAMUser
 
 	url := NewURLBuilder(urls.IamURL).
 		Path("v1", "tenants", tenantID, "operators", operatorID).

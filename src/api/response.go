@@ -192,28 +192,28 @@ type TenantSwarm struct {
 	RedundancyClassName string `json:"redundancy_class_name"`
 }
 
-type Operator struct {
-	ID                 string          `json:"id"`
-	FirstName          string          `json:"first_name"`
-	LastName           string          `json:"last_name"`
-	Internal           bool            `json:"internal"`
-	Banned             bool            `json:"banned"`
-	CreatedAt          time.Time       `json:"created_at"`
-	DeletedAt          *time.Time      `json:"deleted_at"`
-	MaxAllowedProjects int             `json:"max_allowed_projects"`
-	Email              string          `json:"email"`
-	Emails             []OperatorEmail `json:"emails"`
-	TwoFactorEnabled   bool            `json:"two_factor_enabled"`
-	Status             string          `json:"status"`
-	PolicyName         string          `json:"policy_name"`
-	OrganizationID     *string         `json:"organization_id"`
+type IAMUser struct {
+	ID                 string         `json:"id"`
+	FirstName          string         `json:"first_name"`
+	LastName           string         `json:"last_name"`
+	Internal           bool           `json:"internal"`
+	Banned             bool           `json:"banned"`
+	CreatedAt          time.Time      `json:"created_at"`
+	DeletedAt          *time.Time     `json:"deleted_at"`
+	MaxAllowedProjects int            `json:"max_allowed_projects"`
+	Email              string         `json:"email"`
+	Emails             []IAMUserEmail `json:"emails"`
+	TwoFactorEnabled   bool           `json:"two_factor_enabled"`
+	Status             string         `json:"status"`
+	PolicyName         string         `json:"policy_name"`
+	OrganizationID     *string        `json:"organization_id"`
 }
 
-type OperatorList struct {
-	Operators []*Operator `json:"operators"`
+type IAMUserList struct {
+	Operators []*IAMUser `json:"operators"`
 }
 
-type OperatorEmail struct {
+type IAMUserEmail struct {
 	ID             string    `json:"id"`
 	Email          string    `json:"email"`
 	Verified       bool      `json:"verified"`
@@ -742,3 +742,12 @@ type InfraClusterConnectCmdResponse struct {
 	// mandatory, the generated command to use to execute a cluster-connect. It will contains the orgranization-id and its api-key
 	Command string `json:"command" example:"curl -fsSL https://download.operator.cubbit.eu/install-kubectl-plugin.sh | bash && kubectl cubbit cluster-connect --api-key=b9716863-5a0d-4e40-93e9-53f21f442f57 --org-id=00000000-0000-0000-0000-000000000000"`
 }
+
+// #region infrastructgure
+
+type InfrastructureCluster struct {
+	ClusterID string `json:"cluster_id"`
+	Name      string `json:"name"`
+}
+
+// #endregion

@@ -63,7 +63,7 @@ func DescribeSwarm(cmd *cobra.Command, args []string) error {
 	var conf *configuration.Config
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
-	var operator *api.Operator
+	var operator *api.IAMUser
 	var swarm *api.Swarm
 
 	if id, err = cmd.Flags().GetString("swarm-id"); err != nil {
