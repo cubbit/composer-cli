@@ -22,8 +22,8 @@ go_library(
     deps = [
         "//constants",
         "//src/configuration",
-        "@com_github_charmbracelet_lipgloss//:lipgloss",
-        "@com_github_spf13_cobra//:cobra",
-        "@in_gopkg_yaml_v3//:yaml_v3",
+        "@com_github_charmbracelet_lipgloss//:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@in_gopkg_yaml_v3//:go_default_library",
     ],
 )

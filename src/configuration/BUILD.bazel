@@ -8,8 +8,8 @@ go_library(
     deps = [
         "//constants",
         "//src/tui",
-        "@com_github_burntsushi_toml//:toml",
-        "@com_github_spf13_cobra//:cobra",
-        "@in_gopkg_yaml_v2//:yaml_v2",
+        "@com_github_burntsushi_toml//:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@in_gopkg_yaml_v2//:go_default_library",
     ],
 )

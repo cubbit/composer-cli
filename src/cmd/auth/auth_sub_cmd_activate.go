@@ -19,7 +19,7 @@ func NewAuthSubCmdActivate(
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := authService.Activate(cmd, args); err != nil {
-				utils.PrintError(err)
+				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},
 	}

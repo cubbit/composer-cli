@@ -1,22 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
-go_test(
-    name = "agent_test",
-    srcs = [
-        "agent_sub_cmd_create_structure_test.go",
-        "agent_sub_cmd_describe_structure_test.go",
-        "agent_sub_cmd_edit_structure_test.go",
-        "agent_sub_cmd_list_structure_test.go",
-        "agent_sub_cmd_remove_structure_test.go",
-        "agent_sub_cmd_status_structure_test.go",
-    ],
-    embed = [":agent"],
-    deps = [
-        "//src/service",
-        "@com_github_spf13_cobra//:cobra",
-    ],
-)
-
 go_library(
     name = "agent",
     srcs = [
@@ -33,6 +16,24 @@ go_library(
     deps = [
         "//src/service",
         "//utils",
-        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "agent_test",
+    srcs = [
+        "agent_sub_cmd_create_structure_test.go",
+        "agent_sub_cmd_describe_structure_test.go",
+        "agent_sub_cmd_edit_structure_test.go",
+        "agent_sub_cmd_list_structure_test.go",
+        "agent_sub_cmd_remove_structure_test.go",
+        "agent_sub_cmd_status_structure_test.go",
+    ],
+    embed = [":agent"],
+    tags = ["unit"],
+    deps = [
+        "//src/service",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )

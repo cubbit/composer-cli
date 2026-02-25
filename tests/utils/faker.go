@@ -39,7 +39,7 @@ func (f FakerInstance) Name(opts ...options.OptionFunc) string {
 }
 
 func (f FakerInstance) NameUnique(opts ...options.OptionFunc) string {
-	return safeTrim(faker.Name(opts...), 128) + faker.UUIDHyphenated()
+	return safeTrim(faker.Username(opts...), 128) + faker.UUIDHyphenated()
 }
 
 var Faker = FakerInstance{}
