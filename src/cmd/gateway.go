@@ -116,6 +116,9 @@ func init() {
 	updateGatewaySubCmd.Flags().String("gateway-id", "", "ID of the gateway")
 	updateGatewaySubCmd.Flags().String("name", "", "Name of the gateway")
 	updateGatewaySubCmd.Flags().String("location", "", "Location of the gateway")
+	updateGatewaySubCmd.Flags().StringP("default-redundancy-class-id", "r", "", "Default redundancy class ID of the gateway")
+	updateGatewaySubCmd.Flags().BoolP("smart-data-placement-enabled", "e", false, "Enable or disable smart data placement for the gateway")
+	updateGatewaySubCmd.Flags().StringP("smart-data-placement-policies", "p", "", "The policies for smart data placement in JSON format")
 
 	gatewayCmd.AddCommand(listGatewaysSubCmd)
 	listGatewaysSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")

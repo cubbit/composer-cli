@@ -85,6 +85,26 @@ func GetGateway(urls configuration.URLs, accessToken string, tenantID string, ga
 	return &response, nil
 }
 
+func GetGatewaySmartDataPlacement(urls configuration.URLs, accessToken string, tenantID string, gatewayID string) (*GenericPaginatedResponse[PlacementPolicy], error) {
+	var err error
+	var response GenericPaginatedResponse[PlacementPolicy]
+
+	url := NewURLBuilder(urls.ChURL).
+		Path("v1", "tenants", tenantID, "gateways", gatewayID, "placement_policies").
+		Build()
+
+	if err = request_utils.DoRequest(
+		url,
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithAccessToken(accessToken),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 func ListGateways(urls configuration.URLs, accessToken string, tenantID string, sort string, filter string) (*GenericPaginatedResponse[*Gateway], error) {
 	var err error
 	var finalResponse GenericPaginatedResponse[*Gateway]

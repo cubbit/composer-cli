@@ -1,7 +1,5 @@
 package api
 
-import ()
-
 type UpdateAccountRequest struct {
 	FirstName          *string `json:"first_name"`
 	LastName           *string `json:"last_name"`
@@ -100,8 +98,11 @@ type CreateGatewayRequestBody struct {
 }
 
 type UpdateGatewayRequestBody struct {
-	Name     *string `json:"name"`
-	Location *string `json:"location"`
+	Name                      *string           `json:"name"`
+	Location                  *string           `json:"location"`
+	DefaultRedundancyClassID  *string           `json:"default_redundancy_class_id"`
+	SmartDataPlacementEnabled *bool             `json:"smart_data_placement_enabled"`
+	SmartDataPlacementRules   *[]map[string]any `json:"placement_policies"`
 }
 
 type UpdateSwarmRequest struct {

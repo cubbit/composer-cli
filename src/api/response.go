@@ -665,13 +665,15 @@ type AnsibleConfig struct {
 }
 
 type Gateway struct {
-	ID             string     `json:"id"`
-	Name           string     `json:"name"`
-	Location       string     `json:"location"`
-	CreatedAt      time.Time  `json:"created_at"`
-	DeletedAt      *time.Time `json:"deleted_at"`
-	Secret         string     `json:"secret"`
-	OrganizationID *string    `json:"organization_id"`
+	ID                            string     `json:"id"`
+	Name                          string     `json:"name"`
+	Location                      string     `json:"location"`
+	CreatedAt                     time.Time  `json:"created_at"`
+	DeletedAt                     *time.Time `json:"deleted_at"`
+	Secret                        string     `json:"secret"`
+	OrganizationID                *string    `json:"organization_id"`
+	DefaultRedundancyClassID      *string    `json:"default_redundancy_class_id" example:"a9bbf1f2-dbf1-4925-b107-2f498328de2c"`
+	SmartDataPlacementRuleEnabled bool       `json:"smart_data_placement_rule_enabled" example:"false"`
 }
 
 type GatewayWithGatewayTenant struct {
@@ -717,4 +719,17 @@ type APIKeyResponse struct {
 
 type GetAgentEvaluatedStatusResponse struct {
 	Status EvaluatedStatusType `json:"status"`
+}
+
+type PlacementPolicy struct {
+	ID                string         `json:"id"`
+	OrganizationID    *string        `json:"organization_id"`
+	Name              string         `json:"name"`
+	Description       *string        `json:"description"`
+	Conditions        map[string]any `json:"conditions"`
+	Action            map[string]any `json:"action"`
+	Enabled           bool           `json:"enabled"`
+	InputStorageClass string         `json:"input_storage_class"`
+	CreatedAt         time.Time      `json:"created_at"`
+	DeletedAt         *time.Time     `json:"deleted_at"`
 }
