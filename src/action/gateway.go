@@ -2,6 +2,7 @@
 package action
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -74,6 +75,7 @@ func DescribeGateway(cmd *cobra.Command, args []string) error {
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
 	var gateway *api.Gateway
+	var placementPolicies *api.GenericPaginatedResponse[api.PlacementPolicy]
 
 	if tenantID, err = cmd.Flags().GetString("tenant-id"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
@@ -95,17 +97,37 @@ func DescribeGateway(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewayRequest, err)
 	}
 
+	if gateway.DefaultRedundancyClassID != nil || gateway.SmartDataPlacementRuleEnabled {
+		if placementPolicies, err = api.GetGatewaySmartDataPlacement(*urls, resolvedProfile.APIKey, tenantID, gatewayID); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorRetrievingGatewaySmartDataPlacementRequest, err)
+		}
+	}
+
+	type GatewayWithDetails struct {
+		*api.Gateway
+		PlacementPolicies []api.PlacementPolicy `json:"placement_policies,omitempty"`
+	}
+
+	data := []*GatewayWithDetails{{
+		Gateway:           gateway,
+		PlacementPolicies: []api.PlacementPolicy{},
+	}}
+
+	if placementPolicies != nil {
+		data[0].PlacementPolicies = placementPolicies.Data
+	}
+
 	return utils.PrintSmartOutput(
 		cmd,
-		[]*api.Gateway{gateway},
-		func(g *api.Gateway) []string {
+		data,
+		func(g *GatewayWithDetails) []string {
 			return []string{
 				g.ID,
 				g.Name,
 				g.Location,
 			}
 		},
-		&utils.SmartOutputConfig[*api.Gateway]{
+		&utils.SmartOutputConfig[*GatewayWithDetails]{
 			DefaultOutput: resolvedProfile.Output,
 		},
 	)
@@ -113,7 +135,10 @@ func DescribeGateway(cmd *cobra.Command, args []string) error {
 
 func UpdateGateway(cmd *cobra.Command, args []string) error {
 	var err error
-	var tenantID, gatewayID, name, location string
+	var tenantID, gatewayID, name, location, defaultRedundancyClassID, smartDataPlacementRules string
+	var smartDataPlacementEnabled bool
+	var smartDataPlacementRulesMap []map[string]any
+
 	var conf *configuration.Config
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
@@ -134,6 +159,24 @@ func UpdateGateway(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if defaultRedundancyClassID, err = cmd.Flags().GetString("default-redundancy-class-id"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if smartDataPlacementEnabled, err = cmd.Flags().GetBool("smart-data-placement-enabled"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if smartDataPlacementRules, err = cmd.Flags().GetString("smart-data-placement-policies"); err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if smartDataPlacementRules != "" {
+		if err = json.Unmarshal([]byte(smartDataPlacementRules), &smartDataPlacementRulesMap); err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorParsingJSONConfiguration, err)
+		}
+	}
+
 	if conf, err = configuration.LoadConfig(); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -150,6 +193,18 @@ func UpdateGateway(cmd *cobra.Command, args []string) error {
 
 	if location != "" {
 		gatewayRequestBody.Location = &location
+	}
+
+	if defaultRedundancyClassID != "" {
+		gatewayRequestBody.DefaultRedundancyClassID = &defaultRedundancyClassID
+	}
+
+	if smartDataPlacementRulesMap != nil {
+		gatewayRequestBody.SmartDataPlacementRules = &smartDataPlacementRulesMap
+	}
+
+	if cmd.Flags().Changed("smart-data-placement-enabled") {
+		gatewayRequestBody.SmartDataPlacementEnabled = &smartDataPlacementEnabled
 	}
 
 	if err = api.UpdateGateway(*urls, resolvedProfile.APIKey, tenantID, gatewayID, gatewayRequestBody); err != nil {
