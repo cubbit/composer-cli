@@ -11,7 +11,7 @@ go_library(
     deps = [
         "//src/service",
         "//utils",
-        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )
 
@@ -21,6 +21,6 @@ go_test(
     embed = [":location"],
     deps = [
         "//src/service",
-        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )

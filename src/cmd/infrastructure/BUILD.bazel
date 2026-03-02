@@ -8,7 +8,7 @@ go_library(
     deps = [
         "//src/cmd/infrastructure/location",
         "//src/service",
-        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )
 
@@ -19,6 +19,6 @@ go_test(
     tags = ["unit"],
     deps = [
         "//src/service",
-        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )
