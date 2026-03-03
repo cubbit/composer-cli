@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0
+
+### Minor Changes
+
+- 2ecefbf: Authentication activate e2e tests
+
+### Patch Changes
+
+- 79cb109:
+
 ## 1.3.1
 
 ### Patch Changes
