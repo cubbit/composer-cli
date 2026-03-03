@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "config",
+    srcs = [
+        "config_cmd.go",
+        "config_sub_cmd_edit.go",
+        "config_sub_cmd_init.go",
+        "config_sub_cmd_profiles.go",
+        "config_sub_cmd_switch_profile.go",
+        "config_sub_cmd_validate.go",
+        "config_sub_cmd_view.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd/config",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/configuration",
+        "//src/service",
+        "//utils",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "config_test",
+    srcs = [
+        "config_sub_cmd_edit_structure_test.go",
+        "config_sub_cmd_profiles_structure_test.go",
+        "config_sub_cmd_switch_profile_structure_test.go",
+        "config_sub_cmd_validate_structure_test.go",
+        "config_sub_cmd_view_structure_test.go",
+    ],
+    embed = [":config"],
+    tags = ["unit"],
+    deps = [
+        "//src/service",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)

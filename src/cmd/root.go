@@ -3,8 +3,9 @@ package cmd
 import (
 	"os"
 
-	cmd_agent "github.com/cubbit/composer-cli/src/cmd/agent"
 	cmd_auth "github.com/cubbit/composer-cli/src/cmd/auth"
+	cmd_config "github.com/cubbit/composer-cli/src/cmd/config"
+	cmd_docs "github.com/cubbit/composer-cli/src/cmd/docs"
 	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
 	"github.com/cubbit/composer-cli/src/configuration"
@@ -17,6 +18,7 @@ func NewRootCommand(
 	authService service.AuthServiceInterface,
 	operatorService service.OperatorServiceInterface,
 	locationService service.LocationServiceInterface,
+	configService service.ConfigServiceInterface,
 ) *cobra.Command {
 	rootCommand := &cobra.Command{
 		Use:   "cubbit",
@@ -40,7 +42,6 @@ func NewRootCommand(
 	}
 
 	// Persistent flags (available to all subcommands)
-	rootCommand.PersistentFlags().BoolVarP(&interactive, "interactive", "i", false, "Run in interactive mode")
 	rootCommand.PersistentFlags().String("profile", "", "Profile Configuration")
 	rootCommand.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml, xml")
 	rootCommand.PersistentFlags().Bool("no-headers", false, "Suppress table headers in human output (for easier scripting)")
@@ -50,9 +51,6 @@ func NewRootCommand(
 	// Local flags (only available to root command)
 	rootCommand.Flags().String("endpoint", "", "Override the default API endpoint URL")
 
-	agentCmd := cmd_agent.NewAgentCmd(newAgentService)
-	rootCommand.AddCommand(agentCmd)
-
 	authCmd := cmd_auth.NewAuthCmd(authService)
 	rootCommand.AddCommand(authCmd)
 
@@ -61,6 +59,12 @@ func NewRootCommand(
 
 	infrastructureCmd := cmd_infrastructure.NewInfrastructureCmd(locationService)
 	rootCommand.AddCommand(infrastructureCmd)
+
+	configCmd := cmd_config.NewConfigCmd(configService)
+	rootCommand.AddCommand(configCmd)
+
+	docsCmd := cmd_docs.NewDocsCmd()
+	rootCommand.AddCommand(docsCmd)
 
 	return rootCommand
 }

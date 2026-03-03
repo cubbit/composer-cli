@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var interactive bool
 var packageJSON []byte
 var devNull *os.File
 
@@ -49,11 +48,12 @@ var rootCmd = func() *cobra.Command {
 	userAPI := api.NewUserAPI()
 
 	agentService := service.NewAgentService(configuration)
-	authService := service.NewAuthService(configuration, authAPI)
+	authService := service.NewAuthService(configuration, authAPI, userAPI)
 	locationService := service.NewLocationService(configuration, locationAPI, userAPI)
 	operatorService := service.NewOperatorService(configuration, operatorAPI, userAPI)
+	configService := service.NewConfigService(configuration)
 
-	return NewRootCommand(agentService, authService, operatorService, locationService)
+	return NewRootCommand(agentService, authService, operatorService, locationService, configService)
 }()
 
 func Execute(packageJSON []byte) {

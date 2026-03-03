@@ -38,15 +38,18 @@ type AuthServiceInterface interface {
 type AuthService struct {
 	configuration *configuration.Config
 	authAPI       api.AuthAPIInterface
+	userAPI       api.UserAPIInterface
 }
 
 func NewAuthService(
 	configuration *configuration.Config,
 	authAPI api.AuthAPIInterface,
+	userAPI api.UserAPIInterface,
 ) *AuthService {
 	return &AuthService{
 		configuration: configuration,
 		authAPI:       authAPI,
+		userAPI:       userAPI,
 	}
 }
 
@@ -326,7 +329,7 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration
 	nozzle := uuid.New().String()[:8]
 	apiKeyName := fmt.Sprintf("composer-cli-%s-%s-%s-%s-%s", runtime.GOOS, runtime.GOARCH, hostname, date, nozzle)
 
-	operator, err := api.GetIAMUserSelf(urls, tokens.AccessToken, "")
+	operator, err := as.userAPI.GetIAMUserSelf(urls, tokens.AccessToken, "")
 	if err != nil {
 		return fmt.Errorf("failed to retrieve operator information: %w", err)
 	}
