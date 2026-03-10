@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1
+
+### Patch Changes
+
+- a5a6c71: Remove command related to old logic, unify cmd structure
+
 ## 1.4.0
 
 ### Minor Changes
