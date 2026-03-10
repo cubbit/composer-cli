@@ -14,7 +14,8 @@ func NewLocationCmd(
 	}
 
 	locationListSubCmd := NewLocationSubCmdList(locationService)
-	locationCmd.AddCommand(locationListSubCmd)
+	locationDescribeSubCmd := NewLocationSubCmdDescribe(locationService)
+	locationCmd.AddCommand(locationListSubCmd, locationDescribeSubCmd)
 
 	return locationCmd
 }

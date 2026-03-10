@@ -4,6 +4,7 @@ go_library(
     name = "location",
     srcs = [
         "location_cmd.go",
+        "location_sub_cmd_describe.go",
         "location_sub_cmd_list.go",
     ],
     importpath = "github.com/cubbit/composer-cli/src/cmd/infrastructure/location",
@@ -17,7 +18,10 @@ go_library(
 
 go_test(
     name = "location_test",
-    srcs = ["location_sub_cmd_list_structure_test.go"],
+    srcs = [
+        "location_sub_cmd_describe_structure_test.go",
+        "location_sub_cmd_list_structure_test.go",
+    ],
     embed = [":location"],
     deps = [
         "//src/service",

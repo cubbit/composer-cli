@@ -743,11 +743,91 @@ type InfraClusterConnectCmdResponse struct {
 	Command string `json:"command" example:"curl -fsSL https://download.operator.cubbit.eu/install-kubectl-plugin.sh | bash && kubectl cubbit cluster-connect --api-key=b9716863-5a0d-4e40-93e9-53f21f442f57 --org-id=00000000-0000-0000-0000-000000000000"`
 }
 
-// #region infrastructgure
+// #region infrastructure
 
 type InfrastructureCluster struct {
 	ClusterID string `json:"cluster_id"`
 	Name      string `json:"name"`
+}
+
+type InfraAggregateStatusCode string
+
+const (
+	StatusCodeOk      InfraAggregateStatusCode = "status_ok"
+	StatusCodeWarning InfraAggregateStatusCode = "status_warning"
+	StatusCodeError   InfraAggregateStatusCode = "status_error"
+	StatusCodeInUse   InfraAggregateStatusCode = "status_in_use"
+)
+
+type InfraClusterType string
+
+const (
+	ClusterTypePhysical InfraClusterType = "physical"
+	ClusterTypeVirtual  InfraClusterType = "virtual"
+)
+
+type InfraVirtualStorageType string
+
+const (
+	VirtualStorageTypeS3 InfraVirtualStorageType = "s3"
+)
+
+type InfraAggregateStatus struct {
+	Code    InfraAggregateStatusCode `json:"code"`
+	Details string                   `json:"details,omitempty"`
+}
+
+type InfraNodeCPUInfo struct {
+	Cores int `json:"cores"`
+}
+
+type InfraNodeRAMInfo struct {
+	Available float64 `json:"available"`
+}
+
+type InfraAggregateDiskDetail struct {
+	DiskUUID              string               `json:"disk_uuid"`
+	Path                  string               `json:"path"`
+	Used                  bool                 `json:"used"`
+	PVRef                 string               `json:"pv_ref,omitempty"`
+	TotalStorageSizeBytes int64                `json:"total_storage_size_bytes"`
+	UsedStorageBytes      int64                `json:"used_storage_bytes"`
+	Status                InfraAggregateStatus `json:"status"`
+}
+
+type InfraAggregateNodeDetail struct {
+	NodeID     string                     `json:"node_id"`
+	NodeName   string                     `json:"node_name"`
+	Status     InfraAggregateStatus       `json:"status"`
+	OSName     *string                    `json:"os_name,omitempty"`
+	CPU        *InfraNodeCPUInfo          `json:"cpu,omitempty"`
+	RAM        *InfraNodeRAMInfo          `json:"ram,omitempty"`
+	ExternalIP *string                    `json:"external_ip,omitempty"`
+	InternalIP *string                    `json:"internal_ip"`
+	Disks      []InfraAggregateDiskDetail `json:"disks"`
+}
+
+type InfraAggregateVirtualNodeDetail struct {
+	NodeID               string                  `json:"node_id"`
+	NodeName             string                  `json:"node_name"`
+	Status               InfraAggregateStatus    `json:"status"`
+	StorageType          InfraVirtualStorageType `json:"storage_type"`
+	StorageConfiguration map[string]any          `json:"storage_configuration"`
+}
+
+type InfraAggregateClusterDetail struct {
+	LastUpdate   time.Time                         `json:"last_update"`
+	NextUpdate   time.Time                         `json:"next_update"`
+	IsUpdateOk   bool                              `json:"is_update_ok"`
+	Nodes        []InfraAggregateNodeDetail        `json:"nodes"`
+	VirtualNodes []InfraAggregateVirtualNodeDetail `json:"virtual_nodes"`
+}
+
+type InfraAggregateCluster struct {
+	ClusterID string                      `json:"cluster_id"`
+	Name      string                      `json:"name"`
+	Details   InfraAggregateClusterDetail `json:"details"`
+	Type      InfraClusterType            `json:"type"`
 }
 
 // #endregion

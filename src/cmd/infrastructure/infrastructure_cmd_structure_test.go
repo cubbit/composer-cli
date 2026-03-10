@@ -37,3 +37,33 @@ func TestInfrastructureSubCmd_Structure_LocationList(t *testing.T) {
 		t.Fatalf("Expected output %q, got %q", expectedOutput, commandOutputString)
 	}
 }
+
+func TestInfrastructureSubCmd_Structure_LocationDescribe(t *testing.T) {
+	mockLocationService := service.NewLocationServiceMock()
+
+	mockLocationService.ListAggregatedFunc = func(cmd *cobra.Command, args []string) error {
+		cmd.Println("Mock: Aggregated locations retrieved successfully")
+		return nil
+	}
+
+	infrastructureCmd := NewInfrastructureCmd(mockLocationService)
+
+	commandOutput := new(bytes.Buffer)
+	infrastructureCmd.SetOut(commandOutput)
+	infrastructureCmd.SetErr(commandOutput)
+	infrastructureCmd.SetArgs([]string{
+		"location",
+		"describe",
+	})
+	err := infrastructureCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	commandOutputString := commandOutput.String()
+
+	expectedOutput := "Mock: Aggregated locations retrieved successfully\n"
+	if commandOutputString != expectedOutput {
+		t.Fatalf("Expected output %q, got %q", expectedOutput, commandOutputString)
+	}
+}
