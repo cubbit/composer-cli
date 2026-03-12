@@ -188,5 +188,4 @@ cubbit rc expand --swarm-id <swarm-id> <rc-id>
 
 ## Next Steps
 
-- [Tenants & Users](tenants-and-users.md) — provision tenants on top of your swarm
-- [Gateways](gateways.md) — expose S3-compatible access to your swarm
+- [Tenants](tenants-users-and-gateways.md) — provision tenants on top of your swarm

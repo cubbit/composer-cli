@@ -43,4 +43,4 @@ The invited user will receive an email to complete their registration.
 
 ## Next Steps
 
-- [Tenants & Users](tenants-and-users.md) — manage tenant-level users
+- [Tenants & Users](tenants-users-and-gateways.md) — manage tenant-level users
