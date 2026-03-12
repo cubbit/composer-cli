@@ -162,10 +162,14 @@ var configureTenantDNSSubCmd = &cobra.Command{
 	Short: "configures DNS for a tenant",
 	Long:  "This command prints the value of the TXT record that needs to be added with the name '_acme-challenge'",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("tenant-id")
-		cmd.MarkFlagRequired("domain")
+		interactive, _ := cmd.Flags().GetBool("interactive")
+		if !interactive {
+			cmd.MarkFlagRequired("tenant-id")
+			cmd.MarkFlagRequired("domain")
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		interactive, _ := cmd.Flags().GetBool("interactive")
 		if !interactive {
 			if err := action.ConfigureTenantDNS(cmd, args); err != nil {
 				utils.PrintError(err)
@@ -182,9 +186,13 @@ var verifyTenantDNSSubCmd = &cobra.Command{
 	Use:   "verify-dns",
 	Short: "verifies DNS for a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("tenant-id")
+		interactive, _ := cmd.Flags().GetBool("interactive")
+		if !interactive {
+			cmd.MarkFlagRequired("tenant-id")
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		interactive, _ := cmd.Flags().GetBool("interactive")
 		if !interactive {
 			if err := action.VerifyTenantDNS(cmd, args); err != nil {
 				utils.PrintError(err)
@@ -234,9 +242,11 @@ func init() {
 	configureTenantDNSSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
 	configureTenantDNSSubCmd.Flags().String("domain", "", "Domain to configure for the tenant")
 	configureTenantDNSSubCmd.Flags().Bool("force", false, "Force the configuration of DNS even if it already exists")
+	configureTenantDNSSubCmd.Flags().BoolP("interactive", "i", false, "Run in interactive mode")
 
 	tenantCmd.AddCommand(verifyTenantDNSSubCmd)
 	verifyTenantDNSSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
+	verifyTenantDNSSubCmd.Flags().BoolP("interactive", "i", false, "Run in interactive mode")
 
 	rootCmd.AddCommand(tenantCmd)
 }

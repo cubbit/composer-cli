@@ -92,9 +92,13 @@ var installGatewaySubCmd = &cobra.Command{
 	Use:   "install",
 	Short: "installs a gateway for a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("gateway-id")
+		interactive, _ := cmd.Flags().GetBool("interactive")
+		if !interactive {
+			cmd.MarkFlagRequired("gateway-id")
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		interactive, _ := cmd.Flags().GetBool("interactive")
 		if !interactive {
 			if err := action.InstallGateway(cmd, args); err != nil {
 				utils.PrintError(err)
@@ -142,8 +146,45 @@ func init() {
 	installGatewaySubCmd.Flags().Bool("no-offloader", false, "Skip offloader setup")
 	installGatewaySubCmd.Flags().Bool("no-s3", false, "Skip S3 setup")
 	installGatewaySubCmd.Flags().Bool("ingress", false, "Install only ingress")
+	installGatewaySubCmd.Flags().BoolP("interactive", "i", false, "Run in interactive mode")
 
 	rootCmd.AddCommand(gatewayCmd)
 	gatewayCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
-	gatewayCmd.MarkPersistentFlagRequired("tenant-id")
+
+	// Conditionally require tenant-id for non-interactive commands
+	createGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("name")
+		cmd.MarkFlagRequired("location")
+		cmd.MarkFlagRequired("tenant-id")
+	}
+	describeGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("gateway-id")
+		cmd.MarkFlagRequired("tenant-id")
+	}
+	updateGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("gateway-id")
+		cmd.MarkFlagRequired("tenant-id")
+	}
+	listGatewaysSubCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("tenant-id")
+		allowedSortingKeys := []string{"id, name"}
+		sort, _ := cmd.Flags().GetString("sort")
+
+		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
+			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name")
+			cmd.Usage()
+			os.Exit(1)
+		}
+	}
+	removeGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("gateway-id")
+		cmd.MarkFlagRequired("tenant-id")
+	}
+	installGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		interactive, _ := cmd.Flags().GetBool("interactive")
+		if !interactive {
+			cmd.MarkFlagRequired("gateway-id")
+			cmd.MarkFlagRequired("tenant-id")
+		}
+	}
 }
