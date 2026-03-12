@@ -72,34 +72,6 @@ env GOOS=linux GOARCH=arm64 go build -o build/cubbit .
 
 ---
 
-## Option 4: Build with Bazel
-
-For developers using the Bazel build system:
-
-```bash
-git clone https://github.com/cubbit/composer-cli.git
-cd composer-cli
-
-# Build for current platform
-bazel build //:cli
-
-# Platform-specific builds
-bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //:cli
-bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //:cli
-bazel build --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //:cli
-
-# Run directly without a separate build step
-bazel run //:cli -- --help
-bazel run //:cli -- --version
-
-# Install the built binary
-cp bazel-bin/cli_/cli /usr/local/bin/cubbit
-```
-
-Visit [bazel.build/install](https://bazel.build/install) for Bazel installation instructions if needed.
-
----
-
 ## Verify Installation
 
 ```bash
