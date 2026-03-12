@@ -38,3 +38,5 @@ dist/
 /bazel-*
 
 *.bazelrc.user
+
+mimir-key
