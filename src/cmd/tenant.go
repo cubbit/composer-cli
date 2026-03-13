@@ -34,27 +34,22 @@ var listTenantSubCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "list tenants",
 	Aliases: []string{"ls"},
-	PreRun: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
 		allowedSortingKeys := []string{"id", "name", "owner_id", "coupon_id", "created_at", "deleted_at"}
 		sort, _ := cmd.Flags().GetString("sort")
-
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
 			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name, owner_id, coupon_id, created_at, deleted_at")
-			cmd.Usage()
-			os.Exit(1)
+			return
 		}
 
 		filter, _ := cmd.Flags().GetString("filter")
 		if filter != "" {
 			if !utils.IsValidFilter(filter) {
 				fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
-				cmd.Usage()
-				os.Exit(1)
+				return
 			}
 		}
 
-	},
-	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.ListTenant(cmd, args); err != nil {
 			utils.PrintError(err)
 		}
@@ -67,7 +62,6 @@ var removeTenantSubCmd = &cobra.Command{
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("tenant-id")
-
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RemoveTenant(cmd, args); err != nil {
@@ -162,11 +156,10 @@ var configureTenantDNSSubCmd = &cobra.Command{
 	Short: "configures DNS for a tenant",
 	Long:  "This command prints the value of the TXT record that needs to be added with the name '_acme-challenge'",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		interactive, _ := cmd.Flags().GetBool("interactive")
-		if !interactive {
-			cmd.MarkFlagRequired("tenant-id")
-			cmd.MarkFlagRequired("domain")
-		}
+		cmd.MarkFlagsOneRequired("interactive", "tenant-id")
+		cmd.MarkFlagsRequiredTogether("tenant-id", "domain")
+		cmd.MarkFlagsMutuallyExclusive("interactive", "domain")
+		cmd.MarkFlagsMutuallyExclusive("interactive", "tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		interactive, _ := cmd.Flags().GetBool("interactive")
@@ -186,10 +179,8 @@ var verifyTenantDNSSubCmd = &cobra.Command{
 	Use:   "verify-dns",
 	Short: "verifies DNS for a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		interactive, _ := cmd.Flags().GetBool("interactive")
-		if !interactive {
-			cmd.MarkFlagRequired("tenant-id")
-		}
+		cmd.MarkFlagsOneRequired("interactive", "tenant-id")
+		cmd.MarkFlagsMutuallyExclusive("interactive", "tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		interactive, _ := cmd.Flags().GetBool("interactive")

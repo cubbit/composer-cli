@@ -3,7 +3,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/cubbit/composer-cli/src/action"
 	"github.com/cubbit/composer-cli/utils"
@@ -21,6 +20,7 @@ var createGatewaySubCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("name")
 		cmd.MarkFlagRequired("location")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.CreateGateway(cmd, args); err != nil {
@@ -34,6 +34,7 @@ var describeGatewaySubCmd = &cobra.Command{
 	Short: "describes tenant gateways",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("gateway-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DescribeGateway(cmd, args); err != nil {
@@ -47,6 +48,7 @@ var updateGatewaySubCmd = &cobra.Command{
 	Short: "updates a gateway in a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("gateway-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.UpdateGateway(cmd, args); err != nil {
@@ -59,16 +61,16 @@ var listGatewaysSubCmd = &cobra.Command{
 	Use:   "list",
 	Short: "lists tenant gateways",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		allowedSortingKeys := []string{"id, name"}
-		sort, _ := cmd.Flags().GetString("sort")
-
-		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name")
-			cmd.Usage()
-			os.Exit(1)
-		}
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		allowedSortingKeys := []string{"id, name"}
+		sort, _ := cmd.Flags().GetString("sort")
+		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
+			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name")
+			return
+		}
+
 		if err := action.ListGateways(cmd, args); err != nil {
 			utils.PrintError(err)
 		}
@@ -80,6 +82,7 @@ var removeGatewaySubCmd = &cobra.Command{
 	Short: "removes a tenant gateway",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("gateway-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RemoveGateway(cmd, args); err != nil {
@@ -89,13 +92,15 @@ var removeGatewaySubCmd = &cobra.Command{
 }
 
 var installGatewaySubCmd = &cobra.Command{
-	Use:   "install",
-	Short: "installs a gateway for a tenant",
+	Use:     "install",
+	Short:   "installs a gateway for a tenant",
+	Example: "cubbit gateway install --interactive\ncubbit gateway install --tenant-id <tenant-id> --gateway-id <gateway-id>",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		interactive, _ := cmd.Flags().GetBool("interactive")
-		if !interactive {
-			cmd.MarkFlagRequired("gateway-id")
-		}
+		cmd.MarkFlagsOneRequired("interactive", "gateway-id")
+
+		cmd.MarkFlagsRequiredTogether("tenant-id", "gateway-id")
+		cmd.MarkFlagsMutuallyExclusive("interactive", "gateway-id")
+		cmd.MarkFlagsMutuallyExclusive("interactive", "tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		interactive, _ := cmd.Flags().GetBool("interactive")
@@ -150,41 +155,4 @@ func init() {
 
 	rootCmd.AddCommand(gatewayCmd)
 	gatewayCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
-
-	// Conditionally require tenant-id for non-interactive commands
-	createGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("name")
-		cmd.MarkFlagRequired("location")
-		cmd.MarkFlagRequired("tenant-id")
-	}
-	describeGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("gateway-id")
-		cmd.MarkFlagRequired("tenant-id")
-	}
-	updateGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("gateway-id")
-		cmd.MarkFlagRequired("tenant-id")
-	}
-	listGatewaysSubCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("tenant-id")
-		allowedSortingKeys := []string{"id, name"}
-		sort, _ := cmd.Flags().GetString("sort")
-
-		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name")
-			cmd.Usage()
-			os.Exit(1)
-		}
-	}
-	removeGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		cmd.MarkFlagRequired("gateway-id")
-		cmd.MarkFlagRequired("tenant-id")
-	}
-	installGatewaySubCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		interactive, _ := cmd.Flags().GetBool("interactive")
-		if !interactive {
-			cmd.MarkFlagRequired("gateway-id")
-			cmd.MarkFlagRequired("tenant-id")
-		}
-	}
 }

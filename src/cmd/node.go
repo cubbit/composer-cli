@@ -3,7 +3,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/cubbit/composer-cli/src/action"
 	"github.com/cubbit/composer-cli/utils"
@@ -16,44 +15,22 @@ var nodeCmd = &cobra.Command{
 }
 
 var createNodeSubCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a new node",
+	Use:     "create",
+	Short:   "create a new node or a batch of nodes",
+	Example: "cubbit create --swarm-id <swarm-id> --nexus-id <nexus-id> --batch --file ./batch.json\n cubbit create --swarm-id <swarm-id> --nexus-id <nexus-id> --name <name> --private-ip <private-ip> --public-ip <public-ip> --label <label>",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		batch, _ := cmd.Flags().GetBool("batch")
-		if batch {
-			file, _ := cmd.Flags().GetString("file")
-			if file == "" {
-				fmt.Println("Error: --file flag is required when using --batch mode.")
-				cmd.Usage()
-				os.Exit(1)
-			}
 
-			if _, err := os.Stat(file); os.IsNotExist(err) {
-				fmt.Println("Error: file does not exist:", file)
-				os.Exit(1)
-			}
-			return
-		}
+		cmd.MarkFlagRequired("swarm-id")
+		cmd.MarkFlagRequired("nexus-id")
 
-		cmd.MarkFlagRequired("name")
-		cmd.MarkFlagRequired("private-ip")
-		cmd.MarkFlagRequired("public-ip")
+		cmd.MarkFlagsOneRequired("batch", "name")
 
-		nodePrivateIP, _ := cmd.Flags().GetString("private-ip")
-		nodePublicIP, _ := cmd.Flags().GetString("public-ip")
-
-		if !utils.IsValidIP(nodePrivateIP) {
-			fmt.Println("Error: invalid node private IP address")
-			cmd.Usage()
-			os.Exit(1)
-		}
-
-		if !utils.IsValidIP(nodePublicIP) {
-			fmt.Println("Error: invalid node public IP address")
-			cmd.Usage()
-			os.Exit(1)
-		}
-
+		cmd.MarkFlagsRequiredTogether("batch", "file")
+		cmd.MarkFlagsRequiredTogether("name", "private-ip", "public-ip")
+		cmd.MarkFlagsMutuallyExclusive("batch", "name")
+		cmd.MarkFlagsMutuallyExclusive("batch", "private-ip")
+		cmd.MarkFlagsMutuallyExclusive("batch", "public-ip")
+		cmd.MarkFlagsMutuallyExclusive("batch", "label")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
@@ -71,6 +48,18 @@ var createNodeSubCmd = &cobra.Command{
 			return
 		}
 
+		nodePrivateIP, _ := cmd.Flags().GetString("private-ip")
+		if nodePrivateIP != "" && !utils.IsValidIP(nodePrivateIP) {
+			fmt.Println("Error: invalid node private IP address")
+			return
+		}
+
+		nodePublicIP, _ := cmd.Flags().GetString("public-ip")
+		if nodePublicIP != "" && !utils.IsValidIP(nodePublicIP) {
+			fmt.Println("Error: invalid node public IP address")
+			return
+		}
+
 		if err = action.CreateNode(cmd, args); err != nil {
 			utils.PrintError(err)
 		}
@@ -82,7 +71,8 @@ var describeNodeSubCmd = &cobra.Command{
 	Short: "describe a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("node-id")
-
+		cmd.MarkFlagRequired("swarm-id")
+		cmd.MarkFlagRequired("nexus-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DescribeNode(cmd, args); err != nil {
@@ -96,7 +86,8 @@ var editNodeSubCmd = &cobra.Command{
 	Short: "edit a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("node-id")
-
+		cmd.MarkFlagRequired("swarm-id")
+		cmd.MarkFlagRequired("nexus-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.EditNode(cmd, args); err != nil {
@@ -110,7 +101,8 @@ var removeNodeSubCmd = &cobra.Command{
 	Short: "remove a node",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("node-id")
-
+		cmd.MarkFlagRequired("swarm-id")
+		cmd.MarkFlagRequired("nexus-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RemoveNode(cmd, args); err != nil {
@@ -123,26 +115,23 @@ var listNodesSubCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list nodes",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("swarm-id")
+		cmd.MarkFlagRequired("nexus-id")
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		allowedSortingKeys := []string{"id", "name", "label", "created_at", "deleted_at", "nexus_id"}
 		sort, _ := cmd.Flags().GetString("sort")
-
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
 			fmt.Println("Error: invalid sort key provided, allowed keys are: \"id\", \"name\", \"label\", \"created_at\", \"deleted_at\", \"nexus_id\"")
-			cmd.Usage()
-			os.Exit(1)
+			return
 		}
 
 		filter, _ := cmd.Flags().GetString("filter")
-		if filter != "" {
-			if !utils.IsValidFilter(filter) {
-				fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
-				cmd.Usage()
-				os.Exit(1)
-			}
+		if filter != "" && !utils.IsValidFilter(filter) {
+			fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
+			return
 		}
 
-	},
-	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.ListNodes(cmd, args); err != nil {
 			utils.PrintError(err)
 		}
@@ -156,7 +145,6 @@ var deployNodeSubCmd = &cobra.Command{
 		cmd.MarkFlagRequired("swarm-id")
 		cmd.MarkFlagRequired("nexus-id")
 		cmd.MarkFlagRequired("node-id")
-
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.GenerateNodeDeployFiles(cmd, args); err != nil {
@@ -197,7 +185,5 @@ func init() {
 
 	rootCmd.AddCommand(nodeCmd)
 	nodeCmd.PersistentFlags().String("swarm-id", "", "ID of the swarm")
-	nodeCmd.MarkPersistentFlagRequired("swarm-id")
 	nodeCmd.PersistentFlags().String("nexus-id", "", "ID of the nexus")
-	nodeCmd.MarkPersistentFlagRequired("nexus-id")
 }
