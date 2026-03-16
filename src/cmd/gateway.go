@@ -63,17 +63,21 @@ var listGatewaysSubCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("tenant-id")
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		allowedSortingKeys := []string{"id, name"}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		allowedSortingKeys := []string{"id", "name"}
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name")
-			return
+			err := fmt.Errorf("invalid sort key provided, allowed keys are: id, name")
+			fmt.Println("Error:", err.Error())
+			return err
 		}
 
 		if err := action.ListGateways(cmd, args); err != nil {
 			utils.PrintError(err)
+			return err
 		}
+
+		return nil
 	},
 }
 

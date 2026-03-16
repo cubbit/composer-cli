@@ -85,7 +85,7 @@ var describeAgentSubCmd = &cobra.Command{
 var listAgentsSubCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "list agents in a node or redundancy class",
-	Example: "cubbit list agents --swarm-id <swarm-id> --nexus-id <nexus-id> --node-id <node-id>\ncubbit list agents --swarm-id <swarm-id> --redundancy-class-id <redundancy-class-id>",
+	Example: "cubbit agent list --swarm-id <swarm-id> --nexus-id <nexus-id> --node-id <node-id>\ncubbit agent list --swarm-id <swarm-id> --redundancy-class-id <redundancy-class-id>",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("swarm-id")
 		cmd.MarkFlagsOneRequired("redundancy-class-id", "node-id")
@@ -94,23 +94,28 @@ var listAgentsSubCmd = &cobra.Command{
 		cmd.MarkFlagsMutuallyExclusive("nexus-id", "redundancy-class-id")
 		cmd.MarkFlagsMutuallyExclusive("node-id", "redundancy-class-id")
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		allowedSortingKeys := []string{"id", "node_id", "port", "created_at"}
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: id, node_id", "port", "created_at")
-			return
+			msg := "Error: invalid sort key provided, allowed keys are: id, node_id port created_at"
+			fmt.Println(msg)
+			return fmt.Errorf(msg)
 		}
 
 		filter, _ := cmd.Flags().GetString("filter")
 		if filter != "" && !utils.IsValidFilter(filter) {
-			fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
-			return
+			msg := "Error: invalid filter provided, allowed format is: key:value key:value ..."
+			fmt.Println(msg)
+			return fmt.Errorf(msg)
 		}
 
 		if err := action.ListAgents(cmd, args); err != nil {
 			utils.PrintError(err)
+			return nil
 		}
+
+		return nil
 	},
 }
 

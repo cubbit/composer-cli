@@ -34,25 +34,27 @@ var listTenantSubCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "list tenants",
 	Aliases: []string{"ls"},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		allowedSortingKeys := []string{"id", "name", "owner_id", "coupon_id", "created_at", "deleted_at"}
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
 			fmt.Println("Error: invalid sort key provided, allowed keys are: id, name, owner_id, coupon_id, created_at, deleted_at")
-			return
+			return fmt.Errorf("invalid sort key: %s", sort)
 		}
 
 		filter, _ := cmd.Flags().GetString("filter")
 		if filter != "" {
 			if !utils.IsValidFilter(filter) {
 				fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
-				return
+				return fmt.Errorf("invalid filter: %s", filter)
 			}
 		}
 
 		if err := action.ListTenant(cmd, args); err != nil {
 			utils.PrintError(err)
+			return err
 		}
+		return nil
 	},
 }
 

@@ -17,7 +17,7 @@ var nodeCmd = &cobra.Command{
 var createNodeSubCmd = &cobra.Command{
 	Use:     "create",
 	Short:   "create a new node or a batch of nodes",
-	Example: "cubbit create --swarm-id <swarm-id> --nexus-id <nexus-id> --batch --file ./batch.json\n cubbit create --swarm-id <swarm-id> --nexus-id <nexus-id> --name <name> --private-ip <private-ip> --public-ip <public-ip> --label <label>",
+	Example: "cubbit node create --swarm-id <swarm-id> --nexus-id <nexus-id> --batch --file ./batch.json\n cubbit node create --swarm-id <swarm-id> --nexus-id <nexus-id> --name <name> --private-ip <private-ip> --public-ip <public-ip> --label <label>",
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		cmd.MarkFlagRequired("swarm-id")
@@ -32,37 +32,44 @@ var createNodeSubCmd = &cobra.Command{
 		cmd.MarkFlagsMutuallyExclusive("batch", "public-ip")
 		cmd.MarkFlagsMutuallyExclusive("batch", "label")
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 
 		batch, err := cmd.Flags().GetBool("batch")
 		if err != nil {
-			utils.PrintError(fmt.Errorf("error retrieving batch flag: %w", err))
-			return
+			err = fmt.Errorf("error retrieving batch flag: %w", err)
+			utils.PrintError(err)
+			return err
 		}
 
 		if batch {
 			if err = action.CreateNodeBatch(cmd, args); err != nil {
 				utils.PrintError(err)
+				return err
 			}
-			return
+			return nil
 		}
 
 		nodePrivateIP, _ := cmd.Flags().GetString("private-ip")
 		if nodePrivateIP != "" && !utils.IsValidIP(nodePrivateIP) {
-			fmt.Println("Error: invalid node private IP address")
-			return
+			err = fmt.Errorf("invalid node private IP address")
+			utils.PrintError(err)
+			return err
 		}
 
 		nodePublicIP, _ := cmd.Flags().GetString("public-ip")
 		if nodePublicIP != "" && !utils.IsValidIP(nodePublicIP) {
-			fmt.Println("Error: invalid node public IP address")
-			return
+			err = fmt.Errorf("invalid node public IP address")
+			utils.PrintError(err)
+			return err
 		}
 
 		if err = action.CreateNode(cmd, args); err != nil {
 			utils.PrintError(err)
+			return err
 		}
+
+		return nil
 	},
 }
 
@@ -118,23 +125,23 @@ var listNodesSubCmd = &cobra.Command{
 		cmd.MarkFlagRequired("swarm-id")
 		cmd.MarkFlagRequired("nexus-id")
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		allowedSortingKeys := []string{"id", "name", "label", "created_at", "deleted_at", "nexus_id"}
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: \"id\", \"name\", \"label\", \"created_at\", \"deleted_at\", \"nexus_id\"")
-			return
+			return fmt.Errorf("Error: invalid sort key provided, allowed keys are: \"id\", \"name\", \"label\", \"created_at\", \"deleted_at\", \"nexus_id\"")
 		}
 
 		filter, _ := cmd.Flags().GetString("filter")
 		if filter != "" && !utils.IsValidFilter(filter) {
-			fmt.Println("Error: invalid filter provided, allowed format is: key:value key:value ...")
-			return
+			return fmt.Errorf("Error: invalid filter provided, allowed format is: key:value key:value ...")
 		}
 
 		if err := action.ListNodes(cmd, args); err != nil {
-			utils.PrintError(err)
+			return err
 		}
+
+		return nil
 	},
 }
 
