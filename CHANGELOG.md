@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0
+
+### Minor Changes
+
+- 33d55cf: New printer with custom table, tree, text and composable prints.
+
+  Infrastrucutre location describe command.
+
 ## 1.4.1
 
 ### Patch Changes
