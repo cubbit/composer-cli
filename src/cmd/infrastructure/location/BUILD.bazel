@@ -4,6 +4,8 @@ go_library(
     name = "location",
     srcs = [
         "location_cmd.go",
+        "location_sub_cmd_create_virtual.go",
+        "location_sub_cmd_create_virtual_node.go",
         "location_sub_cmd_describe.go",
         "location_sub_cmd_list.go",
     ],
@@ -19,6 +21,8 @@ go_library(
 go_test(
     name = "location_test",
     srcs = [
+        "location_sub_cmd_create_virtual_node_structure_test.go",
+        "location_sub_cmd_create_virtual_structure_test.go",
         "location_sub_cmd_describe_structure_test.go",
         "location_sub_cmd_list_structure_test.go",
     ],

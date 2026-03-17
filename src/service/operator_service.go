@@ -36,22 +36,13 @@ func (s *OperatorService) Connect(cmd *cobra.Command, args []string) error {
 	var resolvedProfile *configuration.ResolvedProfile
 	var urls *configuration.URLs
 	var err error
-	var user *api.IAMUser
 	var command string
 
 	if resolvedProfile, urls, err = s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if user, err = s.userAPI.GetIAMUserSelf(*urls, "", resolvedProfile.APIKey); err != nil {
-		return fmt.Errorf("failed to get operator information: %w", err)
-	}
-
-	if user.OrganizationID == nil {
-		return fmt.Errorf("failed to get operator information: organization ID is nil")
-	}
-
-	if command, err = s.operatorAPI.Connect(*urls, resolvedProfile.APIKey, *user.OrganizationID); err != nil {
+	if command, err = s.operatorAPI.Connect(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID); err != nil {
 		return fmt.Errorf("failed to connect to the operator: %w", err)
 	}
 

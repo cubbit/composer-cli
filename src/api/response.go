@@ -773,8 +773,8 @@ const (
 )
 
 type InfraAggregateStatus struct {
-	Code    InfraAggregateStatusCode `json:"code"`
-	Details string                   `json:"details,omitempty"`
+	Code    string `json:"code"`
+	Details string `json:"details,omitempty"`
 }
 
 type InfraNodeCPUInfo struct {

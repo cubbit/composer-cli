@@ -36,7 +36,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 					NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 					NodeName: "node-1-host",
 					Status: api.InfraAggregateStatus{
-						Code:    api.StatusCodeOk,
+						Code:    string(string(api.StatusCodeOk)),
 						Details: "All systems operational",
 					},
 					OSName:     strPtr("Ubuntu 22.04 LTS"),
@@ -53,7 +53,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 							TotalStorageSizeBytes: 1099511627776,
 							UsedStorageBytes:      549755813888,
 							Status: api.InfraAggregateStatus{
-								Code:    api.StatusCodeOk,
+								Code:    string(api.StatusCodeOk),
 								Details: "Mounted and active",
 							},
 						},
@@ -65,7 +65,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 							TotalStorageSizeBytes: 2199023255552,
 							UsedStorageBytes:      0,
 							Status: api.InfraAggregateStatus{
-								Code:    api.StatusCodeOk,
+								Code:    string(api.StatusCodeOk),
 								Details: "Available",
 							},
 						},
@@ -75,7 +75,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 					NodeID:   "f47ac10b-58cc-4372-a567-0e02b2c3d480",
 					NodeName: "node-2-host",
 					Status: api.InfraAggregateStatus{
-						Code:    api.StatusCodeOk,
+						Code:    string(api.StatusCodeOk),
 						Details: "All systems operational",
 					},
 					OSName:     strPtr("Ubuntu 22.04 LTS"),
@@ -92,7 +92,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 							TotalStorageSizeBytes: 10995116277760,
 							UsedStorageBytes:      3298534883328,
 							Status: api.InfraAggregateStatus{
-								Code:    api.StatusCodeOk,
+								Code:    string(api.StatusCodeOk),
 								Details: "Mounted and active",
 							},
 						},
@@ -104,7 +104,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 					NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
 					NodeName: "vnode-1-host",
 					Status: api.InfraAggregateStatus{
-						Code:    api.StatusCodeOk,
+						Code:    string(api.StatusCodeOk),
 						Details: "S3 service running",
 					},
 					StorageType: api.VirtualStorageTypeS3,
@@ -119,7 +119,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 					NodeID:   "a8c5e3f1-2d4b-6e9a-8c7d-5f3a1b9c7e5f",
 					NodeName: "vnode-2-host",
 					Status: api.InfraAggregateStatus{
-						Code:    api.StatusCodeOk,
+						Code:    string(api.StatusCodeOk),
 						Details: "S3 service running",
 					},
 					StorageType: api.VirtualStorageTypeS3,
@@ -275,7 +275,7 @@ func TestPrintClusters(t *testing.T) {
 						NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 						NodeName: "node-1",
 						Status: api.InfraAggregateStatus{
-							Code: api.StatusCodeOk,
+							Code: string(api.StatusCodeOk),
 						},
 					},
 				},
@@ -284,7 +284,7 @@ func TestPrintClusters(t *testing.T) {
 						NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
 						NodeName: "vnode-1",
 						Status: api.InfraAggregateStatus{
-							Code: api.StatusCodeOk,
+							Code: string(api.StatusCodeOk),
 						},
 					},
 				},
@@ -301,14 +301,14 @@ func TestPrintClusters(t *testing.T) {
 						NodeID:   "f47ac10b-58cc-4372-a567-0e02b2c3d480",
 						NodeName: "node-2",
 						Status: api.InfraAggregateStatus{
-							Code: api.StatusCodeOk,
+							Code: string(api.StatusCodeOk),
 						},
 					},
 					{
 						NodeID:   "f47ac10b-58cc-4372-a567-0e02b2c3d481",
 						NodeName: "node-3",
 						Status: api.InfraAggregateStatus{
-							Code:    api.StatusCodeWarning,
+							Code:    string(api.StatusCodeWarning),
 							Details: "Some issues detected",
 						},
 					},
@@ -318,7 +318,7 @@ func TestPrintClusters(t *testing.T) {
 						NodeID:   "a8c5e3f1-2d4b-6e9a-8c7d-5f3a1b9c7e5f",
 						NodeName: "vnode-2",
 						Status: api.InfraAggregateStatus{
-							Code: api.StatusCodeOk,
+							Code: string(api.StatusCodeOk),
 						},
 					},
 				},

@@ -18,6 +18,24 @@ type LocationAPIInterface interface {
 		apiKey string,
 		organizationID string,
 	) ([]InfraAggregateCluster, error)
+
+	CreateVirtualCluster(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		name string,
+		description *string,
+	) (*InfrastructureCluster, error)
+
+	CreateVirtualNode(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		clusterID string,
+		name string,
+		storageType string,
+		configuration map[string]any,
+	) (*InfraAggregateVirtualNodeDetail, error)
 }
 
 type LocationAPI struct{}
@@ -72,4 +90,67 @@ func (api *LocationAPI) ListAggregated(
 	}
 
 	return response.Data, nil
+}
+
+func (api *LocationAPI) CreateVirtualCluster(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	name string,
+	description *string,
+) (*InfrastructureCluster, error) {
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v1", "organizations", organizationID, "infra", "clusters", "virtual").
+		Build()
+
+	var response InfrastructureCluster
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBody(map[string]interface{}{
+			"name":        name,
+			"description": description,
+		}),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func (api *LocationAPI) CreateVirtualNode(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	clusterID string,
+	name string,
+	storageType string,
+	configuration map[string]any,
+) (*InfraAggregateVirtualNodeDetail, error) {
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v1", "organizations", organizationID, "infra", "clusters", "virtual", clusterID, "nodes").
+		Build()
+
+	var response InfraAggregateVirtualNodeDetail
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBody(map[string]interface{}{
+			"name":                  name,
+			"storage_type":          storageType,
+			"storage_configuration": configuration,
+		}),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

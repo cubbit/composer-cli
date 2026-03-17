@@ -38,17 +38,23 @@ type BaseConfig struct {
 }
 
 type Profile struct {
-	Inherits  string       `toml:"inherits,omitempty"`
-	Type      ProfileType  `toml:"type"`
-	Endpoint  string       `toml:"endpoint,omitempty"`
-	Output    OutputFormat `toml:"output,omitempty"`
-	APIKey    string       `toml:"api_key,omitempty"`
-	UpdatedAt time.Time    `toml:"updated_at,omitempty"`
-	URLs      *URLs        `toml:"urls,omitempty"`
+	Inherits       string       `toml:"inherits,omitempty"`
+	Type           ProfileType  `toml:"type"`
+	Endpoint       string       `toml:"endpoint,omitempty"`
+	Output         OutputFormat `toml:"output,omitempty"`
+	APIKey         string       `toml:"api_key,omitempty"`
+	UpdatedAt      time.Time    `toml:"updated_at,omitempty"`
+	URLs           *URLs        `toml:"urls,omitempty"`
+	OrganizationID string       `toml:"organization_id,omitempty"`
 }
 
 type ActiveConfig struct {
 	Profile string `toml:"profile"`
+}
+
+// ConfigInterface defines the interface for configuration to enable mocking
+type ConfigInterface interface {
+	ResolveProfileAndURLs(cmd *cobra.Command, expectedProfileType ProfileType) (*ResolvedProfile, *URLs, error)
 }
 
 type Config struct {
@@ -61,13 +67,14 @@ type Config struct {
 }
 
 type ResolvedProfile struct {
-	Name      string
-	Type      ProfileType
-	Endpoint  string
-	Output    OutputFormat
-	APIKey    string
-	UpdatedAt time.Time
-	URLs      *URLs
+	Name           string
+	Type           ProfileType
+	Endpoint       string
+	Output         OutputFormat
+	APIKey         string
+	UpdatedAt      time.Time
+	URLs           *URLs
+	OrganizationID string
 }
 
 func NewURLs(
@@ -175,6 +182,9 @@ func LoadConfig() (*Config, error) {
 				if updatedAt, ok := profileMap["updated_at"].(time.Time); ok {
 					profile.UpdatedAt = updatedAt
 				}
+				if organizationID, ok := profileMap["organization_id"].(string); ok {
+					profile.OrganizationID = organizationID
+				}
 
 				if rawUrls, ok := profileMap["urls"].(map[string]interface{}); ok && profile.Endpoint == "" {
 					baseUrl, ok := rawUrls["base_url"].(string)
@@ -274,6 +284,9 @@ func (c *Config) SaveConfig() error {
 		if profile.URLs != nil {
 			profileData["urls"] = profile.URLs
 		}
+		if profile.OrganizationID != "" {
+			profileData["organization_id"] = profile.OrganizationID
+		}
 
 		for key, value := range profileData {
 			switch v := value.(type) {
@@ -325,12 +338,13 @@ func (c *Config) ResolveProfile(profileName string) (*ResolvedProfile, error) {
 	}
 
 	resolved := &ResolvedProfile{
-		Name:      profileName,
-		Type:      profile.Type,
-		UpdatedAt: profile.UpdatedAt,
-		Endpoint:  profile.Endpoint,
-		APIKey:    profile.APIKey,
-		URLs:      profile.URLs,
+		Name:           profileName,
+		Type:           profile.Type,
+		UpdatedAt:      profile.UpdatedAt,
+		Endpoint:       profile.Endpoint,
+		APIKey:         profile.APIKey,
+		URLs:           profile.URLs,
+		OrganizationID: profile.OrganizationID,
 	}
 
 	if err := c.applyInheritance(resolved, profile, make(map[string]bool)); err != nil {
@@ -361,7 +375,7 @@ func SetAPIEndpoint(endpoint string) error {
 	return nil
 }
 
-func (c *Config) CreateProfile(name string, profileType ProfileType, endpoint, apiKey string) error {
+func (c *Config) CreateProfile(name string, profileType ProfileType, endpoint, apiKey, organizationID string) error {
 	if c.Profile == nil {
 		c.Profile = make(map[string]*Profile)
 	}
@@ -369,11 +383,12 @@ func (c *Config) CreateProfile(name string, profileType ProfileType, endpoint, a
 	inherits := "default"
 
 	profile := &Profile{
-		Inherits:  inherits,
-		Type:      profileType,
-		APIKey:    apiKey,
-		UpdatedAt: time.Now(),
-		Endpoint:  endpoint,
+		Inherits:       inherits,
+		Type:           profileType,
+		APIKey:         apiKey,
+		UpdatedAt:      time.Now(),
+		Endpoint:       endpoint,
+		OrganizationID: organizationID,
 	}
 
 	c.Profile[name] = profile
@@ -768,3 +783,5 @@ func (c *Config) UpdateAPIKey(name, apiKey string) error {
 
 	return nil
 }
+
+var _ ConfigInterface = (*Config)(nil)

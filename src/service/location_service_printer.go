@@ -15,8 +15,8 @@ import (
 func PrintClusterDetails(cmd *cobra.Command, cluster api.InfraAggregateCluster) error {
 	printFuncs := []func() error{
 		func() error { return printClusterInfo(cmd, cluster) },
-		func() error { return printPhysicalNodes(cmd, cluster) },
-		func() error { return printVirtualNodes(cmd, cluster) },
+		func() error { return printPhysicalNodes(cmd, cluster.Details.Nodes) },
+		func() error { return PrintVirtualNodes(cmd, cluster.Details.VirtualNodes) },
 	}
 
 	return printer.Compose(cmd, printFuncs...)
@@ -56,15 +56,15 @@ func printClusterInfo(cmd *cobra.Command, cluster api.InfraAggregateCluster) err
 	)
 }
 
-func printPhysicalNodes(cmd *cobra.Command, cluster api.InfraAggregateCluster) error {
-	if len(cluster.Details.Nodes) == 0 {
+func printPhysicalNodes(cmd *cobra.Command, nodes []api.InfraAggregateNodeDetail) error {
+	if len(nodes) == 0 {
 		return nil
 	}
 
 	nodesTitle := "\nPhysical Nodes\n" + utils.Separator + "\n"
 
-	nodeNodes := make([]tree.TreeNode, len(cluster.Details.Nodes))
-	for i, node := range cluster.Details.Nodes {
+	nodeNodes := make([]tree.TreeNode, len(nodes))
+	for i, node := range nodes {
 		nodeNodes[i] = buildPhysicalNodeTree(node)
 	}
 
@@ -221,15 +221,15 @@ func buildDiskTree(disk api.InfraAggregateDiskDetail) tree.TreeNode {
 	}
 }
 
-func printVirtualNodes(cmd *cobra.Command, cluster api.InfraAggregateCluster) error {
-	if len(cluster.Details.VirtualNodes) == 0 {
+func PrintVirtualNodes(cmd *cobra.Command, virtualNodes []api.InfraAggregateVirtualNodeDetail) error {
+	if len(virtualNodes) == 0 {
 		return nil
 	}
 
 	virtualNodesTitle := "\nVirtual Nodes\n" + utils.Separator + "\n"
 
-	nodeNodes := make([]tree.TreeNode, len(cluster.Details.VirtualNodes))
-	for i, node := range cluster.Details.VirtualNodes {
+	nodeNodes := make([]tree.TreeNode, len(virtualNodes))
+	for i, node := range virtualNodes {
 		nodeNodes[i] = buildVirtualNodeTree(node)
 	}
 

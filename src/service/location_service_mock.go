@@ -9,8 +9,10 @@ import (
 )
 
 type LocationServiceMock struct {
-	ListFunc           func(cmd *cobra.Command, args []string) error
-	ListAggregatedFunc func(cmd *cobra.Command, args []string) error
+	ListFunc              func(cmd *cobra.Command, args []string) error
+	ListAggregatedFunc    func(cmd *cobra.Command, args []string) error
+	CreateVirtualFunc     func(cmd *cobra.Command, args []string) error
+	CreateVirtualNodeFunc func(cmd *cobra.Command, args []string) error
 }
 
 func NewLocationServiceMock() *LocationServiceMock {
@@ -39,6 +41,15 @@ func NewLocationServiceMock() *LocationServiceMock {
 				cmd.Println(fmt.Sprintf("%s\t%s\t%s\t%d\t%d\t%s",
 					v.ClusterID, v.Name, v.ClusterType, v.PhysicalNodes, v.VirtualNodes, v.LastUpdate))
 			}
+
+			return nil
+		},
+		CreateVirtualFunc: func(cmd *cobra.Command, args []string) error {
+			cmd.Println("Mock: Virtual location created")
+			return nil
+		},
+		CreateVirtualNodeFunc: func(cmd *cobra.Command, args []string) error {
+			cmd.Println("Mock: Virtual node created")
 			return nil
 		},
 	}
@@ -54,6 +65,20 @@ func (m *LocationServiceMock) List(cmd *cobra.Command, args []string) error {
 func (m *LocationServiceMock) ListAggregated(cmd *cobra.Command, args []string) error {
 	if m.ListAggregatedFunc != nil {
 		return m.ListAggregatedFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *LocationServiceMock) CreateVirtual(cmd *cobra.Command, args []string) error {
+	if m.CreateVirtualFunc != nil {
+		return m.CreateVirtualFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *LocationServiceMock) CreateVirtualNode(cmd *cobra.Command, args []string) error {
+	if m.CreateVirtualNodeFunc != nil {
+		return m.CreateVirtualNodeFunc(cmd, args)
 	}
 	return nil
 }

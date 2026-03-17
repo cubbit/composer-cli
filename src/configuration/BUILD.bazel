@@ -2,7 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "configuration",
-    srcs = ["configuration.go"],
+    srcs = [
+        "configuration.go",
+        "configuration_mock.go",
+    ],
     importpath = "github.com/cubbit/composer-cli/src/configuration",
     visibility = ["//visibility:public"],
     deps = [

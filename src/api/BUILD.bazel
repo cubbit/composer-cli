@@ -7,6 +7,7 @@ go_library(
         "auth_api.go",
         "authentication_client.go",
         "location_api.go",
+        "location_api_mock.go",
         "operator_api.go",
         "paginator_handler.go",
         "request.go",
@@ -22,5 +23,6 @@ go_library(
         "//src/configuration",
         "//src/request_utils",
         "//utils",
+        "@com_github_spf13_cobra//:go_default_library",
     ],
 )

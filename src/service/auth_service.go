@@ -263,7 +263,7 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 
 	switch choice {
 	case choices[0]:
-		return performBrowserLogin(*urls, as.configuration, profile, resolvedEndpoint)
+		return as.performBrowserLogin(*urls, as.configuration, profile, resolvedEndpoint)
 	case choices[1]:
 		var password string
 		var tfa string
@@ -295,7 +295,16 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 }
 
 func (as *AuthService) configureAPIKey(cmd *cobra.Command, urls configuration.URLs, conf *configuration.Config, profile string, apiKey string, resolvedEndpoint string) error {
-	if err := conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey); err != nil {
+	operator, err := as.userAPI.GetIAMUserSelf(urls, "", apiKey)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve operator information: %w", err)
+	}
+
+	if operator.OrganizationID == nil {
+		return fmt.Errorf("user does not belong to an organization, invalid API key")
+	}
+
+	if err := conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey, *operator.OrganizationID); err != nil {
 		return fmt.Errorf("failed to create profile: %w", err)
 	}
 
@@ -334,6 +343,10 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration
 		return fmt.Errorf("failed to retrieve operator information: %w", err)
 	}
 
+	if operator.OrganizationID == nil {
+		return fmt.Errorf("user does not belong to an organization, please contact your administrator to resolve this issue")
+	}
+
 	if tfa != "" {
 		if _, err = tui.TextInputs(
 			"Please provide another two-factor code to forge an API key",
@@ -357,7 +370,7 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration
 		return fmt.Errorf("failed to create API key: %w", err)
 	}
 
-	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey); err != nil {
+	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey, *operator.OrganizationID); err != nil {
 		return fmt.Errorf("failed to create profile: %w", err)
 	}
 
@@ -371,7 +384,7 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration
 	return nil
 }
 
-func performBrowserLogin(urls configuration.URLs, conf *configuration.Config, profile string, resolvedEndpoint string) error {
+func (as *AuthService) performBrowserLogin(urls configuration.URLs, conf *configuration.Config, profile string, resolvedEndpoint string) error {
 	var err error
 	var device *api.DeviceRegistrationResponse
 	var apiKey string
@@ -440,7 +453,16 @@ func performBrowserLogin(urls configuration.URLs, conf *configuration.Config, pr
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey); err != nil {
+	operator, err := as.userAPI.GetIAMUserSelf(urls, "", apiKey)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve operator information: %w", err)
+	}
+
+	if operator.OrganizationID == nil {
+		return fmt.Errorf("user does not belong to an organization, invalid API key")
+	}
+
+	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey, *operator.OrganizationID); err != nil {
 		return fmt.Errorf("failed to create profile: %w", err)
 	}
 

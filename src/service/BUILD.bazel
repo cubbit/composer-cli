@@ -38,10 +38,14 @@ go_library(
 
 go_test(
     name = "service_test",
-    srcs = ["location_service_printer_test.go"],
+    srcs = [
+        "location_service_printer_test.go",
+        "location_service_test.go",
+    ],
     embed = [":service"],
     deps = [
         "//src/api",
+        "//src/configuration",
         "@com_github_spf13_cobra//:go_default_library",
     ],
 )
