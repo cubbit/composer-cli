@@ -98,21 +98,19 @@ var listAgentsSubCmd = &cobra.Command{
 		allowedSortingKeys := []string{"id", "node_id", "port", "created_at"}
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			msg := "Error: invalid sort key provided, allowed keys are: id, node_id port created_at"
-			fmt.Println(msg)
+			msg := "Error: invalid sort key provided, allowed keys are: id, node_id, port, created_at"
 			return fmt.Errorf(msg)
 		}
 
 		filter, _ := cmd.Flags().GetString("filter")
 		if filter != "" && !utils.IsValidFilter(filter) {
 			msg := "Error: invalid filter provided, allowed format is: key:value key:value ..."
-			fmt.Println(msg)
 			return fmt.Errorf(msg)
 		}
 
 		if err := action.ListAgents(cmd, args); err != nil {
 			utils.PrintError(err)
-			return nil
+			return err
 		}
 
 		return nil

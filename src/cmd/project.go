@@ -28,7 +28,7 @@ var listTenantProjectsSubCmd = &cobra.Command{
 		}
 		if err := action.ListTenantProjects(cmd, args); err != nil {
 			utils.PrintError(err)
-			return nil
+			return err
 		}
 		return nil
 	},

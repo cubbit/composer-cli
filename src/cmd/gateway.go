@@ -68,7 +68,6 @@ var listGatewaysSubCmd = &cobra.Command{
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
 			err := fmt.Errorf("invalid sort key provided, allowed keys are: id, name")
-			fmt.Println("Error:", err.Error())
 			return err
 		}
 
