@@ -48,5 +48,4 @@ func init() {
 
 	redundancyClassCmd.AddCommand(redundancyClassRecoveryCmd)
 	redundancyClassRecoveryCmd.PersistentFlags().String("rc-id", "", "ID of the redundancy class")
-	redundancyClassRecoveryCmd.PersistentFlags().String("swarm-id", "", "ID of the swarm")
 }
