@@ -20,16 +20,17 @@ var listTenantProjectsSubCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("tenant-id")
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		allowedSortingKeys := []string{"project_id", "project_name", "project_created_at", "project_deleted_at", "project_banned_at", "project_tenant_id", "project_email", "root_account_email"}
 		sort, _ := cmd.Flags().GetString("sort")
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: project_id, project_name, project_created_at, project_deleted_at, project_banned_at, project_tenant_id, project_email, root_account_email")
-			return
+			return fmt.Errorf("invalid sort key provided, allowed keys are: project_id, project_name, project_created_at, project_deleted_at, project_banned_at, project_tenant_id, project_email, root_account_email")
 		}
 		if err := action.ListTenantProjects(cmd, args); err != nil {
 			utils.PrintError(err)
+			return nil
 		}
+		return nil
 	},
 }
 
