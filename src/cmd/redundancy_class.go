@@ -20,12 +20,19 @@ var CreateRedundancyClassSubCmd = &cobra.Command{
 	Short: "create a new redundancy class",
 	PreRun: func(cmd *cobra.Command, args []string) {
 
-		cmd.MarkFlagsRequiredTogether("name", "inner-k", "inner-n", "outer-k", "outer-n", "anti-affinity-group", "nexuses")
+		cmd.MarkFlagRequired("swarm-id")
+		cmd.MarkFlagRequired("nexuses")
+		cmd.MarkFlagRequired("name")
+		cmd.MarkFlagRequired("outer-n")
+		cmd.MarkFlagRequired("outer-k")
+		cmd.MarkFlagRequired("anti-affinity-group")
+		cmd.MarkFlagRequired("inner-n")
+		cmd.MarkFlagRequired("inner-k")
 
 		outerK, _ := cmd.Flags().GetInt("outer-k")
 		outerN, _ := cmd.Flags().GetInt("outer-n")
 		nexuses, _ := cmd.Flags().GetStringSlice("nexuses")
-		if len(nexuses) == 0 || len(nexuses) != outerK+outerN {
+		if len(nexuses) > 0 && len(nexuses) != outerK+outerN {
 			fmt.Println("Error: invalid number of nexuses provided, expected outer-k + outer-n nexuses")
 			cmd.Usage()
 			os.Exit(1)
@@ -43,6 +50,7 @@ var DescribeRedundancyClassesSubCmd = &cobra.Command{
 	Short: "describe a redundancy class",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("rc-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DescribeRedundancyClass(cmd, args); err != nil {
@@ -55,6 +63,7 @@ var listRedundancyClassesSubCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list redundancy classes",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.ListRedundancyClasses(cmd, args); err != nil {
@@ -68,6 +77,7 @@ var CheckRedundancyClassStatusSubCmd = &cobra.Command{
 	Short: "check redundancy class status",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("rc-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.CheckRedundancyClassStatus(cmd, args); err != nil {
@@ -81,6 +91,7 @@ var ExpandRedundancyClassSubCmd = &cobra.Command{
 	Short: "expand a redundancy class",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("rc-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.ExpandRedundancyClass(cmd, args); err != nil {
@@ -116,5 +127,4 @@ func init() {
 
 	rootCmd.AddCommand(redundancyClassCmd)
 	redundancyClassCmd.PersistentFlags().String("swarm-id", "", "ID of the swarm")
-	redundancyClassCmd.MarkPersistentFlagRequired("swarm-id")
 }

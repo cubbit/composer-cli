@@ -16,6 +16,7 @@ var createNexusSubCmd = &cobra.Command{
 	Use:   "create",
 	Short: "create a new nexus",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("swarm-id")
 		cmd.MarkFlagRequired("name")
 		cmd.MarkFlagRequired("location")
 		cmd.MarkFlagRequired("provider-id")
@@ -32,6 +33,7 @@ var editNexusSubCmd = &cobra.Command{
 	Short: "edit a nexus",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("nexus-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.EditNexus(cmd, args); err != nil {
@@ -45,6 +47,7 @@ var removeNexusSubCmd = &cobra.Command{
 	Short: "remove a nexus",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("nexus-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RemoveNexus(cmd, args); err != nil {
@@ -57,6 +60,7 @@ var listNexusesSubCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list nexuses",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.ListNexuses(cmd, args); err != nil {
@@ -70,6 +74,7 @@ var describeNexusSubCmd = &cobra.Command{
 	Short: "describe a nexus",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("nexus-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DescribeNexus(cmd, args); err != nil {
@@ -121,5 +126,4 @@ func init() {
 
 	rootCmd.AddCommand(nexusCmd)
 	nexusCmd.PersistentFlags().String("swarm-id", "", "ID of the swarm")
-	nexusCmd.MarkPersistentFlagRequired("swarm-id")
 }

@@ -71,7 +71,6 @@ func Execute(packageJSON []byte) {
 
 func init() {
 	// Persistent flags (available to all subcommands)
-	rootCmd.PersistentFlags().BoolVarP(&interactive, "interactive", "i", false, "Run in interactive mode")
 	rootCmd.PersistentFlags().String("profile", "", "Profile Configuration")
 	rootCmd.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml, xml")
 	rootCmd.PersistentFlags().Bool("no-headers", false, "Suppress table headers in human output (for easier scripting)")
