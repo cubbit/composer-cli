@@ -195,16 +195,19 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 
 	resolvedEndpoint := endpoint
 	if resolvedEndpoint == "" {
-		if existingProfile, err := as.configuration.ResolveProfile(profile); err == nil {
-			resolvedEndpoint = existingProfile.Endpoint
+		var resolvedProfile *configuration.ResolvedProfile
+		if resolvedProfile, urls, err = as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err == nil {
+			resolvedEndpoint = resolvedProfile.Endpoint
 		} else {
 			resolvedEndpoint = as.configuration.Default.Endpoint
 		}
 	}
 
-	urls, err = configuration.ConfigureAPIServerURL(resolvedEndpoint)
-	if err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
+	if urls == nil {
+		urls, err = configuration.ConfigureAPIServerURL(resolvedEndpoint)
+		if err != nil {
+			return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
+		}
 	}
 
 	if username, err = cmd.Flags().GetString("username"); err != nil {

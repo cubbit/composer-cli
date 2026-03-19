@@ -17,7 +17,7 @@ import (
 func PrintFormattedData(writer io.Writer, data interface{}, format string) {
 	switch format {
 	case "json":
-		printJSON(data)
+		printJSON(writer, data)
 	case "yaml":
 		printYAML(data)
 	case "xml":
@@ -29,10 +29,10 @@ func PrintFormattedData(writer io.Writer, data interface{}, format string) {
 	}
 }
 
-func printJSON(data interface{}) {
+func printJSON(writer io.Writer, data interface{}) {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		fmt.Print("error encoding json:", err)
+		fmt.Fprint(writer, "error encoding json:", err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func printJSON(data interface{}) {
 		return
 	}
 
-	fmt.Println(string(jsonData))
+	fmt.Fprintln(writer, string(jsonData))
 }
 
 func printCSV(data interface{}) {
