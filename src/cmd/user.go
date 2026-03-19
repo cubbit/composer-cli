@@ -20,6 +20,7 @@ var createTenantUsersSubCmd = &cobra.Command{
 	Short: "creates users in a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("emails")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.CreateTenantAccounts(cmd, args); err != nil {
@@ -33,6 +34,7 @@ var describeTenantUserSubCmd = &cobra.Command{
 	Short: "describes tenant users",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DescribeTenantAccount(cmd, args); err != nil {
@@ -46,6 +48,7 @@ var updateTenantUserSubCmd = &cobra.Command{
 	Short: "updates a user in a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.UpdateTenantAccount(cmd, args); err != nil {
@@ -59,6 +62,7 @@ var removeTenantUserSubCmd = &cobra.Command{
 	Short: "removes a tenant user",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RemoveTenantAccount(cmd, args); err != nil {
@@ -73,6 +77,7 @@ var restoreTenantUserSubCmd = &cobra.Command{
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RestoreTenantAccount(cmd, args); err != nil {
@@ -86,6 +91,7 @@ var banTenantUserSubCmd = &cobra.Command{
 	Short: "freezes a tenant user",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.BanTenantAccount(cmd, args); err != nil {
@@ -100,6 +106,7 @@ var unbanTenantUserSubCmd = &cobra.Command{
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.UnbanTenantAccount(cmd, args); err != nil {
@@ -114,6 +121,7 @@ var deleteTenantUserSessionsSubCmd = &cobra.Command{
 	Aliases: []string{"rm"},
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("user-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DeleteTenantAccountSessions(cmd, args); err != nil {
@@ -126,6 +134,7 @@ var listTenantUsersSubCmd = &cobra.Command{
 	Use:   "list",
 	Short: "lists tenant users",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("tenant-id")
 		allowedSortingKeys := []string{"id", "first_name", "last_name", "max_allowed_projects", "created_at", "deleted_at", "tenant_id"}
 		sort, _ := cmd.Flags().GetString("sort")
 
@@ -178,6 +187,5 @@ func init() {
 
 	tenantCmd.AddCommand(userCmd)
 	userCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
-	userCmd.MarkPersistentFlagRequired("tenant-id")
 
 }

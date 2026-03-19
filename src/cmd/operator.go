@@ -24,16 +24,21 @@ var addIAMOperatorSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tenantID, _ := cmd.Flags().GetString("tenant-id")
-		swarmID, _ := cmd.Flags().GetString("swarm-id")
-
 		if tenantID != "" {
 			if err := action.AddOperatorToTenant(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else if swarmID != "" {
+
+			return
+		}
+
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
+		if swarmID != "" {
 			if err := action.AddOperatorToSwarm(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
+
+			return
 		}
 	},
 }
@@ -47,16 +52,21 @@ var listIAMOperatorsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tenantID, _ := cmd.Flags().GetString("tenant-id")
-		swarmID, _ := cmd.Flags().GetString("swarm-id")
-
 		if tenantID != "" {
 			if err := action.ListTenantOperators(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else if swarmID != "" {
+
+			return
+		}
+
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
+		if swarmID != "" {
 			if err := action.ListSwarmOperators(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
+
+			return
 		}
 	},
 }
@@ -72,16 +82,22 @@ var removeIAMOperatorSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tenantID, _ := cmd.Flags().GetString("tenant-id")
-		swarmID, _ := cmd.Flags().GetString("swarm-id")
 
 		if tenantID != "" {
 			if err := action.RemoveTenantOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else if swarmID != "" {
+
+			return
+		}
+
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
+		if swarmID != "" {
 			if err := action.RemoveSwarmOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
+
+			return
 		}
 	},
 }
@@ -97,16 +113,22 @@ var describeIAMOperatorsSubCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tenantID, _ := cmd.Flags().GetString("tenant-id")
-		swarmID, _ := cmd.Flags().GetString("swarm-id")
 
 		if tenantID != "" {
 			if err := action.DescribeTenantOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
-		} else if swarmID != "" {
+
+			return
+		}
+
+		swarmID, _ := cmd.Flags().GetString("swarm-id")
+		if swarmID != "" {
 			if err := action.DescribeSwarmOperator(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
+
+			return
 		}
 	},
 }
@@ -118,27 +140,19 @@ func init() {
 	addIAMOperatorSubCmd.Flags().String("policy-id", "", "ID of the policy to assign to the operator")
 	addIAMOperatorSubCmd.Flags().String("first-name", "", "First name of the operator")
 	addIAMOperatorSubCmd.Flags().String("last-name", "", "Last name of the operator")
-	addIAMOperatorSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
-	addIAMOperatorSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
 	IAMUserCmd.AddCommand(listIAMOperatorsSubCmd)
 	listIAMOperatorsSubCmd.Flags().String("sort", "", "Sorts the output based on the given field")
 	listIAMOperatorsSubCmd.Flags().String("filter", "", "Filters the output based on the given field, allowed format is key:value")
-	listIAMOperatorsSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
-	listIAMOperatorsSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
 	IAMUserCmd.AddCommand(removeIAMOperatorSubCmd)
 	removeIAMOperatorSubCmd.Flags().String("user-id", "", "ID of the operator")
-	removeIAMOperatorSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
-	removeIAMOperatorSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
 	IAMUserCmd.AddCommand(describeIAMOperatorsSubCmd)
 	describeIAMOperatorsSubCmd.Flags().String("user-id", "", "ID of the operator")
-	describeIAMOperatorsSubCmd.Flags().String("tenant-id", "", "ID of the tenant")
-	describeIAMOperatorsSubCmd.Flags().String("swarm-id", "", "ID of the swarm")
 
 	iamCmd.AddCommand(IAMUserCmd)
 	IAMUserCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
-	IAMUserCmd.MarkPersistentFlagRequired("tenant-id")
+	IAMUserCmd.PersistentFlags().String("swarm-id", "", "ID of the swarm")
 
 }

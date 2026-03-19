@@ -3,7 +3,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/cubbit/composer-cli/src/action"
 	"github.com/cubbit/composer-cli/utils"
@@ -19,19 +18,19 @@ var listTenantProjectsSubCmd = &cobra.Command{
 	Use:   "list",
 	Short: "lists tenant projects",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("tenant-id")
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
 		allowedSortingKeys := []string{"project_id", "project_name", "project_created_at", "project_deleted_at", "project_banned_at", "project_tenant_id", "project_email", "root_account_email"}
 		sort, _ := cmd.Flags().GetString("sort")
-
 		if sort != "" && !utils.Contains(allowedSortingKeys, sort) {
-			fmt.Println("Error: invalid sort key provided, allowed keys are: project_id, project_name, project_created_at, project_deleted_at, project_banned_at, project_tenant_id, project_email, root_account_email")
-			cmd.Usage()
-			os.Exit(1)
+			return fmt.Errorf("invalid sort key provided, allowed keys are: project_id, project_name, project_created_at, project_deleted_at, project_banned_at, project_tenant_id, project_email, root_account_email")
 		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.ListTenantProjects(cmd, args); err != nil {
 			utils.PrintError(err)
+			return err
 		}
+		return nil
 	},
 }
 
@@ -40,6 +39,7 @@ var describeTenantProjectSubCmd = &cobra.Command{
 	Short: "describes tenant projects",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("project-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.DescribeTenantProject(cmd, args); err != nil {
@@ -53,6 +53,7 @@ var removeTenantProjectSubCmd = &cobra.Command{
 	Short: "removes a tenant project",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("project-id")
+		cmd.MarkFlagRequired("tenant-id")
 
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -67,6 +68,7 @@ var banTenantProjectSubCmd = &cobra.Command{
 	Short: "freezes a tenant project",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("project-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.BanTenantProject(cmd, args); err != nil {
@@ -80,6 +82,7 @@ var unbanTenantProjectSubCmd = &cobra.Command{
 	Short: "unfreezes a tenant project",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("project-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.UnbanTenantProject(cmd, args); err != nil {
@@ -93,6 +96,7 @@ var restoreTenantProjectSubCmd = &cobra.Command{
 	Short: "restores a tenant project",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("project-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RestoreTenantProject(cmd, args); err != nil {
@@ -106,6 +110,7 @@ var updateTenantProjectSubCmd = &cobra.Command{
 	Short: "updates a project in a tenant",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("project-id")
+		cmd.MarkFlagRequired("tenant-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.UpdateTenantProject(cmd, args); err != nil {
@@ -142,6 +147,5 @@ func init() {
 
 	tenantCmd.AddCommand(projectCmd)
 	projectCmd.PersistentFlags().String("tenant-id", "", "ID of the tenant")
-	projectCmd.MarkPersistentFlagRequired("tenant-id")
 
 }

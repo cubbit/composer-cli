@@ -2,9 +2,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/cubbit/composer-cli/src/action"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
@@ -47,15 +44,7 @@ var editSwarmSubCmd = &cobra.Command{
 	Short: "edit a swarm",
 	PreRun: func(cmd *cobra.Command, args []string) {
 		cmd.MarkFlagRequired("swarm-id")
-
-		swarmName, _ := cmd.Flags().GetString("name")
-		swarmDescription, _ := cmd.Flags().GetString("description")
-
-		if swarmName == "" && swarmDescription == "" {
-			fmt.Println("Error: at least one of the two required flags --name or --description should be provided.")
-			cmd.Usage()
-			os.Exit(1)
-		}
+		cmd.MarkFlagsOneRequired("name", "description")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.EditSwarm(cmd, args...); err != nil {

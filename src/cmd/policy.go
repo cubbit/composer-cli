@@ -19,7 +19,6 @@ var promoteSubCmd = &cobra.Command{
 		cmd.MarkFlagRequired("email")
 		cmd.MarkFlagRequired("policy-name")
 		cmd.MarkFlagRequired("secret")
-
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.PromoteOperator(cmd, args); err != nil {
@@ -38,7 +37,6 @@ var EditIAMOperatorPolicySubCmd = &cobra.Command{
 
 		cmd.MarkFlagsOneRequired("tenant-id", "swarm-id")
 		cmd.MarkFlagsMutuallyExclusive("tenant-id", "swarm-id")
-
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var tenantID, swarmID string

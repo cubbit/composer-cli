@@ -16,6 +16,8 @@ var RecoverRedundancyClassSubCmd = &cobra.Command{
 	Use:   "start",
 	Short: "start redundancy class recovery",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("rc-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.RecoverRedundancyClass(cmd, args); err != nil {
@@ -28,6 +30,8 @@ var CheckRedundancyClassRecoveryStatusSubCmd = &cobra.Command{
 	Use:   "status",
 	Short: "check redundancy class recovery status",
 	PreRun: func(cmd *cobra.Command, args []string) {
+		cmd.MarkFlagRequired("rc-id")
+		cmd.MarkFlagRequired("swarm-id")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := action.CheckRedundancyClassRecoveryStatus(cmd, args); err != nil {
@@ -44,5 +48,4 @@ func init() {
 
 	redundancyClassCmd.AddCommand(redundancyClassRecoveryCmd)
 	redundancyClassRecoveryCmd.PersistentFlags().String("rc-id", "", "ID of the redundancy class")
-	redundancyClassRecoveryCmd.MarkPersistentFlagRequired("rc-id")
 }
