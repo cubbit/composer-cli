@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+### Patch Changes
+
+- Review the persistent flags and the pre-run checks for all commands.
+
 ## 1.1.0
 
 ### Minor Changes
