@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.0
+
+### Minor Changes
+
+- 1f07b3c: Add create virtual clusters and nodes command
+
+### Patch Changes
+
+- c2ebf60: Fix import and bazel build
+
 ## 1.5.0
 
 ### Minor Changes
