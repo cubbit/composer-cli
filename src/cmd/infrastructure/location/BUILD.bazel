@@ -23,11 +23,15 @@ go_test(
     srcs = [
         "location_sub_cmd_create_virtual_node_structure_test.go",
         "location_sub_cmd_create_virtual_structure_test.go",
+        "location_sub_cmd_describe_integration_test.go",
         "location_sub_cmd_describe_structure_test.go",
+        "location_sub_cmd_list_integration_test.go",
         "location_sub_cmd_list_structure_test.go",
     ],
     embed = [":location"],
     deps = [
+        "//src/api",
+        "//src/configuration",
         "//src/service",
         "@com_github_spf13_cobra//:go_default_library",
     ],

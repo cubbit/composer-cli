@@ -54,6 +54,7 @@ func TestInfrastructureSubCmd_Structure_LocationDescribe(t *testing.T) {
 	infrastructureCmd.SetArgs([]string{
 		"location",
 		"describe",
+		"--cluster-id", "test-cluster-id",
 	})
 	err := infrastructureCmd.Execute()
 	if err != nil {

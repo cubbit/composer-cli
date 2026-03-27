@@ -250,7 +250,7 @@ func TestPrintClusterDetails_Quiet(t *testing.T) {
 	}
 }
 
-func TestPrintClusters(t *testing.T) {
+func TestPrintClusters_Human(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("quiet", false, "quiet mode")
 	cmd.Flags().Set("quiet", "false")
@@ -258,91 +258,98 @@ func TestPrintClusters(t *testing.T) {
 	var out bytes.Buffer
 	cmd.SetOut(&out)
 
-	baseTime, err := time.Parse("2006-01-02 15:04:05", "2024-01-15 10:30:00")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	clusters := []api.InfraAggregateCluster{
+	clusters := []api.InfrastructureCluster{
 		{
 			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-			Name:      "Cluster One",
-			Type:      api.ClusterTypePhysical,
-			Details: api.InfraAggregateClusterDetail{
-				LastUpdate: baseTime,
-				Nodes: []api.InfraAggregateNodeDetail{
-					{
-						NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-						NodeName: "node-1",
-						Status: api.InfraAggregateStatus{
-							Code: string(api.StatusCodeOk),
-						},
-					},
-				},
-				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{
-					{
-						NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
-						NodeName: "vnode-1",
-						Status: api.InfraAggregateStatus{
-							Code: string(api.StatusCodeOk),
-						},
-					},
-				},
-			},
+			Name:      "Test Cluster 1",
+			Type:      "physical",
 		},
 		{
-			ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c9",
-			Name:      "Cluster Two",
-			Type:      api.ClusterTypeVirtual,
-			Details: api.InfraAggregateClusterDetail{
-				LastUpdate: baseTime.Add(time.Hour),
-				Nodes: []api.InfraAggregateNodeDetail{
-					{
-						NodeID:   "f47ac10b-58cc-4372-a567-0e02b2c3d480",
-						NodeName: "node-2",
-						Status: api.InfraAggregateStatus{
-							Code: string(api.StatusCodeOk),
-						},
-					},
-					{
-						NodeID:   "f47ac10b-58cc-4372-a567-0e02b2c3d481",
-						NodeName: "node-3",
-						Status: api.InfraAggregateStatus{
-							Code:    string(api.StatusCodeWarning),
-							Details: "Some issues detected",
-						},
-					},
-				},
-				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{
-					{
-						NodeID:   "a8c5e3f1-2d4b-6e9a-8c7d-5f3a1b9c7e5f",
-						NodeName: "vnode-2",
-						Status: api.InfraAggregateStatus{
-							Code: string(api.StatusCodeOk),
-						},
-					},
-				},
-			},
+			ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+			Name:      "Test Cluster 2",
+			Type:      "virtual",
+		},
+		{
+			ClusterID: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+			Name:      "Test Cluster 3",
+			Type:      "physical",
 		},
 	}
 
-	err = PrintClusters(cmd, clusters)
+	err := PrintClusters(cmd, clusters)
 
 	if err != nil {
-		t.Errorf("Expected no error, got: %v", err)
+		t.Errorf("Expected no error in human mode, got: %v", err)
 	}
 
 	expectedResult := strings.TrimSpace(`
-╭──────────────────────────────────────┬─────────────┬──────────┬────────────────┬───────────────┬─────────────────────╮
-│ Cluster ID                           │ Name        │ Type     │ Physical Nodes │ Virtual Nodes │ Last Update         │
-├──────────────────────────────────────┼─────────────┼──────────┼────────────────┼───────────────┼─────────────────────┤
-│ 550e8400-e29b-41d4-a716-446655440000 │ Cluster One │ physical │ 1              │ 1             │ 2024-01-15 10:30:00 │
-│ 6ba7b810-9dad-11d1-80b4-00c04fd430c9 │ Cluster Two │ virtual  │ 2              │ 1             │ 2024-01-15 11:30:00 │
-╰──────────────────────────────────────┴─────────────┴──────────┴────────────────┴───────────────┴─────────────────────╯
+╭──────────────────────────────────────┬────────────────┬──────────╮
+│ Cluster ID                           │ Name           │ Type     │
+├──────────────────────────────────────┼────────────────┼──────────┤
+│ 550e8400-e29b-41d4-a716-446655440000 │ Test Cluster 1 │ physical │
+│ 6ba7b810-9dad-11d1-80b4-00c04fd430c8 │ Test Cluster 2 │ virtual  │
+│ f47ac10b-58cc-4372-a567-0e02b2c3d479 │ Test Cluster 3 │ physical │
+╰──────────────────────────────────────┴────────────────┴──────────╯
 `)
 
 	actualResult := strings.TrimSpace(out.String())
 	if actualResult != expectedResult {
 		t.Error("Expected clusters output does not match actual output expected:\n" + expectedResult + "\nactual:\n" + actualResult)
+	}
+}
+
+func TestPrintClusters_Quiet(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().Bool("quiet", false, "quiet mode")
+	cmd.Flags().Set("quiet", "true")
+
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+
+	clusters := []api.InfrastructureCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "Test Cluster",
+			Type:      "physical",
+		},
+	}
+
+	err := PrintClusters(cmd, clusters)
+
+	if err != nil {
+		t.Errorf("Expected no error in quiet mode, got: %v", err)
+	}
+
+	if out.Len() > 0 {
+		t.Errorf("Expected no output in quiet mode, got: %s", out.String())
+	}
+}
+
+func TestPrintClusters_Empty(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().Bool("quiet", false, "quiet mode")
+	cmd.Flags().Set("quiet", "false")
+
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+
+	var clusters []api.InfrastructureCluster
+
+	err := PrintClusters(cmd, clusters)
+
+	if err != nil {
+		t.Errorf("Expected no error with empty clusters, got: %v", err)
+	}
+
+	expectedResult := strings.TrimSpace(`
+╭────────────┬──────┬──────╮
+│ Cluster ID │ Name │ Type │
+├────────────┼──────┼──────┤
+╰────────────┴──────┴──────╯
+`)
+
+	actualResult := strings.TrimSpace(out.String())
+	if actualResult != expectedResult {
+		t.Errorf("Expected empty clusters output does not match actual output expected:\n%s\nactual:\n%s", expectedResult, actualResult)
 	}
 }

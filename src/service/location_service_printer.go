@@ -23,7 +23,6 @@ func PrintClusterDetails(cmd *cobra.Command, cluster api.InfraAggregateCluster) 
 }
 
 func printClusterInfo(cmd *cobra.Command, cluster api.InfraAggregateCluster) error {
-	fmt.Printf("cluster: %+v\n", cluster)
 	rowMapper := func(c api.InfraAggregateCluster) []string {
 		return []string{
 			c.ClusterID,
@@ -299,26 +298,27 @@ func defaultFormatter(v any) string {
 	return fmt.Sprintf("%v", v)
 }
 
-func PrintClusters(cmd *cobra.Command, clusters []api.InfraAggregateCluster) error {
-	views := ConvertAggregateClustersView(clusters)
-
-	tableColumns := []table.Column[AggregateClusterView]{
+func PrintClusters(cmd *cobra.Command, clusters []api.InfrastructureCluster) error {
+	tableColumns := []table.Column[api.InfrastructureCluster]{
 		{Title: "Cluster ID"},
 		{Title: "Name"},
 		{Title: "Type"},
-		{Title: "Physical Nodes"},
-		{Title: "Virtual Nodes"},
-		{Title: "Last Update"},
 	}
 
-	rowMapper := func(v AggregateClusterView) []string {
-		return v.GetRow()
+	rowMapper := func(v api.InfrastructureCluster) []string {
+		return []string{
+			v.ClusterID,
+			v.Name,
+			v.Type,
+		}
 	}
 
-	return printer.CreateTable(cmd, views,
-		table.WithColumns[AggregateClusterView](tableColumns),
-		table.WithRowMapper[AggregateClusterView](rowMapper),
-		table.WithShowHeader[AggregateClusterView](true),
-		table.WithSuffix[AggregateClusterView]("\n"),
+	return printer.CreateTable(
+		cmd,
+		clusters,
+		table.WithColumns[api.InfrastructureCluster](tableColumns),
+		table.WithRowMapper[api.InfrastructureCluster](rowMapper),
+		table.WithShowHeader[api.InfrastructureCluster](true),
+		table.WithSuffix[api.InfrastructureCluster]("\n"),
 	)
 }

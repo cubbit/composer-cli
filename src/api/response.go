@@ -748,6 +748,7 @@ type InfraClusterConnectCmdResponse struct {
 type InfrastructureCluster struct {
 	ClusterID string `json:"cluster_id"`
 	Name      string `json:"name"`
+	Type      string `json:"type"`
 }
 
 type InfraAggregateStatusCode string

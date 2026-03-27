@@ -22,6 +22,10 @@ func NewLocationSubCmdDescribe(
 				return fmt.Errorf("--cluster-name and --cluster-id are mutually exclusive")
 			}
 
+			if clusterName == "" && clusterID == "" {
+				return fmt.Errorf("either --cluster-name or --cluster-id must be provided")
+			}
+
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
