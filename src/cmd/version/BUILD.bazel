@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "version",
@@ -10,4 +10,13 @@ go_library(
     deps = [
         "@com_github_spf13_cobra//:go_default_library",
     ],
+)
+
+go_test(
+    name = "version_test",
+    srcs = [
+        "version_cmd_structure_test.go",
+    ],
+    embed = [":version"],
+    tags = ["unit"],
 )
