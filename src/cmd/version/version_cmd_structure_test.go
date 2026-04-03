@@ -18,8 +18,9 @@ func TestVersionCmd_Structure_PrintsVersion(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if !bytes.Contains(commandOutput.Bytes(), []byte("cubbit version 1.2.3")) {
-		t.Fatalf("Expected output to contain 'cubbit version 1.2.3', got %q", commandOutput.String())
+	expectedOutput := "version version 1.2.3\n"
+	if commandOutput.String() != expectedOutput {
+		t.Fatalf("Expected output %q, got %q", expectedOutput, commandOutput.String())
 	}
 }
 
