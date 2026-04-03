@@ -10,10 +10,10 @@ func NewVersionCmd(version string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print the CLI version",
-		Long:  "Print the current version of the Cubbit CLI",
+		Long:  "Print the current version of the CLI",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Fprintf(cmd.OutOrStdout(), "cubbit version %s\n", version)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s version %s\n", cmd.Root().Use, version)
 		},
 	}
 }
