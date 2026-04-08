@@ -67,46 +67,6 @@ This will download, compile, and install the `composer-cli` binary to your `$GOP
    # Windows: Copy build/cubbit.exe to a directory in your PATH
    ```
 
-### Option 4: Build with Bazel
-
-For developers using Bazel build system:
-
-1. **Prerequisites:**
-   ```bash
-   # Install Bazel (if not already installed)
-   # Visit https://bazel.build/install for platform-specific instructions
-   ```
-
-2. **Clone the repository:**
-   ```bash
-   git clone https://github.com/cubbit/composer-cli.git
-   cd composer-cli
-   ```
-
-3. **Build with Bazel:**
-   ```bash
-   # Build the CLI binary
-   bazel build //:cli
-
-   # Build for specific platform
-   bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //:cli
-   bazel build --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //:cli
-   bazel build --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //:cli
-   ```
-
-4. **Run directly with Bazel:**
-   ```bash
-   # Run without building separately
-   bazel run //:cli -- --help
-   bazel run //:cli -- --version
-   ```
-
-5. **Install the built binary:**
-   ```bash
-   # Copy from Bazel output directory
-   cp bazel-bin/cli_/cli /usr/local/bin/
-   ```
-
 ### Verify Installation
 
 ```bash
