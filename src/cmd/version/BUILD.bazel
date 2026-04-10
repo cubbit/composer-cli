@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "version",
+    srcs = [
+        "version_cmd.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd/version",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "version_test",
+    srcs = [
+        "version_cmd_structure_test.go",
+    ],
+    embed = [":version"],
+    tags = ["unit"],
+)
