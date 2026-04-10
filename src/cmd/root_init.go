@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var packageJSON []byte
 var devNull *os.File
 
 type PackageData struct {
@@ -35,12 +36,7 @@ func cleanupSilentMode() {
 	}
 }
 
-func Execute(packageJSON []byte) {
-	var pkg PackageData
-	if err := json.Unmarshal(packageJSON, &pkg); err != nil {
-		os.Exit(1)
-	}
-
+var rootCmd = func() *cobra.Command {
 	configuration, err := configuration.LoadConfig()
 	if err != nil {
 		panic("failed to load config: " + err.Error())
@@ -57,8 +53,16 @@ func Execute(packageJSON []byte) {
 	operatorService := service.NewOperatorService(configuration, operatorAPI, userAPI)
 	configService := service.NewConfigService(configuration)
 
-	rootCmd := NewRootCommand(agentService, authService, operatorService, locationService, configService, pkg.Version)
+	return NewRootCommand(agentService, authService, operatorService, locationService, configService)
+}()
 
+func Execute(packageJSON []byte) {
+	var pkg PackageData
+	if err := json.Unmarshal(packageJSON, &pkg); err != nil {
+		os.Exit(1)
+	}
+	rootCmd.Version = pkg.Version
+	rootCmd.SetVersionTemplate("{{.Use}} version {{.Version}}\n")
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
