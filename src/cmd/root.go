@@ -8,6 +8,7 @@ import (
 	cmd_docs "github.com/cubbit/composer-cli/src/cmd/docs"
 	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
+	cmd_version "github.com/cubbit/composer-cli/src/cmd/version"
 	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/cubbit/composer-cli/src/service"
 	"github.com/spf13/cobra"
@@ -19,6 +20,7 @@ func NewRootCommand(
 	operatorService service.OperatorServiceInterface,
 	locationService service.LocationServiceInterface,
 	configService service.ConfigServiceInterface,
+	version string,
 ) *cobra.Command {
 	rootCommand := &cobra.Command{
 		Use:   "cubbit",
@@ -65,6 +67,9 @@ func NewRootCommand(
 
 	docsCmd := cmd_docs.NewDocsCmd()
 	rootCommand.AddCommand(docsCmd)
+
+	versionCmd := cmd_version.NewVersionCmd(version)
+	rootCommand.AddCommand(versionCmd)
 
 	return rootCommand
 }
