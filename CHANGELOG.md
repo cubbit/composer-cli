@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0
+
+### Major Changes
+
+- e495809: Remove bazel
+
+### Minor Changes
+
+- b84fbde: Rreplace --version flag with dedicated version command
+
 ## 1.6.1
 
 ### Patch Changes
