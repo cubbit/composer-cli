@@ -129,4 +129,7 @@ const (
 
 	ErrorDeletingProfile              = "error while deleting profile"
 	ErrorRetrievingAgentStatusRequest = "failed request to retrieve agent status"
+
+	ErrorCreatingSwarmV5Request = "failed request to create swarm v5"
+	ErrorValidatingSwarmConfig  = "error while validating swarm configuration"
 )

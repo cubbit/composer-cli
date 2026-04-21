@@ -50,14 +50,18 @@ func Execute(packageJSON []byte) {
 	operatorAPI := api.NewOperatorAPI(configuration)
 	locationAPI := api.NewLocationAPI()
 	userAPI := api.NewUserAPI()
+	swarmAPI := api.NewSwarmAPI()
+	processAPI := api.NewProcessAPI()
 
 	agentService := service.NewAgentService(configuration)
 	authService := service.NewAuthService(configuration, authAPI, userAPI)
 	locationService := service.NewLocationService(configuration, locationAPI, userAPI)
 	operatorService := service.NewOperatorService(configuration, operatorAPI, userAPI)
 	configService := service.NewConfigService(configuration)
+	redundancyClassValidator := service.NewRedundancyClassValidator()
+	swarmService := service.NewSwarmService(configuration, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
 
-	rootCmd := NewRootCommand(agentService, authService, operatorService, locationService, configService, pkg.Version)
+	rootCmd := NewRootCommand(agentService, authService, operatorService, locationService, configService, swarmService, pkg.Version)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

@@ -832,3 +832,76 @@ type InfraAggregateCluster struct {
 }
 
 // #endregion
+
+// #region swarm creation v5
+
+type CreateSwarmV5Request struct {
+	Name              string                   `json:"name"`
+	Description       *string                  `json:"description,omitempty"`
+	OwnerID           *string                  `json:"owner_id,omitempty"`
+	Configuration     map[string]interface{}   `json:"configuration"`
+	Nexuses           []NexusV5Request         `json:"nexuses"`
+	RedundancyClasses []RedundancyClassRequest `json:"redundancy_classes"`
+}
+
+type NexusV5Request struct {
+	ClusterID    string               `json:"cluster_id"`
+	ClusterType  InfraClusterType     `json:"cluster_type"`
+	Nodes        []NodeRequest        `json:"nodes,omitempty"`
+	VirtualNodes []VirtualNodeRequest `json:"virtual_nodes,omitempty"`
+}
+
+type NodeRequest struct {
+	ServerID string          `json:"server_id"`
+	Volumes  []VolumeRequest `json:"volumes"`
+}
+
+type VolumeRequest struct {
+	VolumeID string `json:"volume_id"`
+}
+
+type VirtualNodeRequest struct {
+	ServerID string `json:"server_id"`
+}
+
+type RedundancyClassRequest struct {
+	Name              string   `json:"name"`
+	Description       *string  `json:"description,omitempty"`
+	OuterN            int      `json:"outer_n"`
+	OuterK            int      `json:"outer_k"`
+	InnerN            int      `json:"inner_n"`
+	InnerK            int      `json:"inner_k"`
+	AntiAffinityGroup int      `json:"anti_affinity_group,omitempty"`
+	ClusterIDs        []string `json:"cluster_ids"`
+}
+
+type CreateSwarmV5Response struct {
+	ID string `json:"id"`
+}
+
+// #endregion
+
+// #region process
+
+type ProcessType string
+type ProcessStatus string
+type ProcessStep string
+
+const (
+	ProcessTypeSwarmCreation ProcessType = "swarm_creation"
+
+	ProcessStatusRunning ProcessStatus = "running"
+	ProcessStatusSuccess ProcessStatus = "success"
+	ProcessStatusFailed  ProcessStatus = "failed"
+)
+
+type Process struct {
+	ID        string        `json:"id"`
+	Type      ProcessType   `json:"type"`
+	CreatedAt time.Time     `json:"created_at"`
+	OwnerID   string        `json:"owner_id"`
+	Step      ProcessStep   `json:"step"`
+	Status    ProcessStatus `json:"status"`
+}
+
+// #endregion
