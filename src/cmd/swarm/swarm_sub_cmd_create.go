@@ -28,21 +28,21 @@ Examples:
    cubbit swarm create \
      --name "my-swarm" \
      --description "Production swarm" \
-     --nexus "bc7450ef-b858-4741-a044-871ffc39c343:bfb3e9d4-6a35-4c76-bf4e-07ac50f109ba" \
-     --redundancy-class '{"name":"rc-1","outer_n":4,"outer_k":2,"inner_n":4,"inner_k":2,"cluster_ids":["bc7450ef-b858-4741-a044-871ffc39c343"]}'
+     --nexus <cluster-id>:<node-id1> \
+     --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":0,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-id>"]}'
 
    # Create a swarm with multiple nodes from the same cluster
    cubbit swarm create \
      --name "my-swarm" \
-     --nexus "cluster-id:node-1,node-2,node-3" \
-     --redundancy-class '{"name":"rc-1","outer_n":4,"outer_k":2,"inner_n":4,"inner_k":2,"cluster_ids":["cluster-id"]}'
+     --nexus <cluster-id>:<node-1>,<node-2>,<node-3> \
+     --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":0,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-id>"]}'
 
    # Create a swarm with multiple clusters
    cubbit swarm create \
      --name "multi-cluster-swarm" \
-     --nexus "cluster-1:node-1,node-2" \
-     --nexus "cluster-2:node-3" \
-     --redundancy-class '{"name":"rc-1","outer_n":4,"outer_k":2,"inner_n":4,"inner_k":2,"cluster_ids":["cluster-1","cluster-2"]}'`,
+     --nexus <cluster-1>:<node-1>,<node-2> \
+     --nexus <cluster-2>:<node-3> \
+     --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":1,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-1>","<cluster-2>"]}'`,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			cmd.MarkFlagRequired("name")
 			cmd.MarkFlagRequired("nexus")
