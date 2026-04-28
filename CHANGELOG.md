@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0
+
+### Minor Changes
+
+- a613c3e: Introduce a new command to create a swarm in connected clusters, specifying redundancy classes and allocated resources.
+  The command initiates a background process, resulting in a fully operational swarm upon completion.
+
 ## 2.0.0
 
 ### Major Changes
