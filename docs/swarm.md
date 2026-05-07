@@ -4,6 +4,71 @@ The Cubbit CLI provides swarm management commands to create and manage distribut
 
 ---
 
+## Swarm Describe
+
+Use `describe` to inspect a single swarm in detail.
+
+```bash
+cubbit swarm describe [SWARM_ID]
+```
+
+Aliases:
+
+```bash
+cubbit swarm info [SWARM_ID]
+cubbit swarm show [SWARM_ID]
+```
+
+You can identify the swarm in exactly one of these ways:
+
+- positional `SWARM_ID`
+- `--swarm-id <swarm-id>`
+- `--swarm-name <swarm-name>`
+
+### Describe Flags
+
+| Flag | Type | Required | Description |
+|------|------|----------|-------------|
+| `--swarm-id` | string | No | Swarm ID, alternative to positional `SWARM_ID` |
+| `--swarm-name` | string | No | Swarm name, alternative to `SWARM_ID` |
+| `--output` | string | No | Output format: `human` (default), `json`, `yaml` |
+
+### Describe Output
+
+Human-readable output is organized in labeled sections:
+
+- **Basic Info**: `id`, `name`, `description`, `organization_id`, `owner_id`
+- **Storage**: `total_storage`, `used_storage`, `available_storage`
+- **Metadata**: `created_at`, `creation_status`
+- **Composition**: `nexus_count`, `redundancy_class_count`
+- **Configuration**: key-value pairs from the swarm configuration
+- **Status**: `evaluated_status`, `evaluated_status_last_updated_at`
+
+When a nullable field is missing, the CLI prints `N/A`.
+
+### Describe Examples
+
+```bash
+# Describe by positional swarm ID
+cubbit swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
+
+# Describe by explicit swarm ID flag
+cubbit swarm describe --swarm-id 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
+
+# Describe by swarm name
+cubbit swarm describe --swarm-name production-swarm
+
+# Use an alias
+cubbit swarm info 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
+
+# Programmatic output
+cubbit swarm describe --swarm-name production-swarm --output json
+cubbit swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11 --output yaml
+```
+
+---
+---
+
 ## Concepts
 
 | Concept | Description |

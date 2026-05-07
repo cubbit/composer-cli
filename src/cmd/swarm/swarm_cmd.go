@@ -14,7 +14,8 @@ func NewSwarmCmd(
 	}
 
 	swarmCreateCmd := NewSwarmSubCmdCreate(swarmService)
-	swarmCmd.AddCommand(swarmCreateCmd)
+	swarmDescribeCmd := NewSwarmSubCmdDescribe(swarmService)
+	swarmCmd.AddCommand(swarmCreateCmd, swarmDescribeCmd)
 
 	return swarmCmd
 }

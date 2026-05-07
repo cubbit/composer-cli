@@ -41,7 +41,7 @@ Provides all the APIs to create and manage swarms.
 - `cubbit swarm create/new --name=<name> --description=<description>`: creates a new swarm. It prompts for name and description
 - `cubbit swarm remove/rm <id>/<name>`: removes the swarm with the specified id.
 - `cubbit swarm report --format<format> <id>/<name>`: creates a report for the swarm
-- `cubbit swarm describe/info <id>/<name>`: shows information about the swarm with the specified id
+- `cubbit swarm describe/info/show <id>`: shows information about the swarm with the specified id, or via `--swarm-id=<id>` / `--swarm-name=<name>`
 - `cubbit swarm --name=<name> --id=<id> add-operator --email=<email> --permission=<permission>`: adds a new operator to the specified swarm
 - `cubbit swarm --name=<name> --id=<id> remove-operator --email=<email> --id=<id>`: removes the specified operator
 - `cubbit swarm --name=<name> --id=<id> list-operators`: lists all the operators

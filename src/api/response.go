@@ -833,6 +833,39 @@ type InfraAggregateCluster struct {
 
 // #endregion
 
+// #region swarm v5
+
+type ListSwarmV5Item struct {
+	ID                   string    `json:"id"`
+	Name                 string    `json:"name"`
+	TotalStorageBytes    int64     `json:"total_storage_bytes"`
+	UsedStorageBytes     int64     `json:"used_storage_bytes"`
+	CreatedAt            time.Time `json:"created_at"`
+	NexusCount           int       `json:"nexus_count"`
+	RedundancyClassCount int       `json:"redundancy_class_count"`
+}
+
+type ListSwarmV5ItemPresentation struct {
+	ListSwarmV5Item
+	SummaryStatusNullable
+}
+
+type SwarmV5 struct {
+	ListSwarmV5Item
+	OrganizationID string                 `json:"organization_id"`
+	OwnerID        string                 `json:"owner_id"`
+	Description    *string                `json:"description,omitempty"`
+	Configuration  map[string]interface{} `json:"configuration"`
+	CreationStatus string                 `json:"creation_status,omitempty"`
+}
+
+type SwarmV5Presentation struct {
+	SwarmV5
+	SummaryStatusNullable
+}
+
+// #endregion
+
 // #region swarm creation v5
 
 type CreateSwarmV5Request struct {

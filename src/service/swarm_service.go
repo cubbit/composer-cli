@@ -16,6 +16,7 @@ import (
 
 type SwarmServiceInterface interface {
 	Create(cmd *cobra.Command, args []string) error
+	Describe(cmd *cobra.Command, args []string) error
 }
 
 type SwarmService struct {
@@ -112,6 +113,112 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 	}
 
 	return printer.PrintText(cmd, fmt.Sprintf("Swarm creation started with Process ID: %s\n", response.ID))
+}
+
+func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
+	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	swarmID, err := s.resolveSwarmID(cmd, args, *resolvedProfile, *urls)
+	if err != nil {
+		return err
+	}
+
+	swarm, err := s.swarmAPI.GetSwarmV5(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, swarmID)
+	if err != nil {
+		return fmt.Errorf("failed to describe swarm: %w", err)
+	}
+
+	output, err := resolveCommandOutput(cmd, resolvedProfile.Output)
+	if err != nil {
+		return err
+	}
+
+	if output == string(configuration.OutputHuman) {
+		return PrintSwarmDetails(cmd, *swarm)
+	}
+
+	utils.PrintFormattedData(cmd.OutOrStdout(), swarm, output)
+	return nil
+}
+
+func (s SwarmService) resolveSwarmID(cmd *cobra.Command, args []string, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) (string, error) {
+	identifiers := 0
+
+	swarmIDFlag, err := cmd.Flags().GetString("swarm-id")
+	if err != nil {
+		return "", fmt.Errorf("%s swarm-id: %w", constants.ErrorRetrievingField, err)
+	}
+	if swarmIDFlag != "" {
+		identifiers++
+	}
+
+	swarmNameFlag, err := cmd.Flags().GetString("swarm-name")
+	if err != nil {
+		return "", fmt.Errorf("%s swarm-name: %w", constants.ErrorRetrievingField, err)
+	}
+	if swarmNameFlag != "" {
+		identifiers++
+	}
+
+	swarmIDPositional := ""
+	if len(args) > 0 {
+		swarmIDPositional = strings.TrimSpace(args[0])
+		if swarmIDPositional != "" {
+			identifiers++
+		}
+	}
+
+	if identifiers != 1 {
+		return "", fmt.Errorf("specify exactly one of SWARM_ID, --swarm-id or --swarm-name")
+	}
+
+	if swarmIDPositional != "" {
+		return swarmIDPositional, nil
+	}
+
+	if swarmIDFlag != "" {
+		return swarmIDFlag, nil
+	}
+
+	swarmID, err := s.resolveSwarmIDByName(urls, resolvedProfile, swarmNameFlag)
+	if err != nil {
+		return "", err
+	}
+	return swarmID, nil
+}
+
+func (s SwarmService) resolveSwarmIDByName(urls configuration.URLs, resolvedProfile configuration.ResolvedProfile, swarmName string) (string, error) {
+	page := 1
+	const itemsPerPage = 1000
+
+	for {
+		response, err := s.swarmAPI.ListSwarmsV5(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, page, itemsPerPage)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve swarm name '%s': %w", swarmName, err)
+		}
+
+		for _, swarm := range response.Data {
+			if swarm.Name == swarmName {
+				return swarm.ID, nil
+			}
+		}
+
+		if len(response.Data) == 0 {
+			break
+		}
+
+		if response.NextPage != nil {
+			page = *response.NextPage
+			continue
+		}
+
+		page++
+	}
+
+	return "", fmt.Errorf("swarm with name '%s' not found", swarmName)
 }
 
 func (s SwarmService) parseNexuses(cmd *cobra.Command, nexusFlags []string, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) ([]api.NexusV5Request, error) {
@@ -251,4 +358,19 @@ func (s SwarmService) parseRedundancyClasses(rcFlags []string, rcFile string) ([
 	}
 
 	return redundancyClasses, nil
+}
+
+func resolveCommandOutput(cmd *cobra.Command, defaultOutput configuration.OutputFormat) (string, error) {
+	output, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return "", fmt.Errorf("%s output: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if defaultOutput != "" &&
+		!cmd.Flags().Changed("output") &&
+		!cmd.Flags().Changed("quiet") {
+		output = string(defaultOutput)
+	}
+
+	return output, nil
 }

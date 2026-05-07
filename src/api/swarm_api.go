@@ -14,6 +14,19 @@ type SwarmAPIInterface interface {
 		organizationID string,
 		request *CreateSwarmV5Request,
 	) (*CreateSwarmV5Response, error)
+	GetSwarmV5(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		swarmID string,
+	) (*SwarmV5Presentation, error)
+	ListSwarmsV5(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		page int,
+		items int,
+	) (*GenericPaginatedResponse[ListSwarmV5ItemPresentation], error)
 }
 
 type SwarmAPI struct{}
@@ -40,6 +53,59 @@ func (api *SwarmAPI) CreateSwarmV5(
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		request_utils.WithApiKey(apiKey),
 		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func (api *SwarmAPI) GetSwarmV5(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	swarmID string,
+) (*SwarmV5Presentation, error) {
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v5", "organizations", organizationID, "swarms", swarmID).
+		Build()
+
+	var response SwarmV5Presentation
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func (api *SwarmAPI) ListSwarmsV5(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	page int,
+	items int,
+) (*GenericPaginatedResponse[ListSwarmV5ItemPresentation], error) {
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v5", "organizations", organizationID, "swarms").
+		QueryParamInt("page", page).
+		QueryParamInt("items", items).
+		Build()
+
+	var response GenericPaginatedResponse[ListSwarmV5ItemPresentation]
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
