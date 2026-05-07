@@ -67,7 +67,6 @@ cubbit swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11 --output yaml
 ```
 
 ---
----
 
 ## Concepts
 
@@ -80,6 +79,75 @@ cubbit swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11 --output yaml
 | **Volume** | A disk or storage unit on a node that stores data shards |
 
 Swarms use advanced erasure coding to distribute data across multiple nodes and clusters, ensuring high availability even when individual nodes or entire clusters fail.
+
+---
+
+## Swarm List
+
+Use `list` to view all swarms in your organization.
+
+```bash
+cubbit swarm list
+```
+
+Aliases:
+
+```bash
+cubbit swarm ls
+```
+
+### List Flags
+
+| Flag | Type | Description |
+|------|------|-------------|
+| `--output` | string | Output format: `human` (default), `json`, `yaml` |
+| `--quiet` | bool | Minimize stdout for CI/CD workflows |
+| `--no-headers` | bool | Suppress table headers in human output |
+
+### List Output (human-readable)
+
+Human-readable output shows a table with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| **ID** | Swarm UUID |
+| **Name** | Swarm name |
+| **Total Storage** | Total storage capacity (human-readable) |
+| **Used Storage** | Used storage (human-readable) |
+| **Created At** | Creation timestamp |
+| **Nexus Count** | Number of nexuses |
+| **RC Count** | Number of redundancy classes |
+| **Status** | Evaluated status (`online`, `offline`, `warning`, or `N/A`) |
+
+### List Examples
+
+```bash
+# List all swarms (human-readable table)
+cubbit swarm list
+
+# List all swarms (JSON output)
+cubbit swarm list --output json
+
+# List all swarms (YAML output)
+cubbit swarm list --output yaml
+
+# Use the ls alias
+cubbit swarm ls
+
+# Suppress table headers for scripting
+cubbit swarm list --no-headers
+
+# Quiet mode (only error output)
+cubbit swarm list --quiet
+```
+
+### Empty Results
+
+When no swarms exist, the CLI prints:
+
+```
+No swarms found.
+```
 
 ---
 

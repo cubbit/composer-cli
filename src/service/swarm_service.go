@@ -17,6 +17,7 @@ import (
 type SwarmServiceInterface interface {
 	Create(cmd *cobra.Command, args []string) error
 	Describe(cmd *cobra.Command, args []string) error
+	List(cmd *cobra.Command, args []string) error
 }
 
 type SwarmService struct {
@@ -142,6 +143,53 @@ func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
 
 	utils.PrintFormattedData(cmd.OutOrStdout(), swarm, output)
 	return nil
+}
+
+func (s SwarmService) List(cmd *cobra.Command, args []string) error {
+	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	allSwarms, err := s.fetchAllSwarms(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+	if err != nil {
+		return fmt.Errorf("failed to list swarms: %w", err)
+	}
+
+	output, err := resolveCommandOutput(cmd, resolvedProfile.Output)
+	if err != nil {
+		return err
+	}
+
+	if output == string(configuration.OutputHuman) {
+		return PrintSwarmList(cmd, allSwarms)
+	}
+
+	utils.PrintFormattedData(cmd.OutOrStdout(), allSwarms, output)
+	return nil
+}
+
+func (s SwarmService) fetchAllSwarms(urls configuration.URLs, apiKey string, organizationID string) ([]api.ListSwarmV5ItemPresentation, error) {
+	page := 1
+	itemsPerPage := 100
+	var all []api.ListSwarmV5ItemPresentation
+
+	for {
+		response, err := s.swarmAPI.ListSwarmsV5(urls, apiKey, organizationID, page, itemsPerPage)
+		if err != nil {
+			return nil, err
+		}
+
+		all = append(all, response.Data...)
+
+		if response.NextPage == nil {
+			break
+		}
+
+		page = *response.NextPage
+	}
+
+	return all, nil
 }
 
 func (s SwarmService) resolveSwarmID(cmd *cobra.Command, args []string, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) (string, error) {

@@ -8,9 +8,62 @@ import (
 
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/utils/printer"
+	"github.com/cubbit/composer-cli/utils/printer/table"
 	"github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
+
+func PrintSwarmList(cmd *cobra.Command, swarms []api.ListSwarmV5ItemPresentation) error {
+	if len(swarms) == 0 {
+		return printer.PrintText(cmd, "No swarms found.\n")
+	}
+
+	noHeaders, err := cmd.Flags().GetBool("no-headers")
+	if err != nil {
+		return fmt.Errorf("failed to read no-headers flag: %w", err)
+	}
+
+	tableColumns := []table.Column[api.ListSwarmV5ItemPresentation]{
+		{Title: "Name"},
+		{Title: "Used Capacity"},
+		{Title: "% Usage"},
+		{Title: "Locations"},
+		{Title: "Created On"},
+		{Title: "Last Sync"},
+		{Title: "Status"},
+	}
+
+	rowMapper := func(v api.ListSwarmV5ItemPresentation) []string {
+		evaluatedStatus := "N/A"
+		if v.EvaluatedStatus != nil {
+			evaluatedStatus = formatListStatus(string(*v.EvaluatedStatus))
+		}
+
+		lastSync := "N/A"
+		if v.EvaluatedStatusLastUpdatedAt != nil {
+			lastSync = utils.FormatTime(*v.EvaluatedStatusLastUpdatedAt)
+		}
+
+		return []string{
+			v.Name,
+			formatUsedCapacity(v.UsedStorageBytes, v.TotalStorageBytes),
+			formatUsagePercent(v.UsedStorageBytes, v.TotalStorageBytes),
+			fmt.Sprintf("%d", v.NexusCount),
+			utils.FormatTime(v.CreatedAt),
+			lastSync,
+			evaluatedStatus,
+		}
+	}
+
+	return printer.CreateTable(
+		cmd,
+		swarms,
+		table.WithColumns(tableColumns),
+		table.WithRowMapper(rowMapper),
+		table.WithShowHeader[api.ListSwarmV5ItemPresentation](!noHeaders),
+		table.WithSuffix[api.ListSwarmV5ItemPresentation]("\n"),
+	)
+}
 
 func PrintSwarmDetails(cmd *cobra.Command, swarm api.SwarmV5Presentation) error {
 	return printer.PrintText(cmd, buildSwarmDetailsOutput(swarm))
@@ -82,6 +135,38 @@ func formatSwarmStatus(status string) string {
 	}
 
 	return "● " + strings.ToUpper(status[:1]) + status[1:]
+}
+
+func formatListStatus(status string) string {
+	if status == "" {
+		return "N/A"
+	}
+
+	if len(status) == 1 {
+		return strings.ToUpper(status)
+	}
+
+	return strings.ToUpper(status[:1]) + status[1:]
+}
+
+func formatUsedCapacity(usedBytes, totalBytes int64) string {
+	return fmt.Sprintf("%s/%s", utils.FormatBytes(usedBytes), utils.FormatBytes(totalBytes))
+}
+
+func formatUsagePercent(usedBytes, totalBytes int64) string {
+	if totalBytes <= 0 {
+		return "0%"
+	}
+
+	percent := int((float64(usedBytes) / float64(totalBytes)) * 100)
+	if percent < 0 {
+		percent = 0
+	}
+	if percent > 100 {
+		percent = 100
+	}
+
+	return fmt.Sprintf("%d%%", percent)
 }
 
 func formatStorageBar(usedBytes, totalBytes int64, width int) string {

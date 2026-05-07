@@ -235,6 +235,150 @@ func TestSwarmService_Describe_WithUnknownSwarmName(t *testing.T) {
 	}
 }
 
+func TestSwarmService_List_Human(t *testing.T) {
+	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+
+	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
+	status := api.EvaluatedStatusType("online")
+
+	mockSwarmAPI := &api.MockSwarmAPI{
+		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+			if apiKey != "test-api-key" {
+				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
+			}
+			if organizationID != "test-org-id" {
+				t.Fatalf("Expected organization ID to be propagated, got %q", organizationID)
+			}
+			if page != 1 || items != 100 {
+				t.Fatalf("Expected page=1 items=100, got page=%d items=%d", page, items)
+			}
+
+			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
+				Data: []api.ListSwarmV5ItemPresentation{
+					{
+						ListSwarmV5Item: api.ListSwarmV5Item{
+							ID:                   "swarm-001",
+							Name:                 "prod-swarm",
+							TotalStorageBytes:    1099511627776,
+							UsedStorageBytes:     549755813888,
+							CreatedAt:            createdAt,
+							NexusCount:           3,
+							RedundancyClassCount: 2,
+						},
+						SummaryStatusNullable: api.SummaryStatusNullable{
+							EvaluatedStatus: &status,
+						},
+					},
+				},
+				NextPage: nil,
+				Count:    1,
+			}, nil
+		},
+	}
+
+	service := NewSwarmService(mockCfg, mockSwarmAPI, &api.MockLocationAPI{}, &api.ProcessAPI{}, NewRedundancyClassValidator())
+	cmd := setupTestCommand()
+	cmd.Flags().Set("output", "human")
+
+	err := service.List(cmd, nil)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	output := cmd.OutOrStdout().(*bytes.Buffer).String()
+	if !strings.Contains(output, "prod-swarm") || !strings.Contains(output, "Used Capacity") || !strings.Contains(output, "Last Sync") {
+		t.Fatalf("Expected output to contain formatted swarm list, got %q", output)
+	}
+}
+
+func TestSwarmService_List_JSON(t *testing.T) {
+	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+
+	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
+
+	mockSwarmAPI := &api.MockSwarmAPI{
+		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
+				Data: []api.ListSwarmV5ItemPresentation{
+					{
+						ListSwarmV5Item: api.ListSwarmV5Item{
+							ID:                   "swarm-001",
+							Name:                 "prod-swarm",
+							TotalStorageBytes:    1024,
+							UsedStorageBytes:     512,
+							CreatedAt:            createdAt,
+							NexusCount:           3,
+							RedundancyClassCount: 2,
+						},
+					},
+				},
+				NextPage: nil,
+				Count:    1,
+			}, nil
+		},
+	}
+
+	service := NewSwarmService(mockCfg, mockSwarmAPI, &api.MockLocationAPI{}, &api.ProcessAPI{}, NewRedundancyClassValidator())
+	cmd := setupTestCommand()
+	cmd.Flags().Set("output", "json")
+
+	err := service.List(cmd, nil)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	output := cmd.OutOrStdout().(*bytes.Buffer).String()
+	if !strings.Contains(output, `"id": "swarm-001"`) {
+		t.Fatalf("Expected json output to contain swarm data, got %q", output)
+	}
+}
+
+func TestSwarmService_List_Pagination(t *testing.T) {
+	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+
+	callCount := 0
+	mockSwarmAPI := &api.MockSwarmAPI{
+		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+			callCount++
+			if callCount == 1 {
+				return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
+					Data: []api.ListSwarmV5ItemPresentation{
+						{ListSwarmV5Item: api.ListSwarmV5Item{ID: "swarm-page1", Name: "page1"}},
+					},
+					NextPage: func() *int { p := 2; return &p }(),
+					Count:    3,
+				}, nil
+			}
+			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
+				Data: []api.ListSwarmV5ItemPresentation{
+					{ListSwarmV5Item: api.ListSwarmV5Item{ID: "swarm-page2", Name: "page2"}},
+					{ListSwarmV5Item: api.ListSwarmV5Item{ID: "swarm-page3", Name: "page3"}},
+				},
+				NextPage: nil,
+				Count:    2,
+			}, nil
+		},
+	}
+
+	service := NewSwarmService(mockCfg, mockSwarmAPI, &api.MockLocationAPI{}, &api.ProcessAPI{}, NewRedundancyClassValidator())
+	cmd := setupTestCommand()
+	cmd.Flags().Set("output", "json")
+
+	err := service.List(cmd, nil)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if callCount != 2 {
+		t.Fatalf("Expected 2 API calls for 2 pages, got %d", callCount)
+	}
+
+	output := cmd.OutOrStdout().(*bytes.Buffer).String()
+	if !strings.Contains(output, "swarm-page1") || !strings.Contains(output, "swarm-page2") || !strings.Contains(output, "swarm-page3") {
+		t.Fatalf("Expected all paginated results in output, got %q", output)
+	}
+}
+
 func TestSwarmService_InterfaceCompliance(t *testing.T) {
 	var _ SwarmServiceInterface = SwarmService{}
 }
