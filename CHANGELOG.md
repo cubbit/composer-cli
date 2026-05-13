@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.0
+
+### Minor Changes
+
+- 9df6003: Add new swarm describe command
+- 9df6003: Add swarm list command
+
 ## 2.1.0
 
 ### Minor Changes
