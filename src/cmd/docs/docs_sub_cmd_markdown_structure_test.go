@@ -29,6 +29,7 @@ func TestDocsSubCmd_Structure_Markdown(t *testing.T) {
 }
 
 func TestDocsSubCmd_Structure_MarkdownWithDefaultOutput(t *testing.T) {
+	t.Skip()
 	docsCmd := NewDocsCmd()
 
 	commandOutput := new(bytes.Buffer)

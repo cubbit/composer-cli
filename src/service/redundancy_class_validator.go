@@ -78,3 +78,78 @@ func (v *RedundancyClassValidator) validateClusterIDsCount(rc api.RedundancyClas
 	}
 	return nil
 }
+
+type RCValidationErrors struct {
+	AntiAffinityGroup string
+	OuterK            string
+	LocalNK           string
+	LocalK            string
+	Name              string
+}
+
+func ValidateAAG(aag, minDisksPerNode int) string {
+	if aag < 1 {
+		return "AAG must be at least 1"
+	}
+	if aag > minDisksPerNode {
+		return fmt.Sprintf("AAG cannot exceed minimum disks per node (%d)", minDisksPerNode)
+	}
+	return ""
+}
+
+func ValidateOuterK(outerK, numLocations int) string {
+	if outerK < 0 {
+		return "Outer K must be at least 0"
+	}
+	if outerK >= numLocations {
+		return fmt.Sprintf("Outer K must be less than number of locations (%d)", numLocations)
+	}
+	if numLocations-outerK < 1 {
+		return "Outer N (locations - outer K) must be at least 1"
+	}
+	return ""
+}
+
+func ValidateLocalNK(localNK, aag, minNodesPerLocation, minLocationDisks int) string {
+	if localNK < 1 {
+		return "Local N+K must be at least 1"
+	}
+	if localNK > minLocationDisks {
+		return fmt.Sprintf("Local N+K cannot exceed minimum disks across locations (%d)", minLocationDisks)
+	}
+	if aag > 0 && minNodesPerLocation > 0 {
+		maxLocalNK := aag * minNodesPerLocation
+		if localNK > maxLocalNK {
+			return fmt.Sprintf("Local N+K (%d) exceeds AAG × min nodes per location (%d × %d = %d)", localNK, aag, minNodesPerLocation, maxLocalNK)
+		}
+	}
+	if aag > 0 && localNK%aag != 0 {
+		return fmt.Sprintf("Local N+K must be divisible by AAG (%d)", aag)
+	}
+	return ""
+}
+
+func ValidateLocalK(localK, localNK int) string {
+	if localK < 0 {
+		return "Local K must be at least 0"
+	}
+	if localK >= localNK {
+		return fmt.Sprintf("Local K must be less than Local N+K (%d)", localNK)
+	}
+	if localNK-localK < 1 {
+		return "Local N (Local N+K - Local K) must be at least 1"
+	}
+	return ""
+}
+
+func ValidateRCName(name string, existingNames []string) string {
+	if len(name) < 1 {
+		return "RC name is required"
+	}
+	for _, existing := range existingNames {
+		if name == existing {
+			return fmt.Sprintf("RC name '%s' is already used", name)
+		}
+	}
+	return ""
+}

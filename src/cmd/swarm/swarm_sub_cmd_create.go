@@ -17,6 +17,8 @@ func NewSwarmSubCmdCreate(
 This command submits a swarm creation request and returns immediately with a process ID.
 The swarm creation happens in the background.
 
+Use --interactive for a guided TUI wizard that walks through all configuration steps.
+
 Nexus Format:
    Each --nexus flag specifies a cluster and its nodes in the format: cluster-id:node-id1,node-id2
 
@@ -24,7 +26,10 @@ Nexus Format:
    (disks) from each specified node. For virtual clusters, use virtual node IDs.
 
 Examples:
-   # Create a swarm with a physical cluster (all volumes on specified nodes are included)
+   # Interactive mode (guided TUI wizard)
+   cubbit swarm create --interactive
+
+   # Create a swarm with flags
    cubbit swarm create \
      --name "my-swarm" \
      --description "Production swarm" \
@@ -44,16 +49,28 @@ Examples:
      --nexus <cluster-2>:<node-3> \
      --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":1,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-1>","<cluster-2>"]}'`,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.MarkFlagRequired("name")
-			cmd.MarkFlagRequired("nexus")
+			interactive, _ := cmd.Flags().GetBool("interactive")
+			if !interactive {
+				cmd.MarkFlagRequired("name")
+				cmd.MarkFlagRequired("nexus")
+			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			interactive, _ := cmd.Flags().GetBool("interactive")
+			if interactive {
+				if err := swarmService.CreateInteractive(cmd, args); err != nil {
+					utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
+				}
+				return
+			}
+
 			if err := swarmService.Create(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},
 	}
 
+	swarmCreateCmd.Flags().Bool("interactive", false, "Run swarm creation in interactive TUI mode")
 	swarmCreateCmd.Flags().String("name", "", "Name of the swarm (required, 3-63 characters)")
 	swarmCreateCmd.Flags().String("description", "", "Optional description of the swarm")
 	swarmCreateCmd.Flags().StringArray("nexus", []string{}, "Nexus specification in format cluster-id:node-id1,node-id2. Can be specified multiple times. All volumes on specified nodes are automatically included.")

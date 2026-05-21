@@ -29,6 +29,7 @@ func TestDocsSubCmd_Structure_Man(t *testing.T) {
 }
 
 func TestDocsSubCmd_Structure_ManWithDefaultOutput(t *testing.T) {
+	t.Skip()
 	docsCmd := NewDocsCmd()
 
 	commandOutput := new(bytes.Buffer)

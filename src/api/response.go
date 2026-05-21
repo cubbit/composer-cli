@@ -928,6 +928,14 @@ const (
 	ProcessStatusFailed  ProcessStatus = "failed"
 )
 
+const (
+	ProcessStepInitializing          ProcessStep = "initializing"
+	ProcessStepCreatingNexuses       ProcessStep = "creating_nexuses"
+	ProcessStepCreatingAgents        ProcessStep = "creating_agents"
+	ProcessStepCreatingRedundancyCls ProcessStep = "creating_redundancy_classes"
+	ProcessStepCompleted             ProcessStep = "completed"
+)
+
 type Process struct {
 	ID        string        `json:"id"`
 	Type      ProcessType   `json:"type"`

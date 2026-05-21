@@ -200,3 +200,60 @@ func TestSwarmSubCmd_Structure_Create_MissingNexus(t *testing.T) {
 		t.Fatalf("Expected error message to indicate missing required flags, got: %v", err)
 	}
 }
+
+func TestSwarmSubCmd_Structure_Create_InteractiveFlagRoutesToInteractive(t *testing.T) {
+	mockService := service.NewSwarmServiceMock()
+
+	interactiveCalled := false
+	mockService.CreateInteractiveFunc = func(cmd *cobra.Command, args []string) error {
+		interactiveCalled = true
+		return nil
+	}
+
+	swarmCmd := NewSwarmCmd(mockService)
+
+	commandOutput := new(bytes.Buffer)
+	swarmCmd.SetOut(commandOutput)
+	swarmCmd.SetErr(commandOutput)
+	swarmCmd.SetArgs([]string{
+		"create",
+		"--interactive",
+	})
+
+	err := swarmCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error with --interactive flag, got %v", err)
+	}
+
+	if !interactiveCalled {
+		t.Fatal("Expected CreateInteractive to be called when --interactive flag is set")
+	}
+}
+
+func TestSwarmSubCmd_Structure_Create_InteractiveFlagSkipsRequiredNameCheck(t *testing.T) {
+	mockService := service.NewSwarmServiceMock()
+
+	mockService.CreateInteractiveFunc = func(cmd *cobra.Command, args []string) error {
+		return nil
+	}
+
+	mockService.CreateFunc = func(cmd *cobra.Command, args []string) error {
+		t.Fatal("Create should not be called when --interactive is set")
+		return nil
+	}
+
+	swarmCmd := NewSwarmCmd(mockService)
+
+	commandOutput := new(bytes.Buffer)
+	swarmCmd.SetOut(commandOutput)
+	swarmCmd.SetErr(commandOutput)
+	swarmCmd.SetArgs([]string{
+		"create",
+		"--interactive",
+	})
+
+	err := swarmCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error when --interactive is set without --name, got %v", err)
+	}
+}
