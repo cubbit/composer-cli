@@ -1,0 +1,86 @@
+package api
+
+import (
+	"net/http"
+
+	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/request_utils"
+)
+
+type CubbitIngressType string
+
+const (
+	IngressTypeManual                 CubbitIngressType = "manual"
+	IngressTypeSingleCluster          CubbitIngressType = "singlecluster"
+	IngressTypeMulticlusterController CubbitIngressType = "multicluster_controller"
+	IngressTypeMulticlusterWorker     CubbitIngressType = "multicluster_worker"
+)
+
+type SwarmAndRedundancyClassV5 struct {
+	SwarmID           string `json:"swarm_id"`
+	RedundancyClassID string `json:"redundancy_class_id"`
+	IsDefault         bool   `json:"is_default"`
+}
+
+type CubbitIngress struct {
+	Type            CubbitIngressType `json:"type"`
+	CertSecretName  *string           `json:"cert_secret_name,omitempty"`
+	StdHostname     *string           `json:"std_hostname,omitempty"`
+	StarHostname    *string           `json:"star_hostname,omitempty"`
+	ConsoleHostname *string           `json:"console_hostname,omitempty"`
+	ExternalIPs     *[]string         `json:"external_ips,omitempty"`
+}
+
+type CreateGatewayV5Request struct {
+	ClusterID                string                      `json:"cluster_id"`
+	Name                     string                      `json:"name"`
+	Slug                     string                      `json:"slug"`
+	Description              *string                     `json:"description,omitempty"`
+	SwarmsAndRedundancyClass []SwarmAndRedundancyClassV5 `json:"swarms_and_redundancy_class"`
+	CubbitIngress            CubbitIngress               `json:"cubbit_ingress"`
+}
+
+type CreateGatewayV5Response struct {
+	ID string `json:"id"`
+}
+
+type GatewayAPIInterface interface {
+	CreateGatewayV5(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		request *CreateGatewayV5Request,
+	) (*CreateGatewayV5Response, error)
+}
+
+type GatewayAPI struct{}
+
+func NewGatewayAPI() *GatewayAPI {
+	return &GatewayAPI{}
+}
+
+func (api *GatewayAPI) CreateGatewayV5(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	request *CreateGatewayV5Request,
+) (*CreateGatewayV5Response, error) {
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v5", "organizations", organizationID, "gateways").
+		Build()
+
+	var response CreateGatewayV5Response
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}

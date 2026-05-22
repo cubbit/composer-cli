@@ -138,4 +138,6 @@ const (
 	ErrorListingDomainsRequest   = "failed request to list domains"
 	ErrorDeletingDomainRequest   = "failed request to delete domain"
 	ErrorVerifyingDomainRequest  = "failed request to verify domain"
+	
+	ErrorCreatingGatewayV5Request = "failed request to create gateway v5"
 )

@@ -6,13 +6,15 @@ import (
 	cmd_auth "github.com/cubbit/composer-cli/src/cmd/auth"
 	cmd_config "github.com/cubbit/composer-cli/src/cmd/config"
 	cmd_docs "github.com/cubbit/composer-cli/src/cmd/docs"
+	cmd_domain "github.com/cubbit/composer-cli/src/cmd/domain"
+	cmd_gateway "github.com/cubbit/composer-cli/src/cmd/gateway"
 	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
-	cmd_domain "github.com/cubbit/composer-cli/src/cmd/domain"
 	cmd_swarm "github.com/cubbit/composer-cli/src/cmd/swarm"
 	cmd_version "github.com/cubbit/composer-cli/src/cmd/version"
 	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/cubbit/composer-cli/src/service"
+	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +26,7 @@ func NewRootCommand(
 	configService service.ConfigServiceInterface,
 	swarmService service.SwarmServiceInterface,
 	domainService service.DomainServiceInterface,
+	gatewayService servicegateway.GatewayServiceInterface,
 	version string,
 ) *cobra.Command {
 	rootCommand := &cobra.Command{
@@ -80,6 +83,9 @@ func NewRootCommand(
 
 	domainCmd := cmd_domain.NewDomainCmd(domainService)
 	rootCommand.AddCommand(domainCmd)
+
+	gatewayCmd := cmd_gateway.NewGatewayCmd(gatewayService)
+	rootCommand.AddCommand(gatewayCmd)
 
 	return rootCommand
 }

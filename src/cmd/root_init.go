@@ -7,6 +7,7 @@ import (
 	api "github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/cubbit/composer-cli/src/service"
+	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +64,11 @@ func Execute(packageJSON []byte) {
 	swarmService := service.NewSwarmService(configuration, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
 	domainService := service.NewDomainService(configuration, domainAPI, userAPI)
 
-	rootCmd := NewRootCommand(agentService, authService, operatorService, locationService, configService, swarmService, domainService, pkg.Version)
+	gatewayAPI := api.NewGatewayAPI()
+	redundancyClassAPI := api.NewRedundancyClassAPI()
+	gatewayService := servicegateway.NewGatewayService(configuration, gatewayAPI, swarmAPI, redundancyClassAPI, processAPI, locationAPI)
+
+	rootCmd := NewRootCommand(agentService, authService, operatorService, locationService, configService, swarmService, domainService, gatewayService, pkg.Version)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

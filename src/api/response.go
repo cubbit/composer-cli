@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -921,11 +922,17 @@ type ProcessStatus string
 type ProcessStep string
 
 const (
-	ProcessTypeSwarmCreation ProcessType = "swarm_creation"
+	ProcessTypeSwarmCreation   ProcessType = "swarm_creation"
+	ProcessTypeGatewayCreation ProcessType = "gateway_creation"
 
 	ProcessStatusRunning ProcessStatus = "running"
 	ProcessStatusSuccess ProcessStatus = "success"
 	ProcessStatusFailed  ProcessStatus = "failed"
+
+	ProcessStepInitializing             ProcessStep = "initializing"
+	ProcessStepCompleted                ProcessStep = "completed"
+	ProcessStepGatewayProfileDeployment ProcessStep = "gateway_profile_deployment"
+	ProcessStepGatewayInstallation      ProcessStep = "gateway_installation"
 )
 
 const (
@@ -937,12 +944,50 @@ const (
 )
 
 type Process struct {
-	ID        string        `json:"id"`
-	Type      ProcessType   `json:"type"`
-	CreatedAt time.Time     `json:"created_at"`
-	OwnerID   string        `json:"owner_id"`
-	Step      ProcessStep   `json:"step"`
-	Status    ProcessStatus `json:"status"`
+	ID        string          `json:"id"`
+	Type      ProcessType     `json:"type"`
+	CreatedAt time.Time       `json:"created_at"`
+	OwnerID   string          `json:"owner_id"`
+	Step      ProcessStep     `json:"step"`
+	Status    ProcessStatus   `json:"status"`
+	Data      json.RawMessage `json:"data"`
+}
+
+type ProcessError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type GatewayCreationProcessData struct {
+	ID    string        `json:"id"`
+	Error *ProcessError `json:"error,omitempty"`
+}
+
+type GatewayCreationProcess struct {
+	ID        string                     `json:"id"`
+	Type      ProcessType                `json:"type"`
+	CreatedAt time.Time                  `json:"created_at"`
+	OwnerID   string                     `json:"owner_id"`
+	Step      ProcessStep                `json:"step"`
+	Status    ProcessStatus              `json:"status"`
+	Data      GatewayCreationProcessData `json:"data"`
+}
+
+func (p *Process) CastToGatewayCreationProcess() (*GatewayCreationProcess, bool) {
+	var data GatewayCreationProcessData
+	if err := json.Unmarshal(p.Data, &data); err != nil {
+		return nil, false
+	}
+
+	return &GatewayCreationProcess{
+		ID:        p.ID,
+		Type:      p.Type,
+		CreatedAt: p.CreatedAt,
+		OwnerID:   p.OwnerID,
+		Step:      p.Step,
+		Status:    p.Status,
+		Data:      data,
+	}, true
 }
 
 // #region domain
