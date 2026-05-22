@@ -10,11 +10,11 @@ import (
 )
 
 func shouldPrint(cmd *cobra.Command) (bool, error) {
-	quiet, err := cmd.Flags().GetBool("quiet")
-	if err != nil {
-		return true, err
+	f := cmd.Flag("quiet")
+	if f == nil {
+		return true, nil
 	}
-	return !quiet, nil
+	return f.Value.String() != "true", nil
 }
 
 func PrintTree(cmd *cobra.Command, nodes []tree.TreeNode, opts ...tree.Option) error {

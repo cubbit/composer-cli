@@ -765,15 +765,19 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("redundancy class validation failed: %w", err)
 	}
 
-	processes, err := s.processAPI.ListProcesses(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, api.ProcessTypeSwarmCreation)
+	processes, err := s.processAPI.ListProcesses(
+		*urls,
+		resolvedProfile.APIKey,
+		resolvedProfile.OrganizationID,
+		api.WithProcessType(api.ProcessTypeSwarmCreation),
+		api.WithProcessStatus(api.ProcessStatusRunning),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to check for ongoing swarm creation processes: %w", err)
 	}
 
-	for _, process := range processes {
-		if process.Status == api.ProcessStatusRunning {
-			return fmt.Errorf("swarm creation already in progress")
-		}
+	if len(processes) > 0 {
+		return fmt.Errorf("swarm creation already in progress")
 	}
 
 	createRequest := &api.CreateSwarmV5Request{
