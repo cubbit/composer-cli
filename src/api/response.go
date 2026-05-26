@@ -915,6 +915,38 @@ type CreateSwarmV5Response struct {
 
 // #endregion
 
+// #region gateway v5
+
+// GatewayV5Status represents the lifecycle status of a gateway
+type GatewayV5Status string
+
+const (
+	// GatewayV5StatusReady indicates the gateway is fully operational
+	GatewayV5StatusReady GatewayV5Status = "ready"
+	// GatewayV5StatusNotReady indicates the gateway is not yet ready
+	GatewayV5StatusNotReady GatewayV5Status = "not-ready"
+)
+
+// GatewayV5ListItemResponse represents a gateway summary item returned in paginated list responses
+type GatewayV5ListItemResponse struct {
+	// The unique identifier of the gateway
+	ID string `json:"id"`
+	// The name of the gateway
+	Name string `json:"name"`
+	// The slug of the gateway, a URL-friendly identifier
+	Slug string `json:"slug"`
+	// The ingress type configuration (manual, singlecluster, multicluster_controller, multicluster_worker)
+	Type string `json:"type"`
+	// The number of swarms associated with this gateway
+	NumberOfSwarms int `json:"number_of_swarms"`
+	// The number of tenants configured on this gateway
+	NumberOfTenants int `json:"number_of_tenants"`
+	// The current lifecycle status of the gateway
+	Status GatewayV5Status `json:"status"`
+}
+
+// #endregion
+
 // #region process
 
 type ProcessType string
@@ -929,18 +961,15 @@ const (
 	ProcessStatusSuccess ProcessStatus = "success"
 	ProcessStatusFailed  ProcessStatus = "failed"
 
-	ProcessStepInitializing             ProcessStep = "initializing"
-	ProcessStepCompleted                ProcessStep = "completed"
-	ProcessStepGatewayProfileDeployment ProcessStep = "gateway_profile_deployment"
-	ProcessStepGatewayInstallation      ProcessStep = "gateway_installation"
-)
+	ProcessStepInitializing ProcessStep = "initializing"
+	ProcessStepCompleted    ProcessStep = "completed"
 
-const (
-	ProcessStepInitializing          ProcessStep = "initializing"
 	ProcessStepCreatingNexuses       ProcessStep = "creating_nexuses"
 	ProcessStepCreatingAgents        ProcessStep = "creating_agents"
 	ProcessStepCreatingRedundancyCls ProcessStep = "creating_redundancy_classes"
-	ProcessStepCompleted             ProcessStep = "completed"
+
+	ProcessStepGatewayProfileDeployment ProcessStep = "gateway_profile_deployment"
+	ProcessStepGatewayInstallation      ProcessStep = "gateway_installation"
 )
 
 type Process struct {

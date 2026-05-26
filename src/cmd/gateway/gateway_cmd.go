@@ -14,7 +14,8 @@ func NewGatewayCmd(
 	}
 
 	gatewayCreateCmd := NewGatewaySubCmdCreate(gatewayService)
-	gatewayCmd.AddCommand(gatewayCreateCmd)
+	gatewayListCmd := NewGatewaySubCmdList(gatewayService)
+	gatewayCmd.AddCommand(gatewayCreateCmd, gatewayListCmd)
 
 	return gatewayCmd
 }

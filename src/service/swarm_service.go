@@ -123,7 +123,7 @@ func createInteractive(
 }
 
 func checkExistingProcess(processAPI api.ProcessAPIInterface, profile *configuration.ResolvedProfile, urls *configuration.URLs) (bool, error) {
-	processes, err := processAPI.ListProcesses(*urls, profile.APIKey, profile.OrganizationID, api.ProcessTypeSwarmCreation)
+	processes, err := processAPI.ListProcesses(*urls, profile.APIKey, profile.OrganizationID, api.WithProcessType(api.ProcessTypeSwarmCreation))
 	if err != nil {
 		return false, nil
 	}
