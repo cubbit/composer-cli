@@ -9,6 +9,12 @@ type MockGatewayAPI struct {
 		organizationID string,
 		request *CreateGatewayV5Request,
 	) (*CreateGatewayV5Response, error)
+	ListGatewaysV5Func func(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		opts ...ListGatewaysV5Option,
+	) (*GenericPaginatedResponse[GatewayV5ListItemResponse], error)
 }
 
 func (m *MockGatewayAPI) CreateGatewayV5(
@@ -22,4 +28,17 @@ func (m *MockGatewayAPI) CreateGatewayV5(
 	}
 
 	return &CreateGatewayV5Response{ID: "test-gateway-id"}, nil
+}
+
+func (m *MockGatewayAPI) ListGatewaysV5(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	opts ...ListGatewaysV5Option,
+) (*GenericPaginatedResponse[GatewayV5ListItemResponse], error) {
+	if m.ListGatewaysV5Func != nil {
+		return m.ListGatewaysV5Func(urlConfig, apiKey, organizationID, opts...)
+	}
+
+	return &GenericPaginatedResponse[GatewayV5ListItemResponse]{Data: []GatewayV5ListItemResponse{}, Count: 0}, nil
 }
