@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.0
+
+### Minor Changes
+
+- 8bf7b48: Add interactive option to create swarm
+
 ## 2.2.0
 
 ### Minor Changes
