@@ -945,4 +945,22 @@ type Process struct {
 	Status    ProcessStatus `json:"status"`
 }
 
+// #region domain
+
+type DomainDTO struct {
+	ID             string     `json:"id"`
+	DomainName     string     `json:"domain_name"`
+	CreatedAt      time.Time  `json:"created_at"`
+	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
+	Challenge      string     `json:"challenge"`
+	VerifiedAt     *time.Time `json:"verified_at,omitempty"`
+	OrganizationID string     `json:"organization_id"`
+	IsShared       bool       `json:"is_shared"`
+}
+
+type DomainVerifyResult struct {
+	Verified bool    `json:"verified"`
+	Reasons  *string `json:"reasons,omitempty"`
+}
+
 // #endregion

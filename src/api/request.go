@@ -203,4 +203,8 @@ func CreateChallengeRequestBodyV3(
 	}
 }
 
+type CreateDomainRequestBody struct {
+	DomainName string `json:"domain_name"`
+}
+
 // #endregion

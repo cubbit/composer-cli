@@ -8,6 +8,7 @@ import (
 	cmd_docs "github.com/cubbit/composer-cli/src/cmd/docs"
 	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
+	cmd_domain "github.com/cubbit/composer-cli/src/cmd/domain"
 	cmd_swarm "github.com/cubbit/composer-cli/src/cmd/swarm"
 	cmd_version "github.com/cubbit/composer-cli/src/cmd/version"
 	"github.com/cubbit/composer-cli/src/configuration"
@@ -22,6 +23,7 @@ func NewRootCommand(
 	locationService service.LocationServiceInterface,
 	configService service.ConfigServiceInterface,
 	swarmService service.SwarmServiceInterface,
+	domainService service.DomainServiceInterface,
 	version string,
 ) *cobra.Command {
 	rootCommand := &cobra.Command{
@@ -75,6 +77,9 @@ func NewRootCommand(
 
 	swarmCmd := cmd_swarm.NewSwarmCmd(swarmService)
 	rootCommand.AddCommand(swarmCmd)
+
+	domainCmd := cmd_domain.NewDomainCmd(domainService)
+	rootCommand.AddCommand(domainCmd)
 
 	return rootCommand
 }

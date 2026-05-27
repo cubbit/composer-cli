@@ -26,7 +26,7 @@ func PrintSwarmList(cmd *cobra.Command, swarms []api.ListSwarmV5ItemPresentation
 	tableColumns := []table.Column[api.ListSwarmV5ItemPresentation]{
 		{Title: "Name"},
 		{Title: "Used Capacity"},
-		{Title: "%% Usage"},
+		{Title: "% Usage"},
 		{Title: "Locations"},
 		{Title: "Created On"},
 		{Title: "Last Sync"},
@@ -155,7 +155,7 @@ func formatUsedCapacity(usedBytes, totalBytes int64) string {
 
 func formatUsagePercent(usedBytes, totalBytes int64) string {
 	if totalBytes <= 0 {
-		return "0%%"
+		return "0%"
 	}
 
 	percent := int((float64(usedBytes) / float64(totalBytes)) * 100)
