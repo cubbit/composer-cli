@@ -132,4 +132,10 @@ const (
 
 	ErrorCreatingSwarmV5Request = "failed request to create swarm v5"
 	ErrorValidatingSwarmConfig  = "error while validating swarm configuration"
+
+	ErrorCreatingDomainRequest   = "failed request to create domain"
+	ErrorDescribingDomainRequest = "failed request to describe domain"
+	ErrorListingDomainsRequest   = "failed request to list domains"
+	ErrorDeletingDomainRequest   = "failed request to delete domain"
+	ErrorVerifyingDomainRequest  = "failed request to verify domain"
 )
