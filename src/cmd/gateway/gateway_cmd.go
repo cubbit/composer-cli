@@ -13,9 +13,10 @@ func NewGatewayCmd(
 		Short: "Execute commands in gateway sections",
 	}
 
+	gatewayDescribeCmd := NewGatewaySubCmdDescribe(gatewayService)
 	gatewayCreateCmd := NewGatewaySubCmdCreate(gatewayService)
 	gatewayListCmd := NewGatewaySubCmdList(gatewayService)
-	gatewayCmd.AddCommand(gatewayCreateCmd, gatewayListCmd)
+	gatewayCmd.AddCommand(gatewayCreateCmd, gatewayDescribeCmd, gatewayListCmd)
 
 	return gatewayCmd
 }

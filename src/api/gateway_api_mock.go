@@ -15,6 +15,7 @@ type MockGatewayAPI struct {
 		organizationID string,
 		opts ...ListGatewaysV5Option,
 	) (*GenericPaginatedResponse[GatewayV5ListItemResponse], error)
+	GetGatewayV5Func func(urlConfig configuration.URLs, apiKey string, organizationID string, gatewayID string) (*GatewayV5GetResponse, error)
 }
 
 func (m *MockGatewayAPI) CreateGatewayV5(
@@ -41,4 +42,12 @@ func (m *MockGatewayAPI) ListGatewaysV5(
 	}
 
 	return &GenericPaginatedResponse[GatewayV5ListItemResponse]{Data: []GatewayV5ListItemResponse{}, Count: 0}, nil
+}
+
+func (m *MockGatewayAPI) GetGatewayV5(urlConfig configuration.URLs, apiKey string, organizationID string, gatewayID string) (*GatewayV5GetResponse, error) {
+	if m.GetGatewayV5Func != nil {
+		return m.GetGatewayV5Func(urlConfig, apiKey, organizationID, gatewayID)
+	}
+
+	return &GatewayV5GetResponse{}, nil
 }

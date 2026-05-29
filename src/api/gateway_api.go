@@ -91,6 +91,12 @@ type GatewayAPIInterface interface {
 		organizationID string,
 		request *CreateGatewayV5Request,
 	) (*CreateGatewayV5Response, error)
+	GetGatewayV5(
+		urlConfig configuration.URLs,
+		apiKey string,
+		organizationID string,
+		gatewayID string,
+	) (*GatewayV5GetResponse, error)
 	ListGatewaysV5(
 		urlConfig configuration.URLs,
 		apiKey string,
@@ -123,6 +129,31 @@ func (api *GatewayAPI) CreateGatewayV5(
 		request_utils.WithExpectedStatusCode(http.StatusCreated),
 		request_utils.WithApiKey(apiKey),
 		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func (api *GatewayAPI) GetGatewayV5(
+	urlConfig configuration.URLs,
+	apiKey string,
+	organizationID string,
+	gatewayID string,
+) (*GatewayV5GetResponse, error) {
+	url := NewURLBuilder(urlConfig.ChURL).
+		Path("v5", "organizations", organizationID, "gateways", gatewayID).
+		Build()
+
+	var response GatewayV5GetResponse
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, err
