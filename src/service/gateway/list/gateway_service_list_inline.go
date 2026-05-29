@@ -7,6 +7,7 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/service/gateway/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +53,7 @@ func ListInline(deps Dependencies, cmd *cobra.Command, resolvedProfile configura
 		}
 	}
 
-	output, err := resolveCommandOutput(cmd, resolvedProfile.Output)
+	output, err := shared.ResolveCommandOutput(cmd, resolvedProfile.Output)
 	if err != nil {
 		return err
 	}
@@ -93,19 +94,4 @@ func fetchAllGateways(deps Dependencies, urls configuration.URLs, apiKey string,
 	}
 
 	return all, nil
-}
-
-func resolveCommandOutput(cmd *cobra.Command, defaultOutput configuration.OutputFormat) (string, error) {
-	output, err := cmd.Flags().GetString("output")
-	if err != nil {
-		return "", fmt.Errorf("%s output: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if defaultOutput != "" &&
-		!cmd.Flags().Changed("output") &&
-		!cmd.Flags().Changed("quiet") {
-		output = string(defaultOutput)
-	}
-
-	return output, nil
 }

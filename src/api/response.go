@@ -927,6 +927,20 @@ const (
 	GatewayV5StatusNotReady GatewayV5Status = "not-ready"
 )
 
+type GatewayV5GetRedundancyClass struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type GatewayV5GetResponse struct {
+	ID                string                        `json:"id"`
+	Name              string                        `json:"name"`
+	Slug              string                        `json:"slug"`
+	Type              CubbitIngressType             `json:"type"`
+	RedundancyClasses []GatewayV5GetRedundancyClass `json:"redundancy_classes"`
+	Status            GatewayV5Status               `json:"status"`
+}
+
 // GatewayV5ListItemResponse represents a gateway summary item returned in paginated list responses
 type GatewayV5ListItemResponse struct {
 	// The unique identifier of the gateway
