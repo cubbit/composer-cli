@@ -13,7 +13,7 @@ import (
 
 func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -64,7 +64,7 @@ func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 
 func TestLocationSubCmd_List_Integration_Empty(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{}, nil
 		},
 	}
@@ -102,7 +102,7 @@ func TestLocationSubCmd_List_Integration_Empty(t *testing.T) {
 
 func TestLocationSubCmd_List_Integration_Error(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return nil, errors.New("failed to list locations")
 		},
 	}

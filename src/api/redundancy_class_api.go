@@ -11,6 +11,7 @@ type RedundancyClassAPIInterface interface {
 	ListRedundancyClassesBySwarm(
 		urlConfig configuration.URLs,
 		apiKey string,
+		organizationID string,
 		swarmID string,
 	) ([]RedundancyClass, error)
 }
@@ -24,10 +25,11 @@ func NewRedundancyClassAPI() *RedundancyClassAPI {
 func (api *RedundancyClassAPI) ListRedundancyClassesBySwarm(
 	urlConfig configuration.URLs,
 	apiKey string,
+	organizationID string,
 	swarmID string,
 ) ([]RedundancyClass, error) {
 	url := NewURLBuilder(urlConfig.ChURL).
-		Path("v3", "swarms", swarmID, "redundancy_class").
+		Path("v5", "organizations", organizationID, "swarms", swarmID, "redundancy_class").
 		Build()
 
 	var response GenericPaginatedResponse[RedundancyClass]

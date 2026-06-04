@@ -33,7 +33,7 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, swarmID string,
+			_ configuration.URLs, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			switch swarmID {
 			case "swarm-001":
@@ -62,7 +62,7 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -210,7 +210,7 @@ func TestGatewaySubCmd_Create_Interactive_ClusterAPIError(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -218,7 +218,7 @@ func TestGatewaySubCmd_Create_Interactive_ClusterAPIError(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return nil, fmt.Errorf("connection refused")
 		},
@@ -263,7 +263,7 @@ func TestGatewaySubCmd_Create_Interactive_NoClusters(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -271,7 +271,7 @@ func TestGatewaySubCmd_Create_Interactive_NoClusters(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{}, nil
 		},
@@ -316,7 +316,7 @@ func TestGatewaySubCmd_Create_Interactive_SwarmAPIError(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -324,7 +324,7 @@ func TestGatewaySubCmd_Create_Interactive_SwarmAPIError(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -382,7 +382,7 @@ func TestGatewaySubCmd_Create_Interactive_NoSwarms(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -390,7 +390,7 @@ func TestGatewaySubCmd_Create_Interactive_NoSwarms(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -452,7 +452,7 @@ func TestGatewaySubCmd_Create_Interactive_NoRCForSwarm(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, swarmID string,
+			_ configuration.URLs, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			if swarmID == "swarm-001" {
 				return []api.RedundancyClass{}, nil
@@ -463,7 +463,7 @@ func TestGatewaySubCmd_Create_Interactive_NoRCForSwarm(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -530,7 +530,7 @@ func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, swarmID string,
+			_ configuration.URLs, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			switch swarmID {
 			case "swarm-002":
@@ -547,7 +547,7 @@ func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -667,7 +667,7 @@ func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, swarmID string,
+			_ configuration.URLs, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			switch swarmID {
 			case "swarm-002":
@@ -690,7 +690,7 @@ func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string,
+			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},

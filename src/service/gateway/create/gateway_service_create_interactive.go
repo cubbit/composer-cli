@@ -152,7 +152,12 @@ func promptForGatewayCreate(
 	var clusters []api.InfrastructureCluster
 	{
 		h := ic.StartSpinner("Fetching available clusters...")
-		clusters, err = deps.LocationAPI.List(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+		clusters, err = deps.LocationAPI.List(
+			urls,
+			resolvedProfile.APIKey,
+			resolvedProfile.OrganizationID,
+			api.WithProfileType("not-it", api.LocationProfileGateway),
+		)
 		h.Stop()
 		if err != nil {
 			return nil, fmt.Errorf("failed to list clusters: %w", err)
@@ -259,7 +264,7 @@ func promptForSwarmsAndRedundancyClasses(
 
 	for _, swarmID := range swarmIDs {
 		sh := ic.StartSpinner(fmt.Sprintf("Fetching redundancy classes for swarm %s...", swarmID))
-		rcItems, err := deps.RedundancyClassAPI.ListRedundancyClassesBySwarm(urls, resolvedProfile.APIKey, swarmID)
+		rcItems, err := deps.RedundancyClassAPI.ListRedundancyClassesBySwarm(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, swarmID)
 		sh.Stop()
 		if err != nil {
 			return nil, fmt.Errorf("failed to list redundancy classes for swarm %s: %w", swarmID, err)

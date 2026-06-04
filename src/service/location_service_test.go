@@ -46,7 +46,7 @@ func TestLocationService_List_Success(t *testing.T) {
 
 	// Mock API to return test data
 	mockLocationAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			if apiKey != "test-api-key" {
 				t.Error("Expected API key to be passed correctly")
 			}
@@ -77,7 +77,7 @@ func TestLocationService_List_APIError(t *testing.T) {
 
 	// Mock API to return error
 	mockLocationAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return nil, fmt.Errorf("api error")
 		},
 	}
