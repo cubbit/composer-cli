@@ -9,22 +9,22 @@ import (
 
 // MockLocationAPI implements LocationAPIInterface for testing
 type MockLocationAPI struct {
-	ListFunc              func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]InfrastructureCluster, error)
-	ListAggregatedFunc    func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]InfraAggregateCluster, error)
+	ListFunc              func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...LocationListOption) ([]InfrastructureCluster, error)
+	ListAggregatedFunc    func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...LocationListOption) ([]InfraAggregateCluster, error)
 	CreateVirtualFunc     func(urlConfig configuration.URLs, apiKey string, organizationID string, name string, description *string) (*InfrastructureCluster, error)
 	CreateVirtualNodeFunc func(urlConfig configuration.URLs, apiKey string, organizationID string, clusterID string, name string, storageType string, configuration map[string]any) (*InfraAggregateVirtualNodeDetail, error)
 }
 
-func (m *MockLocationAPI) List(urlConfig configuration.URLs, apiKey string, organizationID string) ([]InfrastructureCluster, error) {
+func (m *MockLocationAPI) List(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...LocationListOption) ([]InfrastructureCluster, error) {
 	if m.ListFunc != nil {
-		return m.ListFunc(urlConfig, apiKey, organizationID)
+		return m.ListFunc(urlConfig, apiKey, organizationID, opts...)
 	}
 	return []InfrastructureCluster{}, nil
 }
 
-func (m *MockLocationAPI) ListAggregated(urlConfig configuration.URLs, apiKey string, organizationID string) ([]InfraAggregateCluster, error) {
+func (m *MockLocationAPI) ListAggregated(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...LocationListOption) ([]InfraAggregateCluster, error) {
 	if m.ListAggregatedFunc != nil {
-		return m.ListAggregatedFunc(urlConfig, apiKey, organizationID)
+		return m.ListAggregatedFunc(urlConfig, apiKey, organizationID, opts...)
 	}
 	return []InfraAggregateCluster{}, nil
 }

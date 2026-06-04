@@ -19,7 +19,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_Found(t *testing.T)
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -79,7 +79,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterID_Found(t *testing.T) {
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440001",
@@ -143,7 +143,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_FullOutput(t *testi
 	internalIP := "10.0.0.10"
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -275,7 +275,7 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterName_WithMultipleClu
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -359,7 +359,7 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterID_WithMultipleClust
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -438,7 +438,7 @@ Cluster Information
 
 func TestLocationSubCmd_Describe_Integration_WithClusterName_NotFound(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{}, nil
 		},
 	}
@@ -471,7 +471,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_NotFound(t *testing
 
 func TestLocationSubCmd_Describe_Integration_WithClusterID_NotFound(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{}, nil
 		},
 	}
@@ -504,7 +504,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterID_NotFound(t *testing.T
 
 func TestLocationSubCmd_Describe_API_ReturnsError(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return nil, fmt.Errorf("failed to connect to API")
 		},
 	}

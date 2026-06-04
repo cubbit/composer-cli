@@ -74,6 +74,7 @@ func init() {
 		m.ListRedundancyClassesBySwarmFunc = func(
 			urls configuration.URLs,
 			apiKey string,
+			organizationID string,
 			swarmID string,
 		) ([]api.RedundancyClass, error) {
 			delay()
@@ -153,6 +154,7 @@ func init() {
 			urls configuration.URLs,
 			apiKey string,
 			orgID string,
+			opts ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			delay()
 

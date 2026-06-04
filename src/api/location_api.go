@@ -1,22 +1,60 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/cubbit/composer-cli/src/configuration"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
+
+type LocationProfileType string
+
+const (
+	LocationProfileAgent       LocationProfileType = "ProfileAgent"
+	LocationProfileCoordinator LocationProfileType = "ProfileCoordinator"
+	LocationProfileGateway     LocationProfileType = "ProfileGateway"
+	LocationProfileNodeScanner LocationProfileType = "ProfileNodeScanner"
+)
+
+type LocationListOptions struct {
+	ProfileType *LocationProfileFilter
+}
+
+type LocationProfileFilter struct {
+	Op     string // "in" or "notin"
+	Values []LocationProfileType
+}
+
+type LocationListOption func(*LocationListOptions)
+
+func WithProfileType(op string, types ...LocationProfileType) LocationListOption {
+	return func(opts *LocationListOptions) {
+		opts.ProfileType = &LocationProfileFilter{Op: op, Values: types}
+	}
+}
+
+func buildProfileTypeQuery(filter *LocationProfileFilter) string {
+	values := make([]string, len(filter.Values))
+	for i, v := range filter.Values {
+		values[i] = string(v)
+	}
+	return fmt.Sprintf("profile-type:%s(%s)", filter.Op, strings.Join(values, ","))
+}
 
 type LocationAPIInterface interface {
 	List(
 		urlConfig configuration.URLs,
 		apiKey string,
 		organizationID string,
+		opts ...LocationListOption,
 	) ([]InfrastructureCluster, error)
 	ListAggregated(
 		urlConfig configuration.URLs,
 		apiKey string,
 		organizationID string,
+		opts ...LocationListOption,
 	) ([]InfraAggregateCluster, error)
 
 	CreateVirtualCluster(
@@ -48,10 +86,21 @@ func (api *LocationAPI) List(
 	urlConfig configuration.URLs,
 	apiKey string,
 	organizationID string,
+	opts ...LocationListOption,
 ) ([]InfrastructureCluster, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
-		Path("v1", "organizations", organizationID, "infra", "clusters").
-		Build()
+	options := &LocationListOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	builder := NewURLBuilder(urlConfig.ChURL).
+		Path("v1", "organizations", organizationID, "infra", "clusters")
+
+	if options.ProfileType != nil {
+		builder = builder.QueryParam("q", buildProfileTypeQuery(options.ProfileType))
+	}
+
+	url := builder.Build()
 
 	var response GenericPaginatedResponse[InfrastructureCluster]
 
@@ -72,10 +121,21 @@ func (api *LocationAPI) ListAggregated(
 	urlConfig configuration.URLs,
 	apiKey string,
 	organizationID string,
+	opts ...LocationListOption,
 ) ([]InfraAggregateCluster, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
-		Path("v1", "organizations", organizationID, "infra", "aggregate_clusters").
-		Build()
+	options := &LocationListOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	builder := NewURLBuilder(urlConfig.ChURL).
+		Path("v1", "organizations", organizationID, "infra", "aggregate_clusters")
+
+	if options.ProfileType != nil {
+		builder = builder.QueryParam("q", buildProfileTypeQuery(options.ProfileType))
+	}
+
+	url := builder.Build()
 
 	var response GenericPaginatedResponse[InfraAggregateCluster]
 
