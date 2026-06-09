@@ -1,0 +1,108 @@
+# Changelog
+
+## 2.3.0
+
+### Minor Changes
+
+- 8bf7b48: Add interactive option to create swarm
+
+## 2.2.0
+
+### Minor Changes
+
+- 9df6003: Add new swarm describe command
+- 9df6003: Add swarm list command
+
+## 2.1.0
+
+### Minor Changes
+
+- a613c3e: Introduce a new command to create a swarm in connected clusters, specifying redundancy classes and allocated resources.
+  The command initiates a background process, resulting in a fully operational swarm upon completion.
+
+## 2.0.0
+
+### Major Changes
+
+- e495809: Remove bazel
+
+### Minor Changes
+
+- b84fbde: Rreplace --version flag with dedicated version command
+
+## 1.6.1
+
+### Patch Changes
+
+- ad6b30d: Align infrastructure location commands output
+
+## 1.6.0
+
+### Minor Changes
+
+- 1f07b3c: Add create virtual clusters and nodes command
+
+### Patch Changes
+
+- c2ebf60: Fix import and bazel build
+
+## 1.5.0
+
+### Minor Changes
+
+- 33d55cf: New printer with custom table, tree, text and composable prints.
+
+  Infrastrucutre location describe command.
+
+## 1.4.1
+
+### Patch Changes
+
+- a5a6c71: Remove command related to old logic, unify cmd structure
+
+## 1.4.0
+
+### Minor Changes
+
+- 2ecefbf: Authentication activate e2e tests
+
+### Patch Changes
+
+- 79cb109:
+
+## 1.3.1
+
+### Patch Changes
+
+- 58d399b: List location infrastructure command
+
+## 1.3.0
+
+### Minor Changes
+
+- 429ae80: - Implemented new functionality to allow users to log in using their username and password
+  - Added the ability to enter an existing API key for authentication purposes
+- ea77b57: Implement a new command to connect a cluster to an organization
+
+### Patch Changes
+
+- 219d7e5: Introduce E2E test for signup command
+
+## 1.2.0
+
+### Minor Changes
+
+- 56a1844: Activate operator command
+- 6606b27: Add root operator signup command
+
+## 1.1.0
+
+### Minor Changes
+
+- 8bdc75e: Introduce command structure tests
+
+## 1.0.1
+
+### Patch Changes
+
+- 8c6a53c: Make Enter prompt optional in CLI browser login flow
