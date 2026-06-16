@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.4.0
+
+### Minor Changes
+
+- a661120: Gateway list cmd
+- f72998e: Add describe gateway command
+- 50d218a: Implement crud operations over domains
+- d7ffadf: Create Gateway V5
+
+### Patch Changes
+
+- 73f7a0a: Align get redundancy class endpoint to v5.
+
 ## 2.3.0
 
 ### Minor Changes
