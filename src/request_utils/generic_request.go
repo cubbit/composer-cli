@@ -132,7 +132,9 @@ func DoRequest(url string, opts ...RequestModifier) error {
 			errorLines = append(errorLines, fmt.Sprintf("issue found [%s]", strings.Join(issues, ", ")))
 		}
 
-		return fmt.Errorf("%s\n", errorLines)
+		errrorOutput := strings.Join(errorLines, "\n")
+
+		return fmt.Errorf("%s", errrorOutput)
 	}
 	for _, modifier := range opts {
 		if err = modifier(nil, res); err != nil {

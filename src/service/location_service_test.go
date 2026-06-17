@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +25,7 @@ func setupTestCommand() *cobra.Command {
 }
 
 func TestLocationService_NewLocationService(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
 	mockLocationAPI := &api.MockLocationAPI{}
 	mockUserAPI := &api.UserAPI{}
 
@@ -42,11 +43,22 @@ func TestLocationService_NewLocationService(t *testing.T) {
 }
 
 func TestLocationService_List_Success(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
-	// Mock API to return test data
 	mockLocationAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			if apiKey != "test-api-key" {
 				t.Error("Expected API key to be passed correctly")
 			}
@@ -73,11 +85,22 @@ func TestLocationService_List_Success(t *testing.T) {
 }
 
 func TestLocationService_List_APIError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
-	// Mock API to return error
 	mockLocationAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return nil, fmt.Errorf("api error")
 		},
 	}
@@ -97,9 +120,9 @@ func TestLocationService_List_APIError(t *testing.T) {
 }
 
 func TestLocationService_List_ConfigError(t *testing.T) {
-	// Mock config that returns an error
-	mockCfg := &configuration.MockConfig{
-		Err: fmt.Errorf("profile not found"),
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{}, fmt.Errorf("profile not found")
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
@@ -117,45 +140,23 @@ func TestLocationService_List_ConfigError(t *testing.T) {
 	}
 }
 
-func TestLocationService_List_WrongProfileType(t *testing.T) {
-	// Mock config with wrong profile type
-	mockCfg := &configuration.MockConfig{
-		ResolvedProfile: &configuration.ResolvedProfile{
-			Name:           "test",
-			Type:           configuration.ProfileTypeConsole, // Wrong type
+func TestLocationService_CreateVirtual_Success(t *testing.T) {
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
-			Output:         configuration.OutputHuman,
-		},
-		Urls: &configuration.URLs{
-			BaseURL: "https://api.example.com",
-			IamURL:  "https://api.example.com/iam",
-			DashURL: "https://dash.example.com",
-			ChURL:   "https://ch.example.com",
-		},
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
 	}
 
-	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
-
-	cmd := setupTestCommand()
-	cmd.Flags().Set("profile", "test")
-
-	err := service.List(cmd, []string{})
-	if err == nil {
-		t.Error("Expected error for wrong profile type, got nil")
-	}
-	if !contains(err.Error(), "has type") || !contains(err.Error(), "expected") {
-		t.Errorf("Expected error about profile type mismatch, got %q", err.Error())
-	}
-}
-
-func TestLocationService_CreateVirtual_Success(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
-
-	// Mock API to return test data
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, name string, description *string) (*api.InfrastructureCluster, error) {
+		CreateVirtualFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, name string, description *string) (*api.InfrastructureCluster, error) {
 			if name != "test-virtual-cluster" {
 				t.Errorf("Expected name 'test-virtual-cluster', got %q", name)
 			}
@@ -184,10 +185,22 @@ func TestLocationService_CreateVirtual_Success(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtual_WithNilDescription(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, name string, description *string) (*api.InfrastructureCluster, error) {
+		CreateVirtualFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, name string, description *string) (*api.InfrastructureCluster, error) {
 			if description != nil {
 				t.Error("Expected description to be nil")
 			}
@@ -210,10 +223,22 @@ func TestLocationService_CreateVirtual_WithNilDescription(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtual_APIError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, name string, description *string) (*api.InfrastructureCluster, error) {
+		CreateVirtualFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, name string, description *string) (*api.InfrastructureCluster, error) {
 			return nil, fmt.Errorf("api error")
 		},
 	}
@@ -235,9 +260,9 @@ func TestLocationService_CreateVirtual_APIError(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtual_ConfigError(t *testing.T) {
-	// Mock config that returns an error
-	mockCfg := &configuration.MockConfig{
-		Err: fmt.Errorf("failed to load profile"),
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{}, fmt.Errorf("failed to load profile")
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
@@ -256,42 +281,21 @@ func TestLocationService_CreateVirtual_ConfigError(t *testing.T) {
 	}
 }
 
-func TestLocationService_CreateVirtual_WrongProfileType(t *testing.T) {
-	// Mock config with wrong profile type
-	mockCfg := &configuration.MockConfig{
-		ResolvedProfile: &configuration.ResolvedProfile{
-			Name:           "test",
-			Type:           configuration.ProfileTypeConsole, // Wrong type
+func TestLocationService_CreateVirtual_FlagGetError(t *testing.T) {
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
-			Output:         configuration.OutputHuman,
-		},
-		Urls: &configuration.URLs{
-			BaseURL: "https://api.example.com",
-			IamURL:  "https://api.example.com/iam",
-			DashURL: "https://dash.example.com",
-			ChURL:   "https://ch.example.com",
-		},
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
 	}
 
-	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
-
-	cmd := setupTestCommand()
-	cmd.Flags().String("name", "", "Name")
-	cmd.Flags().Set("profile", "test")
-
-	err := service.CreateVirtual(cmd, []string{})
-	if err == nil {
-		t.Error("Expected error for wrong profile type, got nil")
-	}
-	if !contains(err.Error(), "has type") || !contains(err.Error(), "expected") {
-		t.Errorf("Expected error about profile type mismatch, got %q", err.Error())
-	}
-}
-
-func TestLocationService_CreateVirtual_FlagGetError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -311,7 +315,20 @@ func TestLocationService_CreateVirtual_FlagGetError(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtual_MissingNameFlag(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -329,7 +346,20 @@ func TestLocationService_CreateVirtual_MissingNameFlag(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtualNode_FlagGetError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -353,7 +383,20 @@ func TestLocationService_CreateVirtualNode_FlagGetError(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtualNode_ClusterIDFlagGetError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -377,7 +420,20 @@ func TestLocationService_CreateVirtualNode_ClusterIDFlagGetError(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtualNode_StorageTypeFlagGetError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -401,7 +457,20 @@ func TestLocationService_CreateVirtualNode_StorageTypeFlagGetError(t *testing.T)
 }
 
 func TestLocationService_CreateVirtualNode_ConfigurationFlagGetError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -425,7 +494,20 @@ func TestLocationService_CreateVirtualNode_ConfigurationFlagGetError(t *testing.
 }
 
 func TestLocationService_CreateVirtualNode_MissingRequiredFlags(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -445,13 +527,22 @@ func TestLocationService_CreateVirtualNode_MissingRequiredFlags(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtualNode_MissingStorageType(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
-	// When storage-type is not provided, it defaults to empty string
-	// The service should still call the API with the empty value
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualNodeFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, clusterID string, name string, storageType string, configuration map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
-			// Empty storage type is passed to API (validation happens at API level)
+		CreateVirtualNodeFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, clusterID string, name string, storageType string, config map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
 			return &api.InfraAggregateVirtualNodeDetail{
 				NodeID:      "new-node-id",
 				NodeName:    name,
@@ -474,16 +565,15 @@ func TestLocationService_CreateVirtualNode_MissingStorageType(t *testing.T) {
 	cmd.Flags().Set("configuration", "{}")
 
 	err := service.CreateVirtualNode(cmd, []string{})
-	// Should succeed (empty string is a valid flag value, validation happens at API level)
 	if err != nil {
 		t.Errorf("Expected no error for empty storage-type (API validation), got %v", err)
 	}
 }
 
 func TestLocationService_CreateVirtualNode_ConfigError(t *testing.T) {
-	// Mock config that returns an error
-	mockCfg := &configuration.MockConfig{
-		Err: fmt.Errorf("failed to load profile"),
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{}, fmt.Errorf("failed to load profile")
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
@@ -502,45 +592,23 @@ func TestLocationService_CreateVirtualNode_ConfigError(t *testing.T) {
 	}
 }
 
-func TestLocationService_CreateVirtualNode_WrongProfileType(t *testing.T) {
-	// Mock config with wrong profile type
-	mockCfg := &configuration.MockConfig{
-		ResolvedProfile: &configuration.ResolvedProfile{
-			Name:           "test",
-			Type:           configuration.ProfileTypeConsole, // Wrong type
+func TestLocationService_CreateVirtualNode_Success(t *testing.T) {
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
-			Output:         configuration.OutputHuman,
-		},
-		Urls: &configuration.URLs{
-			BaseURL: "https://api.example.com",
-			IamURL:  "https://api.example.com/iam",
-			DashURL: "https://dash.example.com",
-			ChURL:   "https://ch.example.com",
-		},
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
 	}
-
-	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
-
-	cmd := setupTestCommand()
-	cmd.Flags().String("name", "", "Name")
-	cmd.Flags().Set("profile", "test")
-
-	err := service.CreateVirtualNode(cmd, []string{})
-	if err == nil {
-		t.Error("Expected error for wrong profile type, got nil")
-	}
-	if !contains(err.Error(), "has type") || !contains(err.Error(), "expected") {
-		t.Errorf("Expected error about profile type mismatch, got %q", err.Error())
-	}
-}
-
-func TestLocationService_CreateVirtualNode_Success(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
 
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualNodeFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, clusterID string, name string, storageType string, configuration map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
+		CreateVirtualNodeFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, clusterID string, name string, storageType string, config map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
 			if clusterID != "test-cluster-id" {
 				t.Errorf("Expected clusterID 'test-cluster-id', got %q", clusterID)
 			}
@@ -550,7 +618,7 @@ func TestLocationService_CreateVirtualNode_Success(t *testing.T) {
 			if storageType != "s3" {
 				t.Errorf("Expected storageType 's3', got %q", storageType)
 			}
-			if configuration == nil {
+			if config == nil {
 				t.Error("Expected configuration to be provided")
 			}
 			return &api.InfraAggregateVirtualNodeDetail{
@@ -581,7 +649,19 @@ func TestLocationService_CreateVirtualNode_Success(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtualNode_WithComplexConfiguration(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	configData := map[string]interface{}{
 		"bucket": "test-bucket",
@@ -599,10 +679,9 @@ func TestLocationService_CreateVirtualNode_WithComplexConfiguration(t *testing.T
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualNodeFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, clusterID string, name string, storageType string, configuration map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
-			// Verify configuration was parsed correctly
-			if configuration["bucket"] != "test-bucket" {
-				t.Errorf("Expected bucket 'test-bucket', got %v", configuration["bucket"])
+		CreateVirtualNodeFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, clusterID string, name string, storageType string, config map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
+			if config["bucket"] != "test-bucket" {
+				t.Errorf("Expected bucket 'test-bucket', got %v", config["bucket"])
 			}
 			return &api.InfraAggregateVirtualNodeDetail{
 				NodeID:      "new-node-id",
@@ -632,7 +711,20 @@ func TestLocationService_CreateVirtualNode_WithComplexConfiguration(t *testing.T
 }
 
 func TestLocationService_CreateVirtualNode_InvalidJSON(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+
 	mockLocationAPI := &api.MockLocationAPI{}
 	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
 
@@ -667,10 +759,22 @@ func TestLocationService_CreateVirtualNode_InvalidJSON(t *testing.T) {
 }
 
 func TestLocationService_CreateVirtualNode_APIError(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockLocationAPI := &api.MockLocationAPI{
-		CreateVirtualNodeFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, clusterID string, name string, storageType string, configuration map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
+		CreateVirtualNodeFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, clusterID string, name string, storageType string, config map[string]any) (*api.InfraAggregateVirtualNodeDetail, error) {
 			return nil, fmt.Errorf("api error")
 		},
 	}
@@ -698,11 +802,9 @@ func TestLocationService_CreateVirtualNode_APIError(t *testing.T) {
 }
 
 func TestLocationService_InterfaceCompliance(t *testing.T) {
-	// Verify that LocationService implements LocationServiceInterface
 	var _ LocationServiceInterface = LocationService{}
 }
 
-// Helper function to check if a string contains a substring
 func contains(s, substr string) bool {
 	for i := 0; i <= len(s)-len(substr); i++ {
 		if s[i:i+len(substr)] == substr {

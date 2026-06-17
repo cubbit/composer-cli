@@ -7,7 +7,7 @@ import (
 )
 
 func NewAuthSubCmdActivate(
-	authService service.AuthServiceInterface,
+	authServiceFn service.AuthServiceInterface,
 ) *cobra.Command {
 	var authActivateCmd = &cobra.Command{
 		Use:   "activate",
@@ -18,13 +18,17 @@ func NewAuthSubCmdActivate(
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := authService.Activate(cmd, args); err != nil {
+			if err := authServiceFn.Activate(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},
 	}
 
 	authActivateCmd.Flags().String("token", "", "Activation token sent via email (required)")
+	authActivateCmd.Flags().String("endpoints", "", "Path to endpoints file (.toml)")
+	authActivateCmd.RegisterFlagCompletionFunc("endpoints", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"toml"}, cobra.ShellCompDirectiveFilterFileExt
+	})
 
 	return authActivateCmd
 }

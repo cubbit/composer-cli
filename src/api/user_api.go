@@ -3,24 +3,24 @@ package api
 import (
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 type UserAPIInterface interface {
 	GetIAMUser(
-		urls configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		accessToken, apiKey string,
 		meOrID string,
 	) (*IAMUser, error)
 
 	GetIAMUserSelf(
-		urls configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		accessToken, apiKey string,
 	) (*IAMUser, error)
 
 	PromoteIAMUser(
-		urls configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		email,
 		policyName,
 		secret string,
@@ -33,11 +33,11 @@ func NewUserAPI() *UserAPI {
 	return &UserAPI{}
 }
 
-func (a *UserAPI) GetIAMUser(urls configuration.URLs, accessToken, apiKey string, meOrID string) (*IAMUser, error) {
+func (a *UserAPI) GetIAMUser(endpoints configuration_models.EndpointsV2, accessToken, apiKey string, meOrID string) (*IAMUser, error) {
 	var err error
 	var operator IAMUser
 
-	url := NewURLBuilder(urls.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "operators", meOrID).
 		Build()
 
@@ -64,14 +64,14 @@ func (a *UserAPI) GetIAMUser(urls configuration.URLs, accessToken, apiKey string
 	return &operator, nil
 }
 
-func (a *UserAPI) GetIAMUserSelf(urls configuration.URLs, accessToken, apiKey string) (*IAMUser, error) {
-	return a.GetIAMUser(urls, accessToken, apiKey, "me")
+func (a *UserAPI) GetIAMUserSelf(endpoints configuration_models.EndpointsV2, accessToken, apiKey string) (*IAMUser, error) {
+	return a.GetIAMUser(endpoints, accessToken, apiKey, "me")
 }
 
-func (a *UserAPI) PromoteIAMUser(urls configuration.URLs, email, policyName, secret string) error {
+func (a *UserAPI) PromoteIAMUser(endpoints configuration_models.EndpointsV2, email, policyName, secret string) error {
 	var err error
 
-	url := NewURLBuilder(urls.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "operators", "promote").
 		Build()
 

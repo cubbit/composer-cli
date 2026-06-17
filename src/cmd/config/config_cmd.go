@@ -14,7 +14,7 @@ func NewConfigCmd(
 		Long:  `Manage Cubbit CLI configuration including profiles, endpoints, and authentication settings.`,
 	}
 
-	configInitSubCmd := NewConfigSubCmdInit()
+	configInitSubCmd := NewConfigSubCmdInit(configService)
 	configCmd.AddCommand(configInitSubCmd)
 
 	configViewSubCmd := NewConfigSubCmdView(configService)

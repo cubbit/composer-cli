@@ -7,16 +7,16 @@ import (
 	"testing"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
 )
 
 func TestGatewaySubCmd_List_Integration_Success(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		ListGatewaysV5Func: func(
-			urlConfig configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			opts ...api.ListGatewaysV5Option,
@@ -130,11 +130,11 @@ func TestGatewaySubCmd_List_Integration_Success(t *testing.T) {
 }
 
 func TestGatewaySubCmd_List_Integration_WithPagination(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		ListGatewaysV5Func: func(
-			urlConfig configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			opts ...api.ListGatewaysV5Option,
@@ -213,11 +213,11 @@ func TestGatewaySubCmd_List_Integration_WithPagination(t *testing.T) {
 }
 
 func TestGatewaySubCmd_List_Integration_WithFilter(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		ListGatewaysV5Func: func(
-			urlConfig configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			opts ...api.ListGatewaysV5Option,
@@ -292,11 +292,11 @@ func TestGatewaySubCmd_List_Integration_WithFilter(t *testing.T) {
 }
 
 func TestGatewaySubCmd_List_Integration_Empty(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		ListGatewaysV5Func: func(
-			urlConfig configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			opts ...api.ListGatewaysV5Option,
@@ -344,11 +344,11 @@ func TestGatewaySubCmd_List_Integration_Empty(t *testing.T) {
 }
 
 func TestGatewaySubCmd_List_Integration_Error(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		ListGatewaysV5Func: func(
-			urlConfig configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			opts ...api.ListGatewaysV5Option,

@@ -20,5 +20,7 @@ func NewConfigSubCmdEdit(
 		},
 	}
 
+	configEditCmd.Flags().StringP("editor", "e", "", "Editor to use (default is $EDITOR)")
+
 	return configEditCmd
 }

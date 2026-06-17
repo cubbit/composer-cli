@@ -13,7 +13,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/tui"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/google/uuid"
@@ -36,13 +37,13 @@ type AuthServiceInterface interface {
 }
 
 type AuthService struct {
-	configuration *configuration.Config
+	configuration configuration_handler.ConfigurationHandlerInterface
 	authAPI       api.AuthAPIInterface
 	userAPI       api.UserAPIInterface
 }
 
 func NewAuthService(
-	configuration *configuration.Config,
+	configuration configuration_handler.ConfigurationHandlerInterface,
 	authAPI api.AuthAPIInterface,
 	userAPI api.UserAPIInterface,
 ) *AuthService {
@@ -59,12 +60,12 @@ func (as *AuthService) Activate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s token: %w", constants.ErrorRetrievingField, err)
 	}
 
-	resolvedProfile, urls, err := as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	endpoints, err := as.configuration.GetEndpoints()
 	if err != nil {
-		return fmt.Errorf("failed to resolve provide and urls: %w", err)
+		return fmt.Errorf("failed to get active profile: %w", err)
 	}
 
-	err = as.authAPI.Activate(*urls, token)
+	err = as.authAPI.Activate(endpoints, token)
 	if err != nil {
 		return fmt.Errorf("failed during activation request: %w", err)
 	}
@@ -76,7 +77,7 @@ func (as *AuthService) Activate(cmd *cobra.Command, args []string) error {
 		&utils.SmartOutputConfig[string]{
 			SingleResource:              true,
 			SingleResourceCompactOutput: true,
-			DefaultOutput:               resolvedProfile.Output,
+			DefaultOutput:               configuration_models.OutputHuman,
 		},
 	)
 }
@@ -122,22 +123,22 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s settings: %w", constants.ErrorRetrievingField, err)
 	}
 
-	resolvedProfile, urls, err := as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	endpoints, err := as.configuration.GetEndpoints()
 	if err != nil {
-		return fmt.Errorf("failed to resolve profile and urls: %w", err)
+		return fmt.Errorf("failed to get active profile: %w", err)
 	}
 
 	var authenticationPublicKey *string
 	if password != nil {
 		challenge, err := as.authAPI.GenerateChallenge(
-			*urls,
+			endpoints,
 			nil,
 			&username,
 			&orgName,
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to generate challenge: %w", err)
+			return fmt.Errorf("🔐 failed to generate challenge: %w", err)
 		}
 
 		h := sha256.New()
@@ -146,7 +147,7 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 
 		publicKey, _, err := utils.GenerateKeyPairFromSeed(seed)
 		if err != nil {
-			return fmt.Errorf("failed to generate key pair from seed: %w", err)
+			return fmt.Errorf("🔐 failed to generate key pair from seed: %w", err)
 		}
 
 		base64PublicKey := b64.StdEncoding.EncodeToString(publicKey)
@@ -154,7 +155,7 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := as.authAPI.SignUp(
-		*urls,
+		endpoints,
 		email,
 		username,
 		firstName,
@@ -174,7 +175,7 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 		&utils.SmartOutputConfig[string]{
 			SingleResource:              true,
 			SingleResourceCompactOutput: true,
-			DefaultOutput:               resolvedProfile.Output,
+			DefaultOutput:               configuration_models.OutputHuman,
 		},
 	)
 }
@@ -182,32 +183,9 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 	var err error
 	var profile, username, orgName string
-	var urls *configuration.URLs
-	var endpoint string
 
 	if profile, err = cmd.Flags().GetString("profile"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if endpoint, err = cmd.Flags().GetString("endpoint"); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
-	}
-
-	resolvedEndpoint := endpoint
-	if resolvedEndpoint == "" {
-		var resolvedProfile *configuration.ResolvedProfile
-		if resolvedProfile, urls, err = as.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err == nil {
-			resolvedEndpoint = resolvedProfile.Endpoint
-		} else {
-			resolvedEndpoint = as.configuration.Default.Endpoint
-		}
-	}
-
-	if urls == nil {
-		urls, err = configuration.ConfigureAPIServerURL(resolvedEndpoint)
-		if err != nil {
-			return fmt.Errorf("%s: %w", constants.ErrorConfiguringAPIURL, err)
-		}
 	}
 
 	if username, err = cmd.Flags().GetString("username"); err != nil {
@@ -231,7 +209,7 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 	}
 
 	if apiKey != "" {
-		return as.configureAPIKey(cmd, *urls, as.configuration, profile, apiKey, resolvedEndpoint)
+		return as.configureAPIKey(cmd, profile, apiKey)
 	}
 
 	password, err := cmd.Flags().GetString("password")
@@ -251,7 +229,7 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 	}
 
 	if password != "" {
-		return as.performInlineLogin(cmd, *urls, as.configuration, username, orgName, password, "", profile, resolvedEndpoint)
+		return as.performInlineLogin(cmd, username, orgName, password, "", profile)
 	}
 
 	var choice string
@@ -266,7 +244,7 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 
 	switch choice {
 	case choices[0]:
-		return as.performBrowserLogin(*urls, as.configuration, profile, resolvedEndpoint)
+		return as.performBrowserLogin(profile)
 	case choices[1]:
 		var password string
 		var tfa string
@@ -280,7 +258,7 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 		); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
 		}
-		return as.performInlineLogin(cmd, *urls, as.configuration, username, orgName, password, tfa, profile, resolvedEndpoint)
+		return as.performInlineLogin(cmd, username, orgName, password, tfa, profile)
 	case choices[2]:
 		var apiKey string
 		if _, err = tui.TextInputs(
@@ -291,14 +269,19 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
 		}
 
-		return as.configureAPIKey(cmd, *urls, as.configuration, profile, apiKey, resolvedEndpoint)
+		return as.configureAPIKey(cmd, profile, apiKey)
 	default:
 		return fmt.Errorf("invalid choice: %s", choice)
 	}
 }
 
-func (as *AuthService) configureAPIKey(cmd *cobra.Command, urls configuration.URLs, conf *configuration.Config, profile string, apiKey string, resolvedEndpoint string) error {
-	operator, err := as.userAPI.GetIAMUserSelf(urls, "", apiKey)
+func (as *AuthService) configureAPIKey(cmd *cobra.Command, profile string, apiKey string) error {
+	endpoints, err := as.configuration.GetEndpoints()
+	if err != nil {
+		return fmt.Errorf("failed to get active profile: %w", err)
+	}
+
+	operator, err := as.userAPI.GetIAMUserSelf(endpoints, "", apiKey)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve operator information: %w", err)
 	}
@@ -307,12 +290,13 @@ func (as *AuthService) configureAPIKey(cmd *cobra.Command, urls configuration.UR
 		return fmt.Errorf("user does not belong to an organization, invalid API key")
 	}
 
-	if err := conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey, *operator.OrganizationID); err != nil {
+	err = as.configuration.CreateProfile(
+		profile,
+		apiKey,
+		*operator.OrganizationID,
+	)
+	if err != nil {
 		return fmt.Errorf("failed to create profile: %w", err)
-	}
-
-	if err := conf.SaveConfig(); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
 	}
 
 	fmt.Fprintf(cmd.OutOrStdout(), "✅ Authentication successful!\n")
@@ -320,14 +304,19 @@ func (as *AuthService) configureAPIKey(cmd *cobra.Command, urls configuration.UR
 	return nil
 }
 
-func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration.URLs, conf *configuration.Config, username, orgName, password, tfa, profile string, resolvedEndpoint string) error {
+func (as *AuthService) performInlineLogin(cmd *cobra.Command, username, orgName, password, tfa, profile string) error {
 	var err error
 	var tokens *api.SignInToken
 	var apiKey string
 	var hostname string
 	fmt.Fprintf(cmd.OutOrStdout(), "🔐 Starting inline authentication...\n")
 
-	if tokens, err = as.authAPI.SignIn(urls, username, orgName, password, tfa); err != nil {
+	endpoints, err := as.configuration.GetEndpoints()
+	if err != nil {
+		return fmt.Errorf("failed to get endpoints: %w", err)
+	}
+
+	if tokens, err = as.authAPI.SignIn(endpoints, username, orgName, password, tfa); err != nil {
 		return fmt.Errorf("failed to perform sign in: %w", err)
 	}
 
@@ -341,7 +330,7 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration
 	nozzle := uuid.New().String()[:8]
 	apiKeyName := fmt.Sprintf("composer-cli-%s-%s-%s-%s-%s", runtime.GOOS, runtime.GOARCH, hostname, date, nozzle)
 
-	operator, err := as.userAPI.GetIAMUserSelf(urls, tokens.AccessToken, "")
+	operator, err := as.userAPI.GetIAMUserSelf(endpoints, tokens.AccessToken, "")
 	if err != nil {
 		return fmt.Errorf("failed to retrieve operator information: %w", err)
 	}
@@ -364,48 +353,54 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, urls configuration
 		return fmt.Errorf("operator email is missing, cannot forge API key")
 	}
 
-	operatorApiKeyToken, err := as.authAPI.ForgeToken(urls, operator.ID, operator.Emails[0].Email, password, tfa, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
+	operatorApiKeyToken, err := as.authAPI.ForgeToken(endpoints, operator.ID, operator.Emails[0].Email, password, tfa, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to forge token: %w", err)
 	}
 
-	if apiKey, err = as.authAPI.CreateApiKey(urls, operator.ID, apiKeyName, tokens.AccessToken, operatorApiKeyToken); err != nil {
+	if apiKey, err = as.authAPI.CreateApiKey(endpoints, operator.ID, apiKeyName, tokens.AccessToken, operatorApiKeyToken); err != nil {
 		return fmt.Errorf("failed to create API key: %w", err)
 	}
 
-	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey, *operator.OrganizationID); err != nil {
+	err = as.configuration.CreateProfile(
+		profile,
+		apiKey,
+		*operator.OrganizationID,
+	)
+	if err != nil {
 		return fmt.Errorf("failed to create profile: %w", err)
 	}
 
-	if err = conf.SaveConfig(); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
-	}
-
-	fmt.Fprintf(cmd.OutOrStdout(), "✅ Authentication successful!\n")
-	fmt.Fprintf(cmd.OutOrStdout(), "📜 Created API Key: %s\n", apiKeyName)
+	fmt.Fprintf(cmd.OutOrStdout(), "Authentication successful!\n")
+	fmt.Fprintf(cmd.OutOrStdout(), "Created API Key: %s\n", apiKeyName)
 
 	return nil
 }
 
-func (as *AuthService) performBrowserLogin(urls configuration.URLs, conf *configuration.Config, profile string, resolvedEndpoint string) error {
+func (as *AuthService) performBrowserLogin(profile string) error {
 	var err error
 	var device *api.DeviceRegistrationResponse
 	var apiKey string
 
-	fmt.Println("🔐 Starting browser-based authentication...")
+	fmt.Println("Starting browser-based authentication...")
 
 	uuid := uuid.New()
 
+	endpoints, err := as.configuration.GetEndpoints()
+	if err != nil {
+		return fmt.Errorf("failed to get endpoints: %w", err)
+	}
+
 	// Register device and get device code
-	if device, err = api.RegisterDevice(urls, uuid.String()); err != nil {
+	if device, err = api.RegisterDevice(endpoints, uuid.String()); err != nil {
 		return fmt.Errorf("failed to register device: %w", err)
 	}
 
-	fmt.Printf("🔑 First copy your one-time code: %s\n\n", boldStyle.Render(device.DeviceCode))
+	fmt.Printf("First copy your one-time code: %s\n\n", boldStyle.Render(device.DeviceCode))
 
 	// Build auth URL and prompt user to press Enter
 	authURL := buildAuthURL(device.ClientURL)
-	fmt.Printf("📋 Auth URL: %s\n\n", authURL)
+	fmt.Printf("Auth URL: %s\n\n", authURL)
 	fmt.Println("Press Enter to open browser...")
 
 	inputChan := make(chan bool, 1)
@@ -418,7 +413,7 @@ func (as *AuthService) performBrowserLogin(urls configuration.URLs, conf *config
 	}()
 
 	go func() {
-		key, err := pollForAPIKey(urls, uuid.String())
+		key, err := pollForAPIKey(endpoints, uuid.String())
 		if err != nil {
 			errChan <- err
 			return
@@ -428,35 +423,35 @@ func (as *AuthService) performBrowserLogin(urls configuration.URLs, conf *config
 
 	select {
 	case <-inputChan:
-		fmt.Printf("🌐 Opening browser for authentication...\n")
+		fmt.Printf("Opening browser for authentication...\n")
 		if err = browser.OpenURL(authURL); err != nil {
-			fmt.Printf("⚠️ Failed to open browser automatically: %v\n", err)
+			fmt.Printf("Failed to open browser automatically: %v\n", err)
 			fmt.Printf("Please manually visit the URL above\n\n")
 		} else {
-			fmt.Println("👀 Waiting for authentication...")
+			fmt.Println("Waiting for authentication...")
 		}
 
 		fmt.Println()
-		fmt.Println("📝 Complete the authentication in your browser")
-		fmt.Println("⏳ This window will automatically continue once you're done")
+		fmt.Println("Complete the authentication in your browser")
+		fmt.Println("This window will automatically continue once you're done")
 		fmt.Println()
 
 		select {
 		case apiKey = <-apiKeyChan:
-			fmt.Println("✅ Authentication successful!")
-			fmt.Printf("📜 API Key received: %s\n", apiKey)
+			fmt.Println("Authentication successful!")
+			fmt.Printf("API Key received: %s\n", apiKey)
 		case err = <-errChan:
 			return fmt.Errorf("authentication failed: %w", err)
 		}
 
 	case apiKey = <-apiKeyChan:
-		fmt.Println("✅ Authentication successful!")
-		fmt.Printf("📜 API Key received: %s\n", apiKey)
+		fmt.Println("Authentication successful!")
+		fmt.Printf("API Key received: %s\n", apiKey)
 	case err = <-errChan:
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	operator, err := as.userAPI.GetIAMUserSelf(urls, "", apiKey)
+	operator, err := as.userAPI.GetIAMUserSelf(endpoints, "", apiKey)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve operator information: %w", err)
 	}
@@ -465,12 +460,13 @@ func (as *AuthService) performBrowserLogin(urls configuration.URLs, conf *config
 		return fmt.Errorf("user does not belong to an organization, invalid API key")
 	}
 
-	if err = conf.CreateProfile(profile, configuration.ProfileTypeComposer, resolvedEndpoint, apiKey, *operator.OrganizationID); err != nil {
+	err = as.configuration.CreateProfile(
+		profile,
+		apiKey,
+		*operator.OrganizationID,
+	)
+	if err != nil {
 		return fmt.Errorf("failed to create profile: %w", err)
-	}
-
-	if err = conf.SaveConfig(); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
 	}
 
 	return nil
@@ -480,7 +476,7 @@ func buildAuthURL(clientURL string) string {
 	return fmt.Sprintf("%s/dashboard/auth/devices", clientURL)
 }
 
-func pollForAPIKey(urls configuration.URLs, deviceID string) (string, error) {
+func pollForAPIKey(endpoints configuration_models.EndpointsV2, deviceID string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), maxPollDuration)
 	defer cancel()
 
@@ -492,7 +488,7 @@ func pollForAPIKey(urls configuration.URLs, deviceID string) (string, error) {
 		case <-ctx.Done():
 			return "", fmt.Errorf("authentication timed out after %v", maxPollDuration)
 		case <-ticker.C:
-			apiKey, err := api.GetDeviceAPIKey(urls, deviceID)
+			apiKey, err := api.GetDeviceAPIKey(endpoints, deviceID)
 			if err != nil {
 				if strings.Contains(err.Error(), "not found") {
 					return "", fmt.Errorf("device not found - registration may have expired")
@@ -522,18 +518,13 @@ func (as *AuthService) Logout(cmd *cobra.Command, args []string) error {
 	}
 
 	if allProfiles {
-		as.configuration.Profile = make(map[string]*configuration.Profile)
-	} else {
-		if profile == "" {
-		} else {
-			if err = as.configuration.DeleteProfile(profile); err != nil {
-				return fmt.Errorf("failed to logout from profile '%s': %w", profile, err)
-			}
+		if err = as.configuration.DeleteAllProfiles(); err != nil {
+			return fmt.Errorf("failed to logout from all profiles: %w", err)
 		}
-	}
-
-	if err = as.configuration.SaveConfig(); err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorSavingConfig, err)
+	} else {
+		if err = as.configuration.DeleteProfile(profile); err != nil {
+			return fmt.Errorf("failed to logout from profile '%s': %w", profile, err)
+		}
 	}
 
 	return nil

@@ -42,6 +42,41 @@
 ### Minor Changes
 
 - b84fbde: Rreplace --version flag with dedicated version command
+- 4f691a4: Lazy config init — move LoadConfig out of package init into PersistentPreRunE
+- 90e08ca: Wire ResolveURLsWithPriority into Login and persist endpoints via CreateProfileWithEndpoints
+- 49bd9cb: Wire --endpoints flag on auth login and signup commands
+- 3452af1: Implement ParseEndpointsFile with strict YAML validation
+- 09f5c32: Update config_service.go to use URLs.BaseURL
+- 5bcc0b7: Add error constants and ConfigVersion constant for configuration v2.0
+- dbf631e: Add CreateProfileWithEndpoints, UpdateProfileEndpoints, ResolveURLsWithPriority and expand ConfigInterface
+
+### Features
+
+- **`--endpoints` flag for auth commands**: The `auth login` and `auth signup` commands now accept an optional `--endpoints` flag that specifies a path to a YAML file containing custom API endpoint configuration.
+
+  ```bash
+  cubbit auth login --profile dev --endpoints ./endpoints.yaml
+  ```
+
+- **Endpoints YAML format**: Define custom endpoints in a YAML file:
+
+  ```yaml
+  base: https://api.example.com
+  iam: https://iam.example.com
+  ```
+
+- **Endpoint resolution priority**: The CLI resolves endpoints using the following priority chain:
+  1. Endpoints specified via `--endpoints` flag
+  2. Endpoints from the active profile configuration
+  3. Default endpoints from the configuration
+
+- **Configuration v2.0**: New configuration format with versioning and strict validation for configuration files.
+
+- **New functions**:
+  - `ParseEndpointsFile()` - Parse and validate endpoints YAML
+  - `ResolveURLsWithPriority()` - Resolve endpoints with priority chain
+  - `CreateProfileWithEndpoints()` - Create profile with endpoints
+  - `UpdateProfileEndpoints()` - Update profile endpoints
 
 ## 1.6.1
 
@@ -57,7 +92,7 @@
 
 ### Patch Changes
 
-- c2ebf60: Fix import and bazel build
+- c2eb60: Fix import and bazel build
 
 ## 1.5.0
 
@@ -87,7 +122,7 @@
 
 ### Patch Changes
 
-- 58d399b: List location infrastructure command
+- 58d999b: List location infrastructure command
 
 ## 1.3.0
 

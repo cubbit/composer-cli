@@ -5,7 +5,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/service/gateway/create"
 	"github.com/cubbit/composer-cli/src/service/gateway/describe"
 	"github.com/cubbit/composer-cli/src/service/gateway/list"
@@ -19,7 +19,7 @@ type GatewayServiceInterface interface {
 }
 
 type GatewayService struct {
-	configuration      configuration.ConfigInterface
+	configuration      configuration_handler.ConfigurationHandlerInterface
 	gatewayAPI         api.GatewayAPIInterface
 	swarmAPI           api.SwarmAPIInterface
 	redundancyClassAPI api.RedundancyClassAPIInterface
@@ -28,7 +28,7 @@ type GatewayService struct {
 }
 
 func NewGatewayService(
-	configuration configuration.ConfigInterface,
+	configuration configuration_handler.ConfigurationHandlerInterface,
 	gatewayAPI api.GatewayAPIInterface,
 	swarmAPI api.SwarmAPIInterface,
 	redundancyClassAPI api.RedundancyClassAPIInterface,
@@ -46,20 +46,19 @@ func NewGatewayService(
 }
 
 func (s GatewayService) List(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
-
 	deps := list.Dependencies{
 		GatewayAPI: s.gatewayAPI,
 	}
 
-	return list.ListInline(deps, cmd, *resolvedProfile, *urls)
+	return list.ListInline(deps, cmd, profile)
 }
 
 func (s GatewayService) Create(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -77,11 +76,11 @@ func (s GatewayService) Create(cmd *cobra.Command, args []string) error {
 		LocationAPI:        s.locationAPI,
 	}
 
-	return create.Create(deps, cmd, *resolvedProfile, *urls, interactiveMode)
+	return create.Create(deps, cmd, profile, interactiveMode)
 }
 
 func (s GatewayService) Describe(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -90,5 +89,5 @@ func (s GatewayService) Describe(cmd *cobra.Command, args []string) error {
 		GatewayAPI: s.gatewayAPI,
 	}
 
-	return describe.Describe(deps, cmd, *resolvedProfile, *urls, args)
+	return describe.Describe(deps, cmd, profile, args)
 }

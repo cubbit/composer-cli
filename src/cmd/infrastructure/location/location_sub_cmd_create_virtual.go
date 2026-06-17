@@ -7,7 +7,7 @@ import (
 )
 
 func NewLocationSubCmdCreateVirtual(
-	locationService service.LocationServiceInterface,
+	locationServiceFn service.LocationServiceInterface,
 ) *cobra.Command {
 	var locationCreateVirtualCmd = &cobra.Command{
 		Use:     "create-virtual",
@@ -17,7 +17,7 @@ func NewLocationSubCmdCreateVirtual(
 			cmd.MarkFlagRequired("name")
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := locationService.CreateVirtual(cmd, args); err != nil {
+			if err := locationServiceFn.CreateVirtual(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},

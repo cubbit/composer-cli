@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 	"github.com/cubbit/composer-cli/utils"
 )
 
 type AuthAPIInterface interface {
 	Activate(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		token string,
 	) error
 
 	SignUp(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		email string,
 		username string,
 		firstName *string,
@@ -28,20 +28,20 @@ type AuthAPIInterface interface {
 		organizationSettings map[string]interface{},
 	) error
 	SignIn(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		username string,
 		organization string,
 		password string,
 		tfaCode string,
 	) (*SignInToken, error)
 	GenerateChallenge(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		email *string,
 		username *string,
 		organizationName *string,
 	) (*ChallengeResponseModel, error)
 	ForgeToken(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		operatorID string,
 		email string,
 		password string,
@@ -51,7 +51,7 @@ type AuthAPIInterface interface {
 		refreshToken string,
 	) (string, error)
 	CreateApiKey(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		operatorID string,
 		name string,
 		token string,
@@ -59,21 +59,17 @@ type AuthAPIInterface interface {
 	) (string, error)
 }
 
-type AuthAPI struct {
-	config configuration.Config
-}
+type AuthAPI struct{}
 
-func NewAuthAPI(config *configuration.Config) *AuthAPI {
-	return &AuthAPI{
-		config: *config,
-	}
+func NewAuthAPI() *AuthAPI {
+	return &AuthAPI{}
 }
 
 func (api *AuthAPI) Activate(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	token string,
 ) error {
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "operators", "activate").
 		QueryParam("token", token).
 		Build()
@@ -90,7 +86,7 @@ func (api *AuthAPI) Activate(
 }
 
 func (api *AuthAPI) SignUp(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	email string,
 	username string,
 	firstName *string,
@@ -100,7 +96,7 @@ func (api *AuthAPI) SignUp(
 	organizationBasePolicy map[string]interface{},
 	organizationSettings map[string]interface{},
 ) error {
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v2", "operators", "signup").
 		Build()
 
@@ -128,19 +124,19 @@ func (api *AuthAPI) SignUp(
 }
 
 func (api *AuthAPI) SignIn(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	username string,
 	organization string,
 	password string,
 	tfaCode string,
 ) (*SignInToken, error) {
 	var err error
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v3", "auth", "operators", "signin").
 		Build()
 
 	challenge, err := api.GenerateChallenge(
-		urlConfig,
+		endpoints,
 		nil,
 		&username,
 		&organization,
@@ -188,12 +184,12 @@ func (api *AuthAPI) SignIn(
 }
 
 func (api *AuthAPI) GenerateChallenge(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	email *string,
 	username *string,
 	organizationName *string,
 ) (*ChallengeResponseModel, error) {
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v3", "auth", "operators", "signin", "challenge").
 		Build()
 
@@ -219,10 +215,10 @@ func (api *AuthAPI) GenerateChallenge(
 }
 
 func (api *AuthAPI) GenerateOldChallenge(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	email string,
 ) (*ChallengeResponseModel, error) {
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "auth", "operators", "signin", "challenge").
 		Build()
 
@@ -246,7 +242,7 @@ func (api *AuthAPI) GenerateOldChallenge(
 }
 
 func (api *AuthAPI) ForgeToken(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	operatorID string,
 	email string,
 	password string,
@@ -255,14 +251,14 @@ func (api *AuthAPI) ForgeToken(
 	token string,
 	refreshToken string,
 ) (string, error) {
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "auth", "operators", "forge", "token").
 		QueryParam("capabilities", tokenType).
 		QueryParam("operator_id", operatorID).
 		Build()
 
 	challenge, err := api.GenerateOldChallenge(
-		urlConfig,
+		endpoints,
 		email,
 	)
 
@@ -304,13 +300,13 @@ func (api *AuthAPI) ForgeToken(
 }
 
 func (api *AuthAPI) CreateApiKey(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	operatorID string,
 	name string,
 	token string,
 	forgeApiKeyToken string,
 ) (string, error) {
-	url := NewURLBuilder(urlConfig.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "operators", operatorID, "api-keys").
 		QueryParam("token", forgeApiKeyToken).
 		Build()

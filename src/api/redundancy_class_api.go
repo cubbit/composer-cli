@@ -3,13 +3,13 @@ package api
 import (
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 type RedundancyClassAPIInterface interface {
 	ListRedundancyClassesBySwarm(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		swarmID string,
@@ -23,12 +23,12 @@ func NewRedundancyClassAPI() *RedundancyClassAPI {
 }
 
 func (api *RedundancyClassAPI) ListRedundancyClassesBySwarm(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	swarmID string,
 ) ([]RedundancyClass, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "swarms", swarmID, "redundancy_class").
 		Build()
 

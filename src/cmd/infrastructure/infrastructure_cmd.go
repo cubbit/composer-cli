@@ -7,7 +7,7 @@ import (
 )
 
 func NewInfrastructureCmd(
-	locationService service.LocationServiceInterface,
+	locationServiceFn service.LocationServiceInterface,
 ) *cobra.Command {
 	var infrastructureCmd = &cobra.Command{
 		Use:     "infrastructure",
@@ -15,7 +15,7 @@ func NewInfrastructureCmd(
 		Short:   "Execute commands in infrastructure sections",
 	}
 
-	locationCmd := cmd_location.NewLocationCmd(locationService)
+	locationCmd := cmd_location.NewLocationCmd(locationServiceFn)
 	infrastructureCmd.AddCommand(locationCmd)
 
 	return infrastructureCmd

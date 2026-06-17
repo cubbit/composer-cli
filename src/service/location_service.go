@@ -7,7 +7,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
@@ -21,13 +21,13 @@ type LocationServiceInterface interface {
 }
 
 type LocationService struct {
-	configuration configuration.ConfigInterface
+	configuration configuration_handler.ConfigurationHandlerInterface
 	locationAPI   api.LocationAPIInterface
 	userAPI       api.UserAPIInterface
 }
 
 func NewLocationService(
-	configuration configuration.ConfigInterface,
+	configuration configuration_handler.ConfigurationHandlerInterface,
 	locationAPI api.LocationAPIInterface,
 	userAPI api.UserAPIInterface,
 ) LocationService {
@@ -39,12 +39,16 @@ func NewLocationService(
 }
 
 func (s LocationService) List(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	locations, err := s.locationAPI.List(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+	locations, err := s.locationAPI.List(
+		profile.Endpoints,
+		profile.APIKey,
+		profile.OrganizationID,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to list locations: %w", err)
 	}
@@ -53,12 +57,12 @@ func (s LocationService) List(cmd *cobra.Command, args []string) error {
 }
 
 func (s LocationService) ListAggregated(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	clusters, err := s.locationAPI.ListAggregated(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+	clusters, err := s.locationAPI.ListAggregated(profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	if err != nil {
 		return fmt.Errorf("failed to list aggregated locations: %w", err)
 	}
@@ -109,7 +113,7 @@ func (s LocationService) ListAggregated(cmd *cobra.Command, args []string) error
 }
 
 func (s LocationService) CreateVirtual(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -124,7 +128,7 @@ func (s LocationService) CreateVirtual(cmd *cobra.Command, args []string) error 
 		return fmt.Errorf("%s description: %w", constants.ErrorRetrievingField, err)
 	}
 
-	location, err := s.locationAPI.CreateVirtualCluster(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, name, description)
+	location, err := s.locationAPI.CreateVirtualCluster(profile.Endpoints, profile.APIKey, profile.OrganizationID, name, description)
 	if err != nil {
 		return fmt.Errorf("failed to create virtual location: %w", err)
 	}
@@ -136,13 +140,13 @@ func (s LocationService) CreateVirtual(cmd *cobra.Command, args []string) error 
 		&utils.SmartOutputConfig[api.InfrastructureCluster]{
 			SingleResourceCompactOutput: false,
 			SingleResource:              false,
-			DefaultOutput:               resolvedProfile.Output,
+			DefaultOutput:               profile.Output,
 		},
 	)
 }
 
 func (s LocationService) CreateVirtualNode(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -170,7 +174,7 @@ func (s LocationService) CreateVirtualNode(cmd *cobra.Command, args []string) er
 		return fmt.Errorf("%s configuration: %w", constants.ErrorParsingJSONConfiguration, err)
 	}
 
-	node, err := s.locationAPI.CreateVirtualNode(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, clusterID, name, storageType, configuration)
+	node, err := s.locationAPI.CreateVirtualNode(profile.Endpoints, profile.APIKey, profile.OrganizationID, clusterID, name, storageType, configuration)
 	if err != nil {
 		return fmt.Errorf("failed to create virtual node: %w", err)
 	}

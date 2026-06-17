@@ -7,21 +7,15 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/cubbit/composer-cli/constants"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	utils "github.com/cubbit/composer-cli/utils"
+	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
 
-type ProfileInfo struct {
-	Name      string                    `json:"name"`
-	Type      configuration.ProfileType `json:"type"`
-	Endpoint  string                    `json:"endpoint"`
-	HasAPIKey bool                      `json:"has_token"`
-	UpdatedAt string                    `json:"updated_at"`
-	IsDefault bool                      `json:"is_default"`
-}
-
 type ConfigServiceInterface interface {
+	InitConfiguration(cmd *cobra.Command, args []string) error
 	View(cmd *cobra.Command, args []string) error
 	Edit(cmd *cobra.Command, args []string) error
 	Profiles(cmd *cobra.Command, args []string) error
@@ -30,11 +24,11 @@ type ConfigServiceInterface interface {
 }
 
 type ConfigService struct {
-	configuration *configuration.Config
+	configuration *configuration_handler.ConfigurationHandler
 }
 
 func NewConfigService(
-	configuration *configuration.Config,
+	configuration *configuration_handler.ConfigurationHandler,
 ) *ConfigService {
 	return &ConfigService{
 		configuration: configuration,
@@ -42,7 +36,7 @@ func NewConfigService(
 }
 
 func (s *ConfigService) View(cmd *cobra.Command, args []string) error {
-	config, err := configuration.LoadConfig()
+	config, err := s.configuration.GetConfigFile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -51,38 +45,70 @@ func (s *ConfigService) View(cmd *cobra.Command, args []string) error {
 	if err = encoder.Encode(config); err != nil {
 		return fmt.Errorf("failed to encode config: %w", err)
 	}
-	if err = encoder.Encode(config.Profile); err != nil {
-		return fmt.Errorf("failed to encode profiles: %w", err)
-	}
 
 	return nil
 }
 
-func (s *ConfigService) Edit(cmd *cobra.Command, args []string) error {
-	var err error
-	var configPath string
-
-	if configPath, err = configuration.GetDefaultConfigPath(); err != nil {
-		return fmt.Errorf("failed to get default config path: %w", err)
+func (s *ConfigService) InitConfiguration(cmd *cobra.Command, args []string) error {
+	configPath, err := s.configuration.GetConfigFilePath()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	configFile := configPath + "/config.toml"
-
-	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		config := configuration.NewConfig()
-		config.ConfigPath = configPath
-		if err := config.SaveConfig(); err != nil {
-			return fmt.Errorf("failed to create default config: %w", err)
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		configFile := configuration_models.CreateEmptyConfigV2()
+		err := configFile.Save(configPath)
+		if err != nil {
+			return fmt.Errorf("failed to create config file at %s: %w", configPath, err)
 		}
-		utils.PrintInfo(fmt.Sprintf("Created default configuration at %s", configFile))
+
+		return printer.PrintText(
+			cmd,
+			fmt.Sprintf("Created configuration file template in %s\n", configPath),
+		)
+	} else if err != nil {
+		return fmt.Errorf("failed to check if config file exists: %w", err)
 	}
 
-	editor := os.Getenv("EDITOR")
+	return printer.PrintText(
+		cmd,
+		fmt.Sprintf("Configuration file already exists at %s\n", configPath),
+	)
+}
+
+func (s *ConfigService) Edit(cmd *cobra.Command, args []string) error {
+	configPath, err := s.configuration.GetConfigFilePath()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		configFile := configuration_models.CreateEmptyConfigV2()
+		err := configFile.Save(configPath)
+		if err != nil {
+			return fmt.Errorf("failed to create config file at %s: %w", configPath, err)
+		}
+	}
+
+	editor := ""
+	editorFromFlag, err := cmd.Flags().GetString("editor")
+	if err != nil {
+		return fmt.Errorf("failed to get 'editor' flag: %w", err)
+	}
+
+	if editorFromFlag != "" {
+		editor = editorFromFlag
+	}
+
+	if editor == "" {
+		editor = os.Getenv("EDITOR")
+	}
+
 	if editor == "" {
 		editor = "nano"
 	}
 
-	editorCmd := exec.Command(editor, configFile)
+	editorCmd := exec.Command(editor, configPath)
 	editorCmd.Stdin = os.Stdin
 	editorCmd.Stdout = os.Stdout
 	editorCmd.Stderr = os.Stderr
@@ -95,97 +121,44 @@ func (s *ConfigService) Edit(cmd *cobra.Command, args []string) error {
 }
 
 func (s *ConfigService) Profiles(cmd *cobra.Command, args []string) error {
-	config, err := configuration.LoadConfig()
+	profiles, err := s.configuration.GetProfiles()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	profiles := config.ListProfiles()
-	profileInfos := s.listProfileInfos(config, profiles)
+	activeProfileName, err := s.configuration.GetActiveProfileName()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
 
-	return utils.PrintSmartOutput(
-		cmd,
-		profileInfos,
-		func(info ProfileInfo) []string {
-			return []string{
-				info.Name,
-				string(info.Type),
-				info.Endpoint,
-				fmt.Sprintf("%t", info.HasAPIKey),
-			}
-		},
-		nil,
-	)
+	return PrintProfiles(cmd, profiles, activeProfileName)
 }
 
 func (s *ConfigService) SwitchProfile(cmd *cobra.Command, args []string) error {
 	profileName := args[0]
 
-	config, err := configuration.LoadConfig()
+	err := s.configuration.SwitchProfile(profileName)
 	if err != nil {
-		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
-	}
-
-	if err := config.SetActiveProfile(profileName); err != nil {
-		return fmt.Errorf("failed to switch to profile '%s': %w", profileName, err)
+		return fmt.Errorf("failed to switch profile: %w", err)
 	}
 
 	return nil
 }
 
 func (s *ConfigService) Validate(cmd *cobra.Command, args []string) error {
-	config, err := configuration.LoadConfig()
+	configPath, err := s.configuration.GetConfigFilePath()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return s.validateProfiles(config)
-}
-
-func (s *ConfigService) listProfileInfos(config *configuration.Config, profiles []string) []ProfileInfo {
-	var profileInfos []ProfileInfo
-
-	for _, profileName := range profiles {
-		resolved, err := config.ResolveProfile(profileName)
-		if err != nil {
-			continue
-		}
-
-		info := ProfileInfo{
-			Name:      resolved.Name,
-			Type:      resolved.Type,
-			Endpoint:  resolved.Endpoint,
-			HasAPIKey: resolved.APIKey != "",
-		}
-
-		if config.Active.Profile == resolved.Name {
-			info.IsDefault = true
-		}
-
-		if !resolved.UpdatedAt.IsZero() {
-			info.UpdatedAt = resolved.UpdatedAt.Format("2006-01-02T15:04:05Z")
-		}
-
-		profileInfos = append(profileInfos, info)
+	_, err = configuration_models.ParseAndValidateConfigV2(configPath)
+	if err != nil {
+		utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
+		return nil
 	}
 
-	return profileInfos
-}
-
-func (s *ConfigService) validateProfiles(config *configuration.Config) error {
-	var hasErrors bool
-
-	for profileName := range config.Profile {
-		if err := config.ValidateProfile(profileName); err != nil {
-			utils.PrintError(fmt.Errorf("profile '%s' validation failed: %w", profileName, err))
-
-			hasErrors = true
-		}
-	}
-
-	if hasErrors {
-		return fmt.Errorf("configuration validation failed")
-	}
-
-	return nil
+	return printer.PrintText(
+		cmd,
+		fmt.Sprintf("Configuration file at %s is valid", configPath),
+	)
 }

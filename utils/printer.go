@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +36,7 @@ var (
 type SmartOutputConfig[T any] struct {
 	SingleResource              bool
 	SingleResourceCompactOutput bool
-	DefaultOutput               configuration.OutputFormat
+	DefaultOutput               configuration_models.OutputFormat
 }
 
 func SetOutputMode(mode OutputMode) {

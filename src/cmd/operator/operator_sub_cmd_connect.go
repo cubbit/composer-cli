@@ -7,7 +7,7 @@ import (
 )
 
 func NewOperatorSubCmdConnect(
-	operatorService service.OperatorServiceInterface,
+	operatorServiceFn service.OperatorServiceInterface,
 ) *cobra.Command {
 	var operatorConnectSubCmd = &cobra.Command{
 		Use:     "generate-connect-command",
@@ -16,7 +16,7 @@ func NewOperatorSubCmdConnect(
 		PreRun: func(cmd *cobra.Command, args []string) {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := operatorService.Connect(cmd, args); err != nil {
+			if err := operatorServiceFn.Connect(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},

@@ -77,7 +77,7 @@ cubbit --version
 
 ### Initial Setup
 
-1. **Initialize configuration** (optional - creates config file at `$XDG_CONFIG/cubbit/config.yaml`):
+1. **Initialize configuration** (optional - creates config file at `$HOME/.config/cubbit/config.toml`):
    ```bash
    cubbit config init
    ```
@@ -88,6 +88,25 @@ cubbit --version
    ```
 
    This will open your browser for secure authentication and automatically configure your API key.
+
+   **Optional: Specify custom endpoints**
+
+   You can provide custom API endpoints via a TOML file:
+
+   ```bash
+   cubbit auth login --profile <profile_name> --endpoints <path/to/endpoints.toml>
+   ```
+
+   Example `endpoints.toml`:
+
+   ```toml
+   base = "https://api.example.com"
+   iam = "https://iam.example.com"
+   dash = "https://dash.example.com"
+   ch = "https://ch.example.com"
+   ```
+
+   All keys are optional. When `base` is provided, the CLI derives default URIs for `iam`, `dash`, and `ch` by appending path suffixes. Individual endpoints (`iam`, `dash`, `ch`) override the derived values.
 
 3. **Verify your setup:**
    ```bash
@@ -115,36 +134,65 @@ cubbit swarm [command]
 
 ## Configuration
 
-The CLI uses a profile-based configuration system stored in `$XDG_CONFIG/cubbit/config.yaml`. This allows you to manage multiple environments and accounts efficiently.
+The CLI uses a profile-based configuration system stored in `$HOME/.config/cubbit/config.toml` (or `$XDG_CONFIG_HOME/cubbit/config.toml`). This allows you to manage multiple environments and accounts efficiently.
+
+### Configuration Version
+
+The CLI uses configuration version `v2` with strict validation for configuration files.
 
 ### Configuration Example
 
 ```toml
-[default]
-endpoint = "https://api.eu00wi.cubbit.services"
-output = "json"
+version = "v2"
+
+[active]
+profile = "composer"
 
 [profile.composer]
-inherits = "default"
-type = "composer"
+output = "human"
 api_key = "<your_api_key>"
+organization_id = "<your_organization_id>"
+updated_at = 2025-01-01T00:00:00Z
 
-[profile.dev-composer]
-inherits = "default"
-type = "composer"
-endpoint = "localhost"
+[profile.composer.endpoints]
+iam = "https://iam.eu00wi.cubbit.services"
+dash = "https://dashboard.cubbit.eu/api"
+ch = "https://api.eu00wi.cubbit.services/composer-hub"
+
+[profile.dev]
+output = "human"
 api_key = "<your_api_key>"
+organization_id = "<your_organization_id>"
+updated_at = 2025-01-01T00:00:00Z
+
+[profile.dev.endpoints]
+iam = "http://localhost:8181/iam"
+dash = "http://localhost:8181/api"
+ch = "http://localhost:8181/composer-hub"
 ```
+
+### Endpoints Configuration
+
+You can specify custom API endpoints using a TOML file with the `--endpoints` flag during `auth login`:
+
+```toml
+base = "https://api.example.com"
+iam = "https://iam.example.com"
+dash = "https://dash.example.com"
+ch = "https://ch.example.com"
+```
+
+All keys are optional. When `base` is set without individual endpoints, the CLI derives defaults by appending path suffixes (`/iam`, `/api`, `/composer-hub`). Individual endpoints override derived values.
 
 ### Configuration Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `endpoint` | API endpoint for your DS3 composer | - |
-| `output` | Output format: `json`, `yaml`, `xml`, `csv` | Human-readable |
-| `type` | Profile type (`composer` for DS3 management) | - |
-| `api_key` | Your authentication API key | - |
-| `inherits` | Inherit settings from another profile | - |
+| Field | Profile Option | Description | Required |
+|-------|---------------|-------------|----------|
+| `output` | Output format | `human` (default) | Yes |
+| `api_key` | Authentication API key | - | Yes |
+| `organization_id` | Organization identifier | - | Yes |
+| `updated_at` | Profile last-updated timestamp | ISO 8601 | Yes |
+| `endpoints` | API endpoint set | `iam`, `dash`, `ch` | Yes |
 
 ### Profile Management
 
@@ -153,12 +201,21 @@ api_key = "<your_api_key>"
 cubbit config switch-profile <profile_name>
 
 # List available profiles
-cubbit config list-profiles
+cubbit config profiles
+
+# View current configuration
+cubbit config view
+
+# Edit configuration in $EDITOR
+cubbit config edit
+
+# Validate configuration
+cubbit config validate
 ```
 
 ## Authentication
 
-Authentication is handled through API keys generated via secure browser-based login.
+Authentication is handled through API keys generated via secure browser-based login or inline password-based flow.
 
 ### Login Process
 
@@ -167,15 +224,41 @@ Authentication is handled through API keys generated via secure browser-based lo
    cubbit auth login --profile <profile_name>
    ```
 
-2. Your browser will open automatically for authentication
+2. Choose an authentication method when prompted:
+   - **Browser-based**: Opens your browser for device-code authentication
+   - **Inline**: Enter username, organization, and password directly
+   - **API key**: Provide an existing API key
 
-3. After successful login, copy the 8-digit verification code from the CLI prompt
+3. For browser-based login, copy the displayed one-time device code and enter it in the browser to complete authorization.
 
-4. Enter the code in your browser to complete authorization
+4. The CLI will automatically update your configuration with the new API key and organization ID.
 
-5. The CLI will automatically update your configuration with the new API key
+### Non-interactive Login
 
-![Authentication Flow](./assets/auth.gif)
+For scripting and automation, you can provide credentials via flags:
+
+```bash
+# Using username/password
+cubbit auth login --profile <profile_name> --username <user> --organization <org> --password <pass>
+
+# Using an API key
+cubbit auth login --profile <profile_name> --api-key <key>
+
+# Using environment variables
+API_KEY=<key> cubbit auth login --profile <profile_name>
+```
+
+**Warning**: Providing credentials via CLI flags may expose them in shell history and process lists. Prefer environment variables or interactive prompts.
+
+### Logout
+
+```bash
+# Logout from specific profile
+cubbit auth logout --profile <profile_name>
+
+# Logout from all profiles
+cubbit auth logout --all
+```
 
 ## Interactive Mode
 
@@ -194,7 +277,7 @@ Interactive mode provides step-by-step assistance for gateway configuration and 
 The CLI provides multiple modes for automation and scripting:
 
 - **Quiet mode** - Suppresses non-essential output
-- **Silent mode** - Designed for background operations
+- **Silent mode** - Redirects all output to /dev/null
 
 ```bash
 # Quiet mode example
@@ -204,21 +287,6 @@ cubbit tenant list --quiet
 cubbit swarm deploy --silent
 ```
 
-### Output Formats
-
-The CLI supports multiple output formats to suit different use cases:
-
-```bash
-# Human-readable (default)
-cubbit tenant list
-
-# JSON for scripting
-cubbit tenant list --output json
-
-# YAML for configuration
-cubbit tenant list --output yaml
-```
-
 ## Features
 
 - ✅ **Cross-platform Support** - Linux, macOS, Windows
@@ -226,7 +294,7 @@ cubbit tenant list --output yaml
 - ✅ **Interactive Workflows** - Guided setup processes
 - ✅ **Automation-friendly** - Scriptable with multiple output formats
 - ✅ **Comprehensive Documentation** - Built-in help system
-- ✅ **Secure Authentication** - Browser-based OAuth flow
+- ✅ **Secure Authentication** - Browser-based OAuth flow with device code
 
 ## Documentation
 

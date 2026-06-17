@@ -7,19 +7,19 @@ import (
 	"time"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
 	"github.com/cubbit/composer-cli/utils/interactive/interactive_tester"
 )
 
 func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	var capturedRequest *api.CreateGatewayV5Request
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{
@@ -33,7 +33,7 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, swarmID string,
+			_ configuration_models.EndpointsV2, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			switch swarmID {
 			case "swarm-001":
@@ -62,7 +62,7 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -73,7 +73,7 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			_ configuration.URLs, _ string, _ string, request *api.CreateGatewayV5Request,
+			_ configuration_models.EndpointsV2, _ string, _ string, request *api.CreateGatewayV5Request,
 		) (*api.CreateGatewayV5Response, error) {
 			capturedRequest = request
 			return &api.CreateGatewayV5Response{ID: "test-process-id"}, nil
@@ -82,7 +82,7 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 
 	mockProcessAPI := &api.MockProcessAPI{
 		GetProcessFunc: func(
-			_ configuration.URLs, _ string, _ string, processID string,
+			_ configuration_models.EndpointsV2, _ string, _ string, processID string,
 		) (*api.Process, error) {
 			data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-id-001"})
 			return &api.Process{
@@ -198,11 +198,11 @@ func TestGatewaySubCmd_Create_Interactive_Success(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_ClusterAPIError(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{Data: []api.ListSwarmV5ItemPresentation{}}, nil
 		},
@@ -210,7 +210,7 @@ func TestGatewaySubCmd_Create_Interactive_ClusterAPIError(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -218,7 +218,7 @@ func TestGatewaySubCmd_Create_Interactive_ClusterAPIError(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return nil, fmt.Errorf("connection refused")
 		},
@@ -251,11 +251,11 @@ func TestGatewaySubCmd_Create_Interactive_ClusterAPIError(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_NoClusters(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{Data: []api.ListSwarmV5ItemPresentation{}}, nil
 		},
@@ -263,7 +263,7 @@ func TestGatewaySubCmd_Create_Interactive_NoClusters(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -271,7 +271,7 @@ func TestGatewaySubCmd_Create_Interactive_NoClusters(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{}, nil
 		},
@@ -304,11 +304,11 @@ func TestGatewaySubCmd_Create_Interactive_NoClusters(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_SwarmAPIError(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return nil, fmt.Errorf("internal server error")
 		},
@@ -316,7 +316,7 @@ func TestGatewaySubCmd_Create_Interactive_SwarmAPIError(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -324,7 +324,7 @@ func TestGatewaySubCmd_Create_Interactive_SwarmAPIError(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -370,11 +370,11 @@ func TestGatewaySubCmd_Create_Interactive_SwarmAPIError(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_NoSwarms(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{Data: []api.ListSwarmV5ItemPresentation{}}, nil
 		},
@@ -382,7 +382,7 @@ func TestGatewaySubCmd_Create_Interactive_NoSwarms(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) ([]api.RedundancyClass, error) {
 			return nil, nil
 		},
@@ -390,7 +390,7 @@ func TestGatewaySubCmd_Create_Interactive_NoSwarms(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -436,11 +436,11 @@ func TestGatewaySubCmd_Create_Interactive_NoSwarms(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_NoRCForSwarm(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{
@@ -452,7 +452,7 @@ func TestGatewaySubCmd_Create_Interactive_NoRCForSwarm(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, swarmID string,
+			_ configuration_models.EndpointsV2, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			if swarmID == "swarm-001" {
 				return []api.RedundancyClass{}, nil
@@ -463,7 +463,7 @@ func TestGatewaySubCmd_Create_Interactive_NoRCForSwarm(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -512,11 +512,11 @@ func TestGatewaySubCmd_Create_Interactive_NoRCForSwarm(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{
@@ -530,7 +530,7 @@ func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, swarmID string,
+			_ configuration_models.EndpointsV2, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			switch swarmID {
 			case "swarm-002":
@@ -547,7 +547,7 @@ func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -558,7 +558,7 @@ func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ *api.CreateGatewayV5Request,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ *api.CreateGatewayV5Request,
 		) (*api.CreateGatewayV5Response, error) {
 			return nil, fmt.Errorf("rate limit exceeded")
 		},
@@ -616,7 +616,7 @@ func TestGatewaySubCmd_Create_Interactive_GatewayAPIFailure(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_ExistingGatewayProcess(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-id-001"})
 
@@ -649,11 +649,11 @@ func TestGatewaySubCmd_Create_Interactive_ExistingGatewayProcess(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockSwarmAPI := &api.MockSwarmAPI{
 		ListSwarmsV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ int, _ int,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ int, _ int,
 		) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{
@@ -667,7 +667,7 @@ func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 
 	mockRCApi := &api.MockRedundancyClassAPI{
 		ListRedundancyClassesBySwarmFunc: func(
-			_ configuration.URLs, _ string, _ string, swarmID string,
+			_ configuration_models.EndpointsV2, _ string, _ string, swarmID string,
 		) ([]api.RedundancyClass, error) {
 			switch swarmID {
 			case "swarm-002":
@@ -690,7 +690,7 @@ func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 
 	mockLocationAPI := &api.MockLocationAPI{
 		ListFunc: func(
-			_ configuration.URLs, _ string, _ string, _ ...api.LocationListOption,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ ...api.LocationListOption,
 		) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{ClusterID: "cluster-eu-01", Name: "EU cluster"},
@@ -701,7 +701,7 @@ func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			_ configuration.URLs, _ string, _ string, _ *api.CreateGatewayV5Request,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ *api.CreateGatewayV5Request,
 		) (*api.CreateGatewayV5Response, error) {
 			return &api.CreateGatewayV5Response{ID: "proc-fail"}, nil
 		},
@@ -709,7 +709,7 @@ func TestGatewaySubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 
 	mockProcessAPI := &api.MockProcessAPI{
 		GetProcessFunc: func(
-			_ configuration.URLs, _ string, _ string, processID string,
+			_ configuration_models.EndpointsV2, _ string, _ string, processID string,
 		) (*api.Process, error) {
 			data, _ := json.Marshal(api.GatewayCreationProcessData{
 				ID: "gateway-fail-id",

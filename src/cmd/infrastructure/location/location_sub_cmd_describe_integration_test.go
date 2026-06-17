@@ -8,9 +8,27 @@ import (
 	"time"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service"
 )
+
+func setupDescribeMockConfig() *configuration_handler.MockConfigurationHandler {
+	mockConfig := configuration_handler.NewMockConfigurationHandler()
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
+	return mockConfig
+}
 
 func TestLocationSubCmd_Describe_Integration_WithClusterName_Found(t *testing.T) {
 	baseTime, err := time.Parse("2006-01-02 15:04:05", "2024-01-15 10:30:00")
@@ -19,7 +37,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_Found(t *testing.T)
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -37,7 +55,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_Found(t *testing.T)
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -79,7 +97,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterID_Found(t *testing.T) {
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440001",
@@ -97,7 +115,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterID_Found(t *testing.T) {
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -143,7 +161,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_FullOutput(t *testi
 	internalIP := "10.0.0.10"
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -204,7 +222,7 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_FullOutput(t *testi
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -275,7 +293,7 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterName_WithMultipleClu
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -317,7 +335,7 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterName_WithMultipleClu
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -359,7 +377,7 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterID_WithMultipleClust
 	}
 
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -401,7 +419,7 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterID_WithMultipleClust
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -438,12 +456,12 @@ Cluster Information
 
 func TestLocationSubCmd_Describe_Integration_WithClusterName_NotFound(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{}, nil
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -471,12 +489,12 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_NotFound(t *testing
 
 func TestLocationSubCmd_Describe_Integration_WithClusterID_NotFound(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return []api.InfraAggregateCluster{}, nil
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -504,12 +522,12 @@ func TestLocationSubCmd_Describe_Integration_WithClusterID_NotFound(t *testing.T
 
 func TestLocationSubCmd_Describe_API_ReturnsError(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
 			return nil, fmt.Errorf("failed to connect to API")
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := setupDescribeMockConfig()
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 

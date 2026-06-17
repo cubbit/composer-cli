@@ -5,7 +5,7 @@ import (
 	"time"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 func init() {
 	wireGatewayAPI = func(m *api.MockGatewayAPI) {
 		m.CreateGatewayV5Func = func(
-			urls configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			orgID string,
 			req *api.CreateGatewayV5Request,
@@ -32,7 +32,7 @@ func init() {
 
 	wireSwarmAPI = func(m *api.MockSwarmAPI) {
 		m.ListSwarmsV5Func = func(
-			urls configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			orgID string,
 			page int,
@@ -72,7 +72,7 @@ func init() {
 
 	wireRedundancyClassAPI = func(m *api.MockRedundancyClassAPI) {
 		m.ListRedundancyClassesBySwarmFunc = func(
-			urls configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			swarmID string,
@@ -107,7 +107,7 @@ func init() {
 		}
 
 		m.GetProcessFunc = func(
-			urls configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			orgID string,
 			processID string,
@@ -151,7 +151,7 @@ func init() {
 
 	wireLocationAPI = func(m *api.MockLocationAPI) {
 		m.ListFunc = func(
-			urls configuration.URLs,
+			endpoints configuration_models.EndpointsV2,
 			apiKey string,
 			orgID string,
 			opts ...api.LocationListOption,

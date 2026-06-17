@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
 )
 
@@ -17,23 +17,23 @@ type Dependencies struct {
 	LocationAPI        api.LocationAPIInterface
 }
 
-func Create(deps Dependencies, cmd *cobra.Command, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs, interactiveMode bool) error {
-	if err := checkRunningGatewayProcess(deps, urls, resolvedProfile); err != nil {
+func Create(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, interactiveMode bool) error {
+	if err := checkRunningGatewayProcess(deps, profile.Endpoints, profile.APIKey, profile.OrganizationID); err != nil {
 		return err
 	}
 
 	if interactiveMode {
-		return createInteractive(deps, cmd, resolvedProfile, urls)
+		return createInteractive(deps, cmd, profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	}
 
-	return createInline(deps, cmd, resolvedProfile, urls)
+	return createInline(deps, cmd, profile.Endpoints, profile.APIKey, profile.OrganizationID)
 }
 
-func checkRunningGatewayProcess(deps Dependencies, urls configuration.URLs, resolvedProfile configuration.ResolvedProfile) error {
+func checkRunningGatewayProcess(deps Dependencies, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) error {
 	processes, err := deps.ProcessAPI.ListProcesses(
-		urls,
-		resolvedProfile.APIKey,
-		resolvedProfile.OrganizationID,
+		endpoints,
+		apiKey,
+		organizationID,
 		api.WithProcessType(api.ProcessTypeGatewayCreation),
 		api.WithProcessStatus(api.ProcessStatusRunning),
 	)

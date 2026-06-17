@@ -5,7 +5,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	utils "github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
@@ -15,13 +15,13 @@ type OperatorServiceInterface interface {
 }
 
 type OperatorService struct {
-	configuration *configuration.Config
+	configuration configuration_handler.ConfigurationHandlerInterface
 	operatorAPI   api.OperatorAPIInterface
 	userAPI       api.UserAPIInterface
 }
 
 func NewOperatorService(
-	configuration *configuration.Config,
+	configuration configuration_handler.ConfigurationHandlerInterface,
 	operatorAPI api.OperatorAPIInterface,
 	userAPI api.UserAPIInterface,
 ) *OperatorService {
@@ -33,16 +33,15 @@ func NewOperatorService(
 }
 
 func (s *OperatorService) Connect(cmd *cobra.Command, args []string) error {
-	var resolvedProfile *configuration.ResolvedProfile
-	var urls *configuration.URLs
 	var err error
 	var command string
 
-	if resolvedProfile, urls, err = s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer); err != nil {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	if command, err = s.operatorAPI.Connect(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID); err != nil {
+	if command, err = s.operatorAPI.Connect(profile.Endpoints, profile.APIKey, profile.OrganizationID); err != nil {
 		return fmt.Errorf("failed to connect to the operator: %w", err)
 	}
 
@@ -55,7 +54,7 @@ func (s *OperatorService) Connect(cmd *cobra.Command, args []string) error {
 		&utils.SmartOutputConfig[string]{
 			SingleResource:              true,
 			SingleResourceCompactOutput: true,
-			DefaultOutput:               resolvedProfile.Output,
+			DefaultOutput:               profile.Output,
 		},
 	)
 }

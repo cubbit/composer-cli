@@ -7,7 +7,7 @@ import (
 )
 
 func NewLocationSubCmdCreateVirtualNode(
-	locationService service.LocationServiceInterface,
+	locationServiceFn service.LocationServiceInterface,
 ) *cobra.Command {
 	var locationCreateVirtualNodeCmd = &cobra.Command{
 		Use:     "create-virtual-node",
@@ -20,7 +20,7 @@ func NewLocationSubCmdCreateVirtualNode(
 			cmd.MarkFlagRequired("configuration")
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := locationService.CreateVirtualNode(cmd, args); err != nil {
+			if err := locationServiceFn.CreateVirtualNode(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},

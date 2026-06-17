@@ -43,6 +43,43 @@ func TestAuthSubCmd_Structure_SignUp_WithAllRequiredFlags(t *testing.T) {
 	}
 }
 
+func TestAuthSubCmd_Structure_SignUp_WithEndpointsFlag(t *testing.T) {
+	mockService := service.NewAuthServiceMock()
+
+	var capturedEndpoints string
+	mockService.SignUpFunc = func(cmd *cobra.Command, args []string) error {
+		val, err := cmd.Flags().GetString("endpoints")
+		if err != nil {
+			return err
+		}
+		capturedEndpoints = val
+		cmd.Println("Mock: Operator signed up successfully")
+		return nil
+	}
+
+	authCmd := NewAuthCmd(mockService)
+
+	commandOutput := new(bytes.Buffer)
+	authCmd.SetOut(commandOutput)
+	authCmd.SetErr(commandOutput)
+	authCmd.SetArgs([]string{
+		"signup",
+		"--email", "t@t.com",
+		"--username", "u",
+		"--organization", "o",
+		"--endpoints", "/tmp/fake.yaml",
+	})
+
+	err := authCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if capturedEndpoints != "/tmp/fake.yaml" {
+		t.Fatalf("Expected endpoints flag value '/tmp/fake.yaml', got %q", capturedEndpoints)
+	}
+}
+
 func TestAuthSubCmd_Structure_SignUp_WithMissingFlag(t *testing.T) {
 	mockService := service.NewAuthServiceMock()
 

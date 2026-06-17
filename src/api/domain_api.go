@@ -3,38 +3,38 @@ package api
 import (
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 type DomainAPIInterface interface {
 	Create(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		request *CreateDomainRequestBody,
 	) (*DomainDTO, error)
 	Get(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		domainID string,
 	) (*DomainDTO, error)
 	List(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		page int,
 		itemPerPage int,
 	) (*GenericPaginatedResponse[DomainDTO], error)
 	Delete(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		domainID string,
 	) error
 	Verify(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		domainID string,
@@ -48,12 +48,12 @@ func NewDomainAPI() *DomainAPI {
 }
 
 func (api *DomainAPI) Create(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	request *CreateDomainRequestBody,
 ) (*DomainDTO, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "domains").
 		Build()
 
@@ -74,12 +74,12 @@ func (api *DomainAPI) Create(
 }
 
 func (api *DomainAPI) Get(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	domainID string,
 ) (*DomainDTO, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "domains", domainID).
 		Build()
 
@@ -99,13 +99,13 @@ func (api *DomainAPI) Get(
 }
 
 func (api *DomainAPI) List(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	page int,
 	itemPerPage int,
 ) (*GenericPaginatedResponse[DomainDTO], error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "domains").
 		QueryParamInt("page", page).
 		QueryParamInt("items", itemPerPage).
@@ -127,12 +127,12 @@ func (api *DomainAPI) List(
 }
 
 func (api *DomainAPI) Delete(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	domainID string,
 ) error {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "domains", domainID).
 		Build()
 
@@ -149,12 +149,12 @@ func (api *DomainAPI) Delete(
 }
 
 func (api *DomainAPI) Verify(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	domainID string,
 ) (*DomainVerifyResult, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "domains", domainID, "verify").
 		Build()
 

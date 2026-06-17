@@ -3,25 +3,25 @@ package api
 import (
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 type SwarmAPIInterface interface {
 	CreateSwarmV5(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		request *CreateSwarmV5Request,
 	) (*CreateSwarmV5Response, error)
 	GetSwarmV5(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		swarmID string,
 	) (*SwarmV5Presentation, error)
 	ListSwarmsV5(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		page int,
@@ -36,12 +36,12 @@ func NewSwarmAPI() *SwarmAPI {
 }
 
 func (api *SwarmAPI) CreateSwarmV5(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	request *CreateSwarmV5Request,
 ) (*CreateSwarmV5Response, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "swarms").
 		Build()
 
@@ -62,12 +62,12 @@ func (api *SwarmAPI) CreateSwarmV5(
 }
 
 func (api *SwarmAPI) GetSwarmV5(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	swarmID string,
 ) (*SwarmV5Presentation, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "swarms", swarmID).
 		Build()
 
@@ -87,13 +87,13 @@ func (api *SwarmAPI) GetSwarmV5(
 }
 
 func (api *SwarmAPI) ListSwarmsV5(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	page int,
 	items int,
 ) (*GenericPaginatedResponse[ListSwarmV5ItemPresentation], error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "swarms").
 		QueryParamInt("page", page).
 		QueryParamInt("items", items).

@@ -1,18 +1,17 @@
-// Package api provides functions to interact with the auth API.
 package api
 
 import (
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
-func RegisterDevice(urls configuration.URLs, uuid string) (*DeviceRegistrationResponse, error) {
+func RegisterDevice(endpoints configuration_models.EndpointsV2, uuid string) (*DeviceRegistrationResponse, error) {
 	var err error
 	var response DeviceRegistrationResponse
 
-	url := NewURLBuilder(urls.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "devices", "register").
 		Build()
 
@@ -33,11 +32,11 @@ func RegisterDevice(urls configuration.URLs, uuid string) (*DeviceRegistrationRe
 	return &response, nil
 }
 
-func GetDeviceAPIKey(urls configuration.URLs, deviceID string) (string, error) {
+func GetDeviceAPIKey(endpoints configuration_models.EndpointsV2, deviceID string) (string, error) {
 	var err error
 	var response string
 
-	url := NewURLBuilder(urls.IamURL).
+	url := NewURLBuilder(endpoints.IAM).
 		Path("v1", "devices", deviceID, "api-keys").
 		Build()
 

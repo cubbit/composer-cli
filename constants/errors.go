@@ -3,7 +3,6 @@ package constants
 const (
 	ErrorConfiguringAPIURL  = "error while configuring API server URL"
 	ErrorRetrievingOperator = "error while retrieving operator id"
-	ErrorSignIn             = "error while signing in"
 
 	ErrorSavingConfig        = "error while saving configuration"
 	ErrorLoadingConfig       = "error while loading file path configuration"
@@ -22,6 +21,7 @@ const (
 	ErrorRemovingOperator = "error while removing operator"
 
 	ErrorGettingOperatorRequest = "failed request to get operator"
+	ErrorSignIn                 = "error while signing in"
 	ErrorSignRequest            = "failed request to sign in"
 
 	ErrorCreatingOperatorRequest    = "failed to create operator request"
@@ -115,21 +115,28 @@ const (
 	ErrorRecoveringRedundancyClassRequest             = "failed request to recover redundancy class"
 	ErrorExpandingRedundancyClassRequest              = "failed request to expand redundancy class"
 
-	ErrorRetrievingTenantReportRequest  = "failed request to retrieve tenant report"
-	ErrorDownloadingTenantReportRequest = "failed request to download tenant report"
-	ErrorCreatingGatewayRequest         = "failed request to create gateway"
-	ErrorListingGatewaysRequest         = "failed request to list gateways"
-	ErrorRetrievingGatewayRequest       = "failed request to retrieve gateway"
-	ErrorDeletingGatewayRequest         = "failed request to delete gateway"
-	ErrorEditingGatewayRequest          = "failed request to edit gateway"
-	ErrorListingGatewayInstancesRequest = "failed request to list gateway instances"
-	ErrorTenantDNSAlreadyConfigured     = "tenant DNS is already configured"
-	ErrorWhileConfiguringTenantDNS      = "error while configuring tenant DNS"
-	ErrorWhileVerifyingTenantDNS        = "error while verifying tenant DNS"
+	ErrorRetrievingTenantReportRequest              = "failed request to retrieve tenant report"
+	ErrorDownloadingTenantReportRequest             = "failed request to download tenant report"
+	ErrorCreatingGatewayRequest                     = "failed request to create gateway"
+	ErrorListingGatewaysRequest                     = "failed request to list gateways"
+	ErrorRetrievingGatewayRequest                   = "failed request to retrieve gateway"
+	ErrorRetrievingGatewaySmartDataPlacementRequest = "failed request to retrieve gateway smart data placement rules"
+	ErrorDeletingGatewayRequest                     = "failed request to delete gateway"
+	ErrorEditingGatewayRequest                      = "failed request to edit gateway"
+	ErrorListingGatewayInstancesRequest             = "failed request to list gateway instances"
+	ErrorTenantDNSAlreadyConfigured                 = "tenant DNS is already configured"
+	ErrorWhileConfiguringTenantDNS                  = "error while configuring tenant DNS"
+	ErrorWhileVerifyingTenantDNS                    = "error while verifying tenant DNS"
 
 	ErrorDeletingProfile              = "error while deleting profile"
 	ErrorRetrievingAgentStatusRequest = "failed request to retrieve agent status"
 
+	// Config version errors
+	ErrorConfigVersionMissing  = "error while checking config version"
+	ErrorConfigVersionMismatch = "error while validating config version"
+	ErrorConfigLegacyField     = "error while parsing config: legacy field detected"
+
+	// Swarm v5 errors
 	ErrorCreatingSwarmV5Request = "failed request to create swarm v5"
 	ErrorValidatingSwarmConfig  = "error while validating swarm configuration"
 
@@ -138,6 +145,13 @@ const (
 	ErrorListingDomainsRequest   = "failed request to list domains"
 	ErrorDeletingDomainRequest   = "failed request to delete domain"
 	ErrorVerifyingDomainRequest  = "failed request to verify domain"
-	
+
+	// Gateway v5 errors
 	ErrorCreatingGatewayV5Request = "failed request to create gateway v5"
+
+	// Endpoints file errors
+	ErrorParsingEndpointsFile     = "error while parsing endpoints file"
+	ErrorEndpointsFileMissingBase = "error while validating endpoints file: required field 'base' is missing"
+	ErrorProfileNotFound          = "profile not found"
+	ErrorLoadingRootConfig        = "failed to load config"
 )

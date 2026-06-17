@@ -7,13 +7,13 @@ import (
 )
 
 func NewAuthSubCmdLogout(
-	authService service.AuthServiceInterface,
+	authServiceFn service.AuthServiceInterface,
 ) *cobra.Command {
 	var authLogoutCmd = &cobra.Command{
 		Use:   "logout",
 		Short: "Log out the user",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := authService.Logout(cmd, args); err != nil {
+			if err := authServiceFn.Logout(cmd, args); err != nil {
 				utils.PrintError(err)
 			}
 		},

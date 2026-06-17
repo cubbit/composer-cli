@@ -7,7 +7,7 @@ import (
 )
 
 func NewAuthSubCmdSignUp(
-	authService service.AuthServiceInterface,
+	authServiceFn service.AuthServiceInterface,
 ) *cobra.Command {
 	var authSignUpCmd = &cobra.Command{
 		Use:   "signup",
@@ -30,12 +30,16 @@ func NewAuthSubCmdSignUp(
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := authService.SignUp(cmd, args); err != nil {
+			if err := authServiceFn.SignUp(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},
 	}
 
+	authSignUpCmd.Flags().String("endpoints", "", "Path to endpoints file (.toml)")
+	authSignUpCmd.RegisterFlagCompletionFunc("endpoints", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"toml"}, cobra.ShellCompDirectiveFilterFileExt
+	})
 	authSignUpCmd.Flags().String("email", "", "Email address of the new user (required)")
 	authSignUpCmd.Flags().String("username", "", "Username of the new user (required)")
 	authSignUpCmd.Flags().String("first-name", "", "First name of the new user")

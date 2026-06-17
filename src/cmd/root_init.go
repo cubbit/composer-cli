@@ -5,9 +5,9 @@ import (
 	"os"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/service"
-	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
+	service_gateway "github.com/cubbit/composer-cli/src/service/gateway"
 	"github.com/spf13/cobra"
 )
 
@@ -42,33 +42,38 @@ func Execute(packageJSON []byte) {
 		os.Exit(1)
 	}
 
-	configuration, err := configuration.LoadConfig()
-	if err != nil {
-		panic("failed to load config: " + err.Error())
-	}
+	configurationHandler := configuration_handler.NewConfigurationHandler()
 
-	authAPI := api.NewAuthAPI(configuration)
-	operatorAPI := api.NewOperatorAPI(configuration)
+	authAPI := api.NewAuthAPI()
+	domainAPI := api.NewDomainAPI()
+	operatorAPI := api.NewOperatorAPI()
 	locationAPI := api.NewLocationAPI()
 	userAPI := api.NewUserAPI()
 	swarmAPI := api.NewSwarmAPI()
-	domainAPI := api.NewDomainAPI()
 	processAPI := api.NewProcessAPI()
-
-	agentService := service.NewAgentService(configuration)
-	authService := service.NewAuthService(configuration, authAPI, userAPI)
-	locationService := service.NewLocationService(configuration, locationAPI, userAPI)
-	operatorService := service.NewOperatorService(configuration, operatorAPI, userAPI)
-	configService := service.NewConfigService(configuration)
-	redundancyClassValidator := service.NewRedundancyClassValidator()
-	swarmService := service.NewSwarmService(configuration, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
-	domainService := service.NewDomainService(configuration, domainAPI, userAPI)
-
 	gatewayAPI := api.NewGatewayAPI()
 	redundancyClassAPI := api.NewRedundancyClassAPI()
-	gatewayService := servicegateway.NewGatewayService(configuration, gatewayAPI, swarmAPI, redundancyClassAPI, processAPI, locationAPI)
 
-	rootCmd := NewRootCommand(agentService, authService, operatorService, locationService, configService, swarmService, domainService, gatewayService, pkg.Version)
+	authService := service.NewAuthService(configurationHandler, authAPI, userAPI)
+	configService := service.NewConfigService(configurationHandler)
+	locationService := service.NewLocationService(configurationHandler, locationAPI, userAPI)
+	operatorService := service.NewOperatorService(configurationHandler, operatorAPI, userAPI)
+	redundancyClassValidator := service.NewRedundancyClassValidator()
+	swarmService := service.NewSwarmService(configurationHandler, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
+	domainService := service.NewDomainService(configurationHandler, domainAPI, userAPI)
+	gatewayService := service_gateway.NewGatewayService(configurationHandler, gatewayAPI, swarmAPI, redundancyClassAPI, processAPI, locationAPI)
+
+	rootCmd := NewRootCommand(
+		configurationHandler,
+		authService,
+		operatorService,
+		locationService,
+		configService,
+		swarmService,
+		domainService,
+		gatewayService,
+		pkg.Version,
+	)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

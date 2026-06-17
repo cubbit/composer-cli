@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
@@ -45,20 +45,20 @@ func buildProfileTypeQuery(filter *LocationProfileFilter) string {
 
 type LocationAPIInterface interface {
 	List(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		opts ...LocationListOption,
 	) ([]InfrastructureCluster, error)
 	ListAggregated(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		opts ...LocationListOption,
 	) ([]InfraAggregateCluster, error)
 
 	CreateVirtualCluster(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		name string,
@@ -66,7 +66,7 @@ type LocationAPIInterface interface {
 	) (*InfrastructureCluster, error)
 
 	CreateVirtualNode(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		clusterID string,
@@ -83,7 +83,7 @@ func NewLocationAPI() *LocationAPI {
 }
 
 func (api *LocationAPI) List(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	opts ...LocationListOption,
@@ -93,7 +93,7 @@ func (api *LocationAPI) List(
 		opt(options)
 	}
 
-	builder := NewURLBuilder(urlConfig.ChURL).
+	builder := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "infra", "clusters")
 
 	if options.ProfileType != nil {
@@ -118,7 +118,7 @@ func (api *LocationAPI) List(
 }
 
 func (api *LocationAPI) ListAggregated(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	opts ...LocationListOption,
@@ -128,7 +128,7 @@ func (api *LocationAPI) ListAggregated(
 		opt(options)
 	}
 
-	builder := NewURLBuilder(urlConfig.ChURL).
+	builder := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "infra", "aggregate_clusters")
 
 	if options.ProfileType != nil {
@@ -153,13 +153,13 @@ func (api *LocationAPI) ListAggregated(
 }
 
 func (api *LocationAPI) CreateVirtualCluster(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	name string,
 	description *string,
 ) (*InfrastructureCluster, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "infra", "clusters", "virtual").
 		Build()
 
@@ -183,7 +183,7 @@ func (api *LocationAPI) CreateVirtualCluster(
 }
 
 func (api *LocationAPI) CreateVirtualNode(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	clusterID string,
@@ -191,7 +191,7 @@ func (api *LocationAPI) CreateVirtualNode(
 	storageType string,
 	configuration map[string]any,
 ) (*InfraAggregateVirtualNodeDetail, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "infra", "clusters", "virtual", clusterID, "nodes").
 		Build()
 

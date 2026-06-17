@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
@@ -86,19 +86,19 @@ func WithFilter(filter string) ListGatewaysV5Option {
 
 type GatewayAPIInterface interface {
 	CreateGatewayV5(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		request *CreateGatewayV5Request,
 	) (*CreateGatewayV5Response, error)
 	GetGatewayV5(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		gatewayID string,
 	) (*GatewayV5GetResponse, error)
 	ListGatewaysV5(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		opts ...ListGatewaysV5Option,
@@ -112,12 +112,12 @@ func NewGatewayAPI() *GatewayAPI {
 }
 
 func (api *GatewayAPI) CreateGatewayV5(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	request *CreateGatewayV5Request,
 ) (*CreateGatewayV5Response, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "gateways").
 		Build()
 
@@ -138,12 +138,12 @@ func (api *GatewayAPI) CreateGatewayV5(
 }
 
 func (api *GatewayAPI) GetGatewayV5(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	gatewayID string,
 ) (*GatewayV5GetResponse, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "gateways", gatewayID).
 		Build()
 
@@ -163,7 +163,7 @@ func (api *GatewayAPI) GetGatewayV5(
 }
 
 func (api *GatewayAPI) ListGatewaysV5(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	opts ...ListGatewaysV5Option,
@@ -177,7 +177,7 @@ func (api *GatewayAPI) ListGatewaysV5(
 		opt(options)
 	}
 
-	urlBuilder := NewURLBuilder(urlConfig.ChURL).
+	urlBuilder := NewURLBuilder(endpoints.CH).
 		Path("v5", "organizations", organizationID, "gateways").
 		QueryParamInt("page", options.Page).
 		QueryParamInt("items", options.Items)

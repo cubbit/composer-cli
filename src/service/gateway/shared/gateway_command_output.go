@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/cubbit/composer-cli/constants"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
 )
 
-func ResolveCommandOutput(cmd *cobra.Command, defaultOutput configuration.OutputFormat) (string, error) {
+func ResolveCommandOutput(cmd *cobra.Command, defaultOutput configuration_models.OutputFormat) (string, error) {
 	output, err := cmd.Flags().GetString("output")
 	if err != nil {
 		return "", fmt.Errorf("%s output: %w", constants.ErrorRetrievingField, err)

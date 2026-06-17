@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service"
 )
 
 func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
@@ -29,7 +30,19 @@ func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := configuration_handler.NewMockConfigurationHandler()
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -64,12 +77,24 @@ func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 
 func TestLocationSubCmd_List_Integration_Empty(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{}, nil
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := configuration_handler.NewMockConfigurationHandler()
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 
@@ -102,12 +127,24 @@ func TestLocationSubCmd_List_Integration_Empty(t *testing.T) {
 
 func TestLocationSubCmd_List_Integration_Error(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{
-		ListFunc: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
+		ListFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return nil, errors.New("failed to list locations")
 		},
 	}
 
-	mockConfig := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockConfig := configuration_handler.NewMockConfigurationHandler()
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
 

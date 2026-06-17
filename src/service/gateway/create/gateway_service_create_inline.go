@@ -6,27 +6,27 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
 
-func createInline(deps Dependencies, cmd *cobra.Command, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) error {
+func createInline(deps Dependencies, cmd *cobra.Command, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) error {
 	createRequest, err := collectGatewayCreateFlags(cmd)
 	if err != nil {
 		return err
 	}
 
-	response, err := deps.GatewayAPI.CreateGatewayV5(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, createRequest)
+	response, err := deps.GatewayAPI.CreateGatewayV5(endpoints, apiKey, organizationID, createRequest)
 	if err != nil {
 		return fmt.Errorf("failed to create gateway: %w", err)
 	}
 
 	process, err := deps.ProcessAPI.GetProcess(
-		urls,
-		resolvedProfile.APIKey,
-		resolvedProfile.OrganizationID,
+		endpoints,
+		apiKey,
+		organizationID,
 		response.ID,
 	)
 	if err != nil {

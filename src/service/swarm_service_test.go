@@ -7,16 +7,29 @@ import (
 	"time"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 )
 
 func TestSwarmService_Describe_WithPositionalID_Human(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 	description := "Test swarm"
 	mockSwarmAPI := &api.MockSwarmAPI{
-		GetSwarmV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
+		GetSwarmV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -68,11 +81,23 @@ func TestSwarmService_Describe_WithPositionalID_Human(t *testing.T) {
 }
 
 func TestSwarmService_Describe_WithSwarmName_JSON(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			if page != 1 || items != 1000 {
 				t.Fatalf("Expected default pagination to resolve swarm by name, got page=%d items=%d", page, items)
 			}
@@ -88,7 +113,7 @@ func TestSwarmService_Describe_WithSwarmName_JSON(t *testing.T) {
 				},
 			}, nil
 		},
-		GetSwarmV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
+		GetSwarmV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
 			if swarmID != "swarm-456" {
 				t.Fatalf("Expected resolved swarm ID swarm-456, got %q", swarmID)
 			}
@@ -132,11 +157,23 @@ func TestSwarmService_Describe_WithSwarmName_JSON(t *testing.T) {
 }
 
 func TestSwarmService_Describe_WithSwarmName_PaginatesUntilFound(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	callCount := 0
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			callCount++
 			if items != 1000 {
 				t.Fatalf("Expected items per page 1000, got %d", items)
@@ -171,7 +208,7 @@ func TestSwarmService_Describe_WithSwarmName_PaginatesUntilFound(t *testing.T) {
 				return nil, nil
 			}
 		},
-		GetSwarmV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
+		GetSwarmV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
 			if swarmID != "swarm-789" {
 				t.Fatalf("Expected resolved swarm ID swarm-789, got %q", swarmID)
 			}
@@ -209,10 +246,22 @@ func TestSwarmService_Describe_WithSwarmName_PaginatesUntilFound(t *testing.T) {
 }
 
 func TestSwarmService_Describe_WithUnknownSwarmName(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{},
 			}, nil
@@ -236,13 +285,25 @@ func TestSwarmService_Describe_WithUnknownSwarmName(t *testing.T) {
 }
 
 func TestSwarmService_List_Human(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 	status := api.EvaluatedStatusType("online")
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -292,12 +353,24 @@ func TestSwarmService_List_Human(t *testing.T) {
 }
 
 func TestSwarmService_List_JSON(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{
 					{
@@ -334,11 +407,23 @@ func TestSwarmService_List_JSON(t *testing.T) {
 }
 
 func TestSwarmService_List_Pagination(t *testing.T) {
-	mockCfg := configuration.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	callCount := 0
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			callCount++
 			if callCount == 1 {
 				return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{

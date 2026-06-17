@@ -8,7 +8,8 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/tui"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
@@ -23,7 +24,7 @@ type SwarmServiceInterface interface {
 }
 
 type SwarmService struct {
-	configuration            configuration.ConfigInterface
+	configuration            configuration_handler.ConfigurationHandlerInterface
 	swarmAPI                 api.SwarmAPIInterface
 	locationAPI              api.LocationAPIInterface
 	processAPI               api.ProcessAPIInterface
@@ -31,7 +32,7 @@ type SwarmService struct {
 }
 
 func NewSwarmService(
-	configuration configuration.ConfigInterface,
+	configuration configuration_handler.ConfigurationHandlerInterface,
 	swarmAPI api.SwarmAPIInterface,
 	locationAPI api.LocationAPIInterface,
 	processAPI api.ProcessAPIInterface,
@@ -47,12 +48,12 @@ func NewSwarmService(
 }
 
 func (s SwarmService) CreateInteractive(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return createInteractive(resolvedProfile, urls, s.swarmAPI, s.locationAPI, s.processAPI, s.redundancyClassValidator)
+	return createInteractive(profile, s.swarmAPI, s.locationAPI, s.processAPI, s.redundancyClassValidator)
 }
 
 type infrastructureLimits struct {
@@ -62,14 +63,13 @@ type infrastructureLimits struct {
 }
 
 func createInteractive(
-	profile *configuration.ResolvedProfile,
-	urls *configuration.URLs,
+	profile configuration_models.ProfileV2,
 	swarmAPI api.SwarmAPIInterface,
 	locationAPI api.LocationAPIInterface,
 	processAPI api.ProcessAPIInterface,
 	rcValidator RedundancyClassValidatorInterface,
 ) error {
-	existing, err := checkExistingProcess(processAPI, profile, urls)
+	existing, err := checkExistingProcess(processAPI, profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func createInteractive(
 		return nil
 	}
 
-	clusters, nodeIDsByCluster, totalNodes, err := selectInfrastructure(locationAPI, profile, urls)
+	clusters, nodeIDsByCluster, totalNodes, err := selectInfrastructure(locationAPI, profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	if err != nil {
 		return err
 	}
@@ -119,11 +119,16 @@ func createInteractive(
 		return nil
 	}
 
-	return submitSwarm(swarmAPI, processAPI, rcValidator, profile, urls, name, description, clusters, nodeIDsByCluster, redundancyClasses)
+	return submitSwarm(swarmAPI, processAPI, rcValidator, profile.Endpoints, profile.APIKey, profile.OrganizationID, name, description, clusters, nodeIDsByCluster, redundancyClasses)
 }
 
-func checkExistingProcess(processAPI api.ProcessAPIInterface, profile *configuration.ResolvedProfile, urls *configuration.URLs) (bool, error) {
-	processes, err := processAPI.ListProcesses(*urls, profile.APIKey, profile.OrganizationID, api.WithProcessType(api.ProcessTypeSwarmCreation))
+func checkExistingProcess(processAPI api.ProcessAPIInterface, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) (bool, error) {
+	processes, err := processAPI.ListProcesses(
+		endpoints,
+		apiKey,
+		organizationID,
+		api.WithProcessType(api.ProcessTypeSwarmCreation),
+	)
 	if err != nil {
 		return false, nil
 	}
@@ -139,7 +144,7 @@ func checkExistingProcess(processAPI api.ProcessAPIInterface, profile *configura
 				return false, err
 			}
 			if choice == "Monitor existing process" {
-				monitorSwarmCreation(processAPI, *urls, profile.APIKey, profile.OrganizationID, proc.ID)
+				monitorSwarmCreation(processAPI, endpoints, apiKey, organizationID, proc.ID)
 			}
 			return true, nil
 		}
@@ -169,10 +174,11 @@ func collectSwarmInfo() (name string, description string, err error) {
 
 func selectInfrastructure(
 	locationAPI api.LocationAPIInterface,
-	profile *configuration.ResolvedProfile,
-	urls *configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
 ) ([]api.InfraAggregateCluster, map[string][]string, int, error) {
-	clusters, err := locationAPI.ListAggregated(*urls, profile.APIKey, profile.OrganizationID)
+	clusters, err := locationAPI.ListAggregated(endpoints, apiKey, organizationID)
 	if err != nil {
 		tui.ShowError(fmt.Sprintf("Failed to fetch locations: %v", err))
 		return nil, nil, 0, nil
@@ -555,8 +561,9 @@ func submitSwarm(
 	swarmAPI api.SwarmAPIInterface,
 	processAPI api.ProcessAPIInterface,
 	rcValidator RedundancyClassValidatorInterface,
-	profile *configuration.ResolvedProfile,
-	urls *configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
 	name string,
 	description string,
 	clusters []api.InfraAggregateCluster,
@@ -582,12 +589,12 @@ func submitSwarm(
 		RedundancyClasses: redundancyClasses,
 	}
 
-	response, err := swarmAPI.CreateSwarmV5(*urls, profile.APIKey, profile.OrganizationID, createRequest)
+	response, err := swarmAPI.CreateSwarmV5(endpoints, apiKey, organizationID, createRequest)
 	if err != nil {
 		return fmt.Errorf("failed to create swarm: %w", err)
 	}
 
-	monitorSwarmCreation(processAPI, *urls, profile.APIKey, profile.OrganizationID, response.ID)
+	monitorSwarmCreation(processAPI, endpoints, apiKey, organizationID, response.ID)
 
 	return nil
 }
@@ -695,13 +702,13 @@ func stepLabel(s api.ProcessStep) string {
 
 func monitorSwarmCreation(
 	processAPI api.ProcessAPIInterface,
-	urls configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	processID string,
 ) {
 	pollFn := func() (string, string, int, error) {
-		detail, err := processAPI.GetProcess(urls, apiKey, organizationID, processID)
+		detail, err := processAPI.GetProcess(endpoints, apiKey, organizationID, processID)
 		if err != nil {
 			return "", "", 0, err
 		}
@@ -721,7 +728,7 @@ func monitorSwarmCreation(
 }
 
 func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -751,7 +758,7 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s redundancy-class-file: %w", constants.ErrorRetrievingField, err)
 	}
 
-	nexuses, err := s.parseNexuses(cmd, nexusFlags, *resolvedProfile, *urls)
+	nexuses, err := s.parseNexuses(cmd, nexusFlags, profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	if err != nil {
 		return err
 	}
@@ -766,9 +773,9 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 	}
 
 	processes, err := s.processAPI.ListProcesses(
-		*urls,
-		resolvedProfile.APIKey,
-		resolvedProfile.OrganizationID,
+		profile.Endpoints,
+		profile.APIKey,
+		profile.OrganizationID,
 		api.WithProcessType(api.ProcessTypeSwarmCreation),
 		api.WithProcessStatus(api.ProcessStatusRunning),
 	)
@@ -788,7 +795,7 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 		RedundancyClasses: redundancyClasses,
 	}
 
-	response, err := s.swarmAPI.CreateSwarmV5(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, createRequest)
+	response, err := s.swarmAPI.CreateSwarmV5(profile.Endpoints, profile.APIKey, profile.OrganizationID, createRequest)
 	if err != nil {
 		return fmt.Errorf("failed to create swarm: %w", err)
 	}
@@ -797,27 +804,27 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 }
 
 func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	swarmID, err := s.resolveSwarmID(cmd, args, *resolvedProfile, *urls)
+	swarmID, err := s.resolveSwarmID(cmd, args, profile.Endpoints, profile.APIKey, profile.OrganizationID, profile.Output)
 	if err != nil {
 		return err
 	}
 
-	swarm, err := s.swarmAPI.GetSwarmV5(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, swarmID)
+	swarm, err := s.swarmAPI.GetSwarmV5(profile.Endpoints, profile.APIKey, profile.OrganizationID, swarmID)
 	if err != nil {
 		return fmt.Errorf("failed to describe swarm: %w", err)
 	}
 
-	output, err := resolveCommandOutput(cmd, resolvedProfile.Output)
+	output, err := resolveCommandOutput(cmd, profile.Output)
 	if err != nil {
 		return err
 	}
 
-	if output == string(configuration.OutputHuman) {
+	if output == string(configuration_models.OutputHuman) {
 		return PrintSwarmDetails(cmd, *swarm)
 	}
 
@@ -826,22 +833,22 @@ func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
 }
 
 func (s SwarmService) List(cmd *cobra.Command, args []string) error {
-	resolvedProfile, urls, err := s.configuration.ResolveProfileAndURLs(cmd, configuration.ProfileTypeComposer)
+	profile, err := s.configuration.GetActiveProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	allSwarms, err := s.fetchAllSwarms(*urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+	allSwarms, err := s.fetchAllSwarms(profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	if err != nil {
 		return fmt.Errorf("failed to list swarms: %w", err)
 	}
 
-	output, err := resolveCommandOutput(cmd, resolvedProfile.Output)
+	output, err := resolveCommandOutput(cmd, profile.Output)
 	if err != nil {
 		return err
 	}
 
-	if output == string(configuration.OutputHuman) {
+	if output == string(configuration_models.OutputHuman) {
 		return PrintSwarmList(cmd, allSwarms)
 	}
 
@@ -849,13 +856,13 @@ func (s SwarmService) List(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (s SwarmService) fetchAllSwarms(urls configuration.URLs, apiKey string, organizationID string) ([]api.ListSwarmV5ItemPresentation, error) {
+func (s SwarmService) fetchAllSwarms(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) ([]api.ListSwarmV5ItemPresentation, error) {
 	page := 1
 	itemsPerPage := 100
 	var all []api.ListSwarmV5ItemPresentation
 
 	for {
-		response, err := s.swarmAPI.ListSwarmsV5(urls, apiKey, organizationID, page, itemsPerPage)
+		response, err := s.swarmAPI.ListSwarmsV5(endpoints, apiKey, organizationID, page, itemsPerPage)
 		if err != nil {
 			return nil, err
 		}
@@ -872,7 +879,7 @@ func (s SwarmService) fetchAllSwarms(urls configuration.URLs, apiKey string, org
 	return all, nil
 }
 
-func (s SwarmService) resolveSwarmID(cmd *cobra.Command, args []string, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) (string, error) {
+func (s SwarmService) resolveSwarmID(cmd *cobra.Command, args []string, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, output configuration_models.OutputFormat) (string, error) {
 	identifiers := 0
 
 	swarmIDFlag, err := cmd.Flags().GetString("swarm-id")
@@ -911,19 +918,19 @@ func (s SwarmService) resolveSwarmID(cmd *cobra.Command, args []string, resolved
 		return swarmIDFlag, nil
 	}
 
-	swarmID, err := s.resolveSwarmIDByName(urls, resolvedProfile, swarmNameFlag)
+	swarmID, err := s.resolveSwarmIDByName(endpoints, apiKey, organizationID, swarmNameFlag)
 	if err != nil {
 		return "", err
 	}
 	return swarmID, nil
 }
 
-func (s SwarmService) resolveSwarmIDByName(urls configuration.URLs, resolvedProfile configuration.ResolvedProfile, swarmName string) (string, error) {
+func (s SwarmService) resolveSwarmIDByName(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmName string) (string, error) {
 	page := 1
 	const itemsPerPage = 1000
 
 	for {
-		response, err := s.swarmAPI.ListSwarmsV5(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, page, itemsPerPage)
+		response, err := s.swarmAPI.ListSwarmsV5(endpoints, apiKey, organizationID, page, itemsPerPage)
 		if err != nil {
 			return "", fmt.Errorf("failed to resolve swarm name '%s': %w", swarmName, err)
 		}
@@ -949,8 +956,8 @@ func (s SwarmService) resolveSwarmIDByName(urls configuration.URLs, resolvedProf
 	return "", fmt.Errorf("swarm with name '%s' not found", swarmName)
 }
 
-func (s SwarmService) parseNexuses(cmd *cobra.Command, nexusFlags []string, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) ([]api.NexusV5Request, error) {
-	clusters, err := s.locationAPI.ListAggregated(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+func (s SwarmService) parseNexuses(cmd *cobra.Command, nexusFlags []string, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) ([]api.NexusV5Request, error) {
+	clusters, err := s.locationAPI.ListAggregated(endpoints, apiKey, organizationID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch cluster information: %w", err)
 	}
@@ -1088,7 +1095,7 @@ func (s SwarmService) parseRedundancyClasses(rcFlags []string, rcFile string) ([
 	return redundancyClasses, nil
 }
 
-func resolveCommandOutput(cmd *cobra.Command, defaultOutput configuration.OutputFormat) (string, error) {
+func resolveCommandOutput(cmd *cobra.Command, defaultOutput configuration_models.OutputFormat) (string, error) {
 	output, err := cmd.Flags().GetString("output")
 	if err != nil {
 		return "", fmt.Errorf("%s output: %w", constants.ErrorRetrievingField, err)

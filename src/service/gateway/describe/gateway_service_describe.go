@@ -6,7 +6,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service/gateway/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
@@ -16,23 +16,23 @@ type Dependencies struct {
 	GatewayAPI api.GatewayAPIInterface
 }
 
-func Describe(deps Dependencies, cmd *cobra.Command, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs, args []string) error {
-	gatewayID, err := resolveGatewayID(deps, cmd, args, resolvedProfile, urls)
+func Describe(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, args []string) error {
+	gatewayID, err := resolveGatewayID(deps, cmd, args, profile)
 	if err != nil {
 		return err
 	}
 
-	gateway, err := deps.GatewayAPI.GetGatewayV5(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, gatewayID)
+	gateway, err := deps.GatewayAPI.GetGatewayV5(profile.Endpoints, profile.APIKey, profile.OrganizationID, gatewayID)
 	if err != nil {
 		return fmt.Errorf("failed to describe gateway: %w", err)
 	}
 
-	output, err := shared.ResolveCommandOutput(cmd, resolvedProfile.Output)
+	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
 	if err != nil {
 		return err
 	}
 
-	if output == string(configuration.OutputHuman) {
+	if output == string(configuration_models.OutputHuman) {
 		return PrintGatewayDetails(cmd, *gateway)
 	}
 
@@ -40,7 +40,7 @@ func Describe(deps Dependencies, cmd *cobra.Command, resolvedProfile configurati
 	return nil
 }
 
-func resolveGatewayID(deps Dependencies, cmd *cobra.Command, args []string, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) (string, error) {
+func resolveGatewayID(deps Dependencies, cmd *cobra.Command, args []string, profile configuration_models.ProfileV2) (string, error) {
 	identifiers := 0
 
 	gatewayIDFlag, err := cmd.Flags().GetString("gateway-id")
@@ -79,22 +79,22 @@ func resolveGatewayID(deps Dependencies, cmd *cobra.Command, args []string, reso
 		return gatewayIDFlag, nil
 	}
 
-	gatewayID, err := resolveGatewayIDByName(deps, urls, resolvedProfile, gatewayNameFlag)
+	gatewayID, err := resolveGatewayIDByName(deps, profile, gatewayNameFlag)
 	if err != nil {
 		return "", err
 	}
 	return gatewayID, nil
 }
 
-func resolveGatewayIDByName(deps Dependencies, urls configuration.URLs, resolvedProfile configuration.ResolvedProfile, gatewayName string) (string, error) {
+func resolveGatewayIDByName(deps Dependencies, profile configuration_models.ProfileV2, gatewayName string) (string, error) {
 	page := 1
 	const itemsPerPage = 1000
 
 	for {
 		response, err := deps.GatewayAPI.ListGatewaysV5(
-			urls,
-			resolvedProfile.APIKey,
-			resolvedProfile.OrganizationID,
+			profile.Endpoints,
+			profile.APIKey,
+			profile.OrganizationID,
 			api.WithPage(page),
 			api.WithItems(itemsPerPage),
 			api.WithFilter(fmt.Sprintf("name:eq(%s)", gatewayName)),

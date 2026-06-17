@@ -6,21 +6,21 @@ import (
 )
 
 func NewLocationCmd(
-	locationService service.LocationServiceInterface,
+	locationServiceFn service.LocationServiceInterface,
 ) *cobra.Command {
 	var locationCmd = &cobra.Command{
 		Use:   "location",
 		Short: "Execute commands in location sections",
 	}
 
-	locationListSubCmd := NewLocationSubCmdList(locationService)
-	locationDescribeSubCmd := NewLocationSubCmdDescribe(locationService)
+	locationListSubCmd := NewLocationSubCmdList(locationServiceFn)
+	locationDescribeSubCmd := NewLocationSubCmdDescribe(locationServiceFn)
 	locationCmd.AddCommand(locationListSubCmd, locationDescribeSubCmd)
 
-	createVirtualCMD := NewLocationSubCmdCreateVirtual(locationService)
+	createVirtualCMD := NewLocationSubCmdCreateVirtual(locationServiceFn)
 	locationCmd.AddCommand(createVirtualCMD)
 
-	createVirtualNodeCMD := NewLocationSubCmdCreateVirtualNode(locationService)
+	createVirtualNodeCMD := NewLocationSubCmdCreateVirtualNode(locationServiceFn)
 	locationCmd.AddCommand(createVirtualNodeCMD)
 
 	return locationCmd

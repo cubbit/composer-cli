@@ -23,8 +23,11 @@ func NewAuthSubCmdLogin(
 		},
 	}
 
-	authLoginSubCmd.Flags().String("endpoint", "", "Endpoint to connect to (default: use configured endpoint)")
-	authLoginSubCmd.Flags().StringP("profile", "P", "", "Profile to use for login (default: use active profile)")
+	authLoginSubCmd.Flags().String("endpoints", "", "Path to endpoints file (.toml)")
+	authLoginSubCmd.RegisterFlagCompletionFunc("endpoints", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"toml"}, cobra.ShellCompDirectiveFilterFileExt
+	})
+	authLoginSubCmd.Flags().StringP("profile", "P", "", "Profile to setup in the login (required)")
 	authLoginSubCmd.Flags().StringP("username", "u", "", "Username of the operator")
 	authLoginSubCmd.Flags().StringP("organization", "o", "", "Organization name of the operator")
 	authLoginSubCmd.Flags().StringP("password", "p", "", "Password of the operator (WARNING: providing passwords via CLI flags may expose them in shell history, process lists, and logs; prefer PASSWORD environment variables, or interactive prompts)")

@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service"
 	"github.com/spf13/cobra"
 )
@@ -26,14 +27,26 @@ func setupDescribeIntegrationCommand(swarmService service.SwarmServiceInterface)
 }
 
 func TestSwarmSubCmd_Describe_Integration_Success_WithSwarmName(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 	description := "Test swarm"
 	status := api.EvaluatedStatusType("online")
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -55,7 +68,7 @@ func TestSwarmSubCmd_Describe_Integration_Success_WithSwarmName(t *testing.T) {
 				},
 			}, nil
 		},
-		GetSwarmV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
+		GetSwarmV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
 			if swarmID != "swarm-123" {
 				t.Fatalf("Expected resolved swarm ID swarm-123, got %q", swarmID)
 			}
@@ -131,10 +144,22 @@ Configuration:
 }
 
 func TestSwarmSubCmd_Describe_Integration_Error(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		GetSwarmV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
+		GetSwarmV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
 			return nil, errors.New("network error")
 		},
 	}
@@ -158,13 +183,25 @@ func TestSwarmSubCmd_Describe_Integration_Error(t *testing.T) {
 }
 
 func TestSwarmSubCmd_Describe_Integration_Success_WithPositionalID(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 	status := api.EvaluatedStatusType("online")
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		GetSwarmV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
+		GetSwarmV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) (*api.SwarmV5Presentation, error) {
 			if swarmID != "swarm-123" {
 				t.Fatalf("Expected swarm ID swarm-123, got %q", swarmID)
 			}

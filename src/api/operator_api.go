@@ -4,35 +4,32 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
 type OperatorAPIInterface interface {
 	Connect(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 	) (string, error)
 }
 
-type OperatorAPI struct {
-	config configuration.Config
-}
+type OperatorAPI struct{}
 
-func NewOperatorAPI(config *configuration.Config) *OperatorAPI {
-	return &OperatorAPI{
-		config: *config,
-	}
+func NewOperatorAPI() *OperatorAPI {
+	return &OperatorAPI{}
+
 }
 
 func (api *OperatorAPI) Connect(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 ) (string, error) {
 
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "infra", "generate-connect-cmd").
 		Build()
 

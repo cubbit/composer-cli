@@ -7,15 +7,15 @@ import (
 	"time"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/interactive"
 	"github.com/cubbit/composer-cli/utils/interactive/tui/input"
 	"github.com/spf13/cobra"
 )
 
-func createInteractive(deps Dependencies, cmd *cobra.Command, resolvedProfile configuration.ResolvedProfile, urls configuration.URLs) error {
-	createRequest, err := promptForGatewayCreate(deps, cmd, resolvedProfile, urls)
+func createInteractive(deps Dependencies, cmd *cobra.Command, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) error {
+	createRequest, err := promptForGatewayCreate(deps, cmd, endpoints, apiKey, organizationID)
 	if err != nil {
 		if errors.Is(err, interactive.ErrCancelled) {
 			utils.PrintErrorWithWriter(cmd.ErrOrStderr(), fmt.Errorf("command was cancelled"))
@@ -24,12 +24,12 @@ func createInteractive(deps Dependencies, cmd *cobra.Command, resolvedProfile co
 		return err
 	}
 
-	response, err := deps.GatewayAPI.CreateGatewayV5(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, createRequest)
+	response, err := deps.GatewayAPI.CreateGatewayV5(endpoints, apiKey, organizationID, createRequest)
 	if err != nil {
 		return fmt.Errorf("failed to create gateway: %w", err)
 	}
 
-	return waitForGatewayDeployment(deps, cmd, urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, response.ID)
+	return waitForGatewayDeployment(deps, cmd, endpoints, apiKey, organizationID, response.ID)
 }
 
 var gatewayStepOrder = []api.ProcessStep{
@@ -55,7 +55,7 @@ func stepProgress(step api.ProcessStep) float64 {
 	return 0
 }
 
-func waitForGatewayDeployment(deps Dependencies, cmd *cobra.Command, urls configuration.URLs, apiKey string, organizationID string, processID string) error {
+func waitForGatewayDeployment(deps Dependencies, cmd *cobra.Command, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, processID string) error {
 	ic := interactive.New(interactive.Config{
 		Stdout: cmd.OutOrStdout(),
 		Stdin:  cmd.InOrStdin(),
@@ -71,7 +71,7 @@ func waitForGatewayDeployment(deps Dependencies, cmd *cobra.Command, urls config
 	for {
 		select {
 		case <-pollTicker.C:
-			process, err := deps.ProcessAPI.GetProcess(urls, apiKey, organizationID, processID)
+			process, err := deps.ProcessAPI.GetProcess(endpoints, apiKey, organizationID, processID)
 			if err != nil {
 				h.Stop()
 				return fmt.Errorf("failed to poll gateway deployment status: %w", err)
@@ -122,8 +122,9 @@ func waitForGatewayDeployment(deps Dependencies, cmd *cobra.Command, urls config
 func promptForGatewayCreate(
 	deps Dependencies,
 	cmd *cobra.Command,
-	resolvedProfile configuration.ResolvedProfile,
-	urls configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
 ) (*api.CreateGatewayV5Request, error) {
 	ic := interactive.New(interactive.Config{
 		Stdout: cmd.OutOrStdout(),
@@ -153,9 +154,9 @@ func promptForGatewayCreate(
 	{
 		h := ic.StartSpinner("Fetching available clusters...")
 		clusters, err = deps.LocationAPI.List(
-			urls,
-			resolvedProfile.APIKey,
-			resolvedProfile.OrganizationID,
+			endpoints,
+			apiKey,
+			organizationID,
 			api.WithProfileType("not-it", api.LocationProfileGateway),
 		)
 		h.Stop()
@@ -195,7 +196,7 @@ func promptForGatewayCreate(
 	var allSwarms []api.ListSwarmV5ItemPresentation
 	{
 		h := ic.StartSpinner("Fetching available swarms...")
-		allSwarms, err = fetchAllSwarms(deps, urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID)
+		allSwarms, err = fetchAllSwarms(deps, endpoints, apiKey, organizationID)
 		h.Stop()
 		if err != nil {
 			return nil, fmt.Errorf("failed to list swarms: %w", err)
@@ -227,7 +228,7 @@ func promptForGatewayCreate(
 		swarmNamesByID[sw.ID] = sw.Name
 	}
 
-	swarmsAndRC, err := promptForSwarmsAndRedundancyClasses(deps, ic, urls, resolvedProfile, selectedIDs, swarmNamesByID)
+	swarmsAndRC, err := promptForSwarmsAndRedundancyClasses(deps, ic, endpoints, apiKey, organizationID, selectedIDs, swarmNamesByID)
 	if err != nil {
 		return nil, err
 	}
@@ -255,8 +256,9 @@ type swarmRCSelection struct {
 func promptForSwarmsAndRedundancyClasses(
 	deps Dependencies,
 	ic *interactive.Interactive,
-	urls configuration.URLs,
-	resolvedProfile configuration.ResolvedProfile,
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
 	swarmIDs []string,
 	swarmNamesByID map[string]string,
 ) ([]api.SwarmAndRedundancyClassV5, error) {
@@ -264,7 +266,7 @@ func promptForSwarmsAndRedundancyClasses(
 
 	for _, swarmID := range swarmIDs {
 		sh := ic.StartSpinner(fmt.Sprintf("Fetching redundancy classes for swarm %s...", swarmID))
-		rcItems, err := deps.RedundancyClassAPI.ListRedundancyClassesBySwarm(urls, resolvedProfile.APIKey, resolvedProfile.OrganizationID, swarmID)
+		rcItems, err := deps.RedundancyClassAPI.ListRedundancyClassesBySwarm(endpoints, apiKey, organizationID, swarmID)
 		sh.Stop()
 		if err != nil {
 			return nil, fmt.Errorf("failed to list redundancy classes for swarm %s: %w", swarmID, err)
@@ -343,13 +345,13 @@ func promptForSwarmsAndRedundancyClasses(
 	return swarmsAndRC, nil
 }
 
-func fetchAllSwarms(deps Dependencies, urls configuration.URLs, apiKey string, organizationID string) ([]api.ListSwarmV5ItemPresentation, error) {
+func fetchAllSwarms(deps Dependencies, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) ([]api.ListSwarmV5ItemPresentation, error) {
 	page := 1
 	itemsPerPage := 100
 	var all []api.ListSwarmV5ItemPresentation
 
 	for {
-		response, err := deps.SwarmAPI.ListSwarmsV5(urls, apiKey, organizationID, page, itemsPerPage)
+		response, err := deps.SwarmAPI.ListSwarmsV5(endpoints, apiKey, organizationID, page, itemsPerPage)
 		if err != nil {
 			return nil, err
 		}

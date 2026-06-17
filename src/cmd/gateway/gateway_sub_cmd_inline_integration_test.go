@@ -4,14 +4,29 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
 	"github.com/spf13/cobra"
 )
+
+func newTestGatewayConfig() *configuration_handler.MockConfigurationHandler {
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			Output:         configuration_models.OutputHuman,
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Endpoints:      configuration_models.EndpointsV2{},
+		}, nil
+	}
+	return mockCfg
+}
 
 func setupGatewayCreateInlineCommand(gatewayService servicegateway.GatewayServiceInterface) (*cobra.Command, *bytes.Buffer) {
 	gatewayCmd := NewGatewayCmd(gatewayService)
@@ -25,11 +40,11 @@ func setupGatewayCreateInlineCommand(gatewayService servicegateway.GatewayServic
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_Success(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			urlConfig configuration.URLs,
+			urlConfig configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			request *api.CreateGatewayV5Request,
@@ -62,7 +77,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_Success(t *testing.T) {
 
 	mockProcessAPI := &api.MockProcessAPI{
 		GetProcessFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) (*api.Process, error) {
 			data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-id-001"})
 			return &api.Process{
@@ -105,11 +120,11 @@ func TestGatewaySubCmd_Create_Integration_Inline_Success(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_WithOptionalDescription(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			urlConfig configuration.URLs,
+			urlConfig configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			request *api.CreateGatewayV5Request,
@@ -123,7 +138,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_WithOptionalDescription(t *test
 
 	mockProcessAPI := &api.MockProcessAPI{
 		GetProcessFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) (*api.Process, error) {
 			data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-desc-id"})
 			return &api.Process{
@@ -166,11 +181,11 @@ func TestGatewaySubCmd_Create_Integration_Inline_WithOptionalDescription(t *test
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_WithMultipleSwarmRC(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			urlConfig configuration.URLs,
+			urlConfig configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			request *api.CreateGatewayV5Request,
@@ -190,7 +205,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_WithMultipleSwarmRC(t *testing.
 
 	mockProcessAPI := &api.MockProcessAPI{
 		GetProcessFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) (*api.Process, error) {
 			data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-multi-id"})
 			return &api.Process{
@@ -233,11 +248,11 @@ func TestGatewaySubCmd_Create_Integration_Inline_WithMultipleSwarmRC(t *testing.
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_WithoutDescription(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			urlConfig configuration.URLs,
+			urlConfig configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			request *api.CreateGatewayV5Request,
@@ -251,7 +266,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_WithoutDescription(t *testing.T
 
 	mockProcessAPI := &api.MockProcessAPI{
 		GetProcessFunc: func(
-			_ configuration.URLs, _ string, _ string, _ string,
+			_ configuration_models.EndpointsV2, _ string, _ string, _ string,
 		) (*api.Process, error) {
 			data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-no-desc-id"})
 			return &api.Process{
@@ -293,11 +308,11 @@ func TestGatewaySubCmd_Create_Integration_Inline_WithoutDescription(t *testing.T
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_APIError(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	mockGatewayAPI := &api.MockGatewayAPI{
 		CreateGatewayV5Func: func(
-			urlConfig configuration.URLs,
+			urlConfig configuration_models.EndpointsV2,
 			apiKey string,
 			organizationID string,
 			request *api.CreateGatewayV5Request,
@@ -340,7 +355,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_APIError(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_MissingName(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	gatewayService := servicegateway.NewGatewayService(
 		mockCfg,
@@ -373,7 +388,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_MissingName(t *testing.T) {
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_MissingSwarmRC(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	gatewayService := servicegateway.NewGatewayService(
 		mockCfg,
@@ -405,9 +420,11 @@ func TestGatewaySubCmd_Create_Integration_Inline_MissingSwarmRC(t *testing.T) {
 	_ = commandOutput // error is returned, not printed
 }
 
-func TestGatewaySubCmd_Create_Integration_Inline_ConfigTypeMismatch(t *testing.T) {
-	// Use Console profile type instead of Composer to trigger type mismatch
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeConsole, "test-api-key", "test-org-id")
+func TestGatewaySubCmd_Create_Integration_Inline_ConfigError(t *testing.T) {
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{}, fmt.Errorf("error while loading file path configuration")
+	}
 
 	gatewayService := servicegateway.NewGatewayService(
 		mockCfg,
@@ -440,7 +457,7 @@ func TestGatewaySubCmd_Create_Integration_Inline_ConfigTypeMismatch(t *testing.T
 }
 
 func TestGatewaySubCmd_Create_Integration_Inline_ExistingGatewayProcess(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := newTestGatewayConfig()
 
 	data, _ := json.Marshal(api.GatewayCreationProcessData{ID: "gateway-id-001"})
 

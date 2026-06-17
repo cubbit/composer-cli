@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	api "github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
 )
 
@@ -21,10 +21,9 @@ func setupGatewayDescribeTestCommand() *cobra.Command {
 	return cmd
 }
 
-func gatewayDescribeTestProfile() configuration.ResolvedProfile {
-	return configuration.ResolvedProfile{
-		Type:           configuration.ProfileTypeComposer,
-		Output:         configuration.OutputHuman,
+func gatewayDescribeTestProfile() configuration_models.ProfileV2 {
+	return configuration_models.ProfileV2{
+		Output:         configuration_models.OutputHuman,
 		APIKey:         "test-api-key",
 		OrganizationID: "test-org-id",
 	}
@@ -32,7 +31,7 @@ func gatewayDescribeTestProfile() configuration.ResolvedProfile {
 
 func TestDescribe_WithPositionalID_Human(t *testing.T) {
 	mockGatewayAPI := &api.MockGatewayAPI{
-		GetGatewayV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, gatewayID string) (*api.GatewayV5GetResponse, error) {
+		GetGatewayV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, gatewayID string) (*api.GatewayV5GetResponse, error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -64,7 +63,8 @@ func TestDescribe_WithPositionalID_Human(t *testing.T) {
 	cmd.Flags().String("gateway-id", "", "Gateway ID")
 	cmd.Flags().String("gateway-name", "", "Gateway name")
 
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, gatewayDescribeTestProfile(), configuration.URLs{}, []string{"gateway-123"})
+	profile := gatewayDescribeTestProfile()
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, []string{"gateway-123"})
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -77,7 +77,7 @@ func TestDescribe_WithPositionalID_Human(t *testing.T) {
 
 func TestDescribe_WithGatewayName_JSON(t *testing.T) {
 	mockGatewayAPI := &api.MockGatewayAPI{
-		ListGatewaysV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.ListGatewaysV5Option) (*api.GenericPaginatedResponse[api.GatewayV5ListItemResponse], error) {
+		ListGatewaysV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.ListGatewaysV5Option) (*api.GenericPaginatedResponse[api.GatewayV5ListItemResponse], error) {
 			options := &api.ListGatewaysV5Options{}
 			for _, opt := range opts {
 				opt(options)
@@ -96,7 +96,7 @@ func TestDescribe_WithGatewayName_JSON(t *testing.T) {
 				},
 			}, nil
 		},
-		GetGatewayV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, gatewayID string) (*api.GatewayV5GetResponse, error) {
+		GetGatewayV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, gatewayID string) (*api.GatewayV5GetResponse, error) {
 			if gatewayID != "gateway-456" {
 				t.Fatalf("Expected resolved gateway ID gateway-456, got %q", gatewayID)
 			}
@@ -118,7 +118,8 @@ func TestDescribe_WithGatewayName_JSON(t *testing.T) {
 	cmd.Flags().Set("gateway-name", "named-gateway")
 	cmd.Flags().Set("output", "json")
 
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, gatewayDescribeTestProfile(), configuration.URLs{}, nil)
+	profile := gatewayDescribeTestProfile()
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -132,7 +133,7 @@ func TestDescribe_WithGatewayName_JSON(t *testing.T) {
 func TestDescribe_WithGatewayName_PaginatesUntilFound(t *testing.T) {
 	callCount := 0
 	mockGatewayAPI := &api.MockGatewayAPI{
-		ListGatewaysV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.ListGatewaysV5Option) (*api.GenericPaginatedResponse[api.GatewayV5ListItemResponse], error) {
+		ListGatewaysV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.ListGatewaysV5Option) (*api.GenericPaginatedResponse[api.GatewayV5ListItemResponse], error) {
 			callCount++
 			options := &api.ListGatewaysV5Options{}
 			for _, opt := range opts {
@@ -169,7 +170,7 @@ func TestDescribe_WithGatewayName_PaginatesUntilFound(t *testing.T) {
 				return nil, nil
 			}
 		},
-		GetGatewayV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, gatewayID string) (*api.GatewayV5GetResponse, error) {
+		GetGatewayV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, gatewayID string) (*api.GatewayV5GetResponse, error) {
 			if gatewayID != "gateway-789" {
 				t.Fatalf("Expected resolved gateway ID gateway-789, got %q", gatewayID)
 			}
@@ -191,7 +192,8 @@ func TestDescribe_WithGatewayName_PaginatesUntilFound(t *testing.T) {
 	cmd.Flags().Set("gateway-name", "paged-gateway")
 	cmd.Flags().Set("output", "json")
 
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, gatewayDescribeTestProfile(), configuration.URLs{}, nil)
+	profile := gatewayDescribeTestProfile()
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -203,7 +205,7 @@ func TestDescribe_WithGatewayName_PaginatesUntilFound(t *testing.T) {
 
 func TestDescribe_WithUnknownGatewayName(t *testing.T) {
 	mockGatewayAPI := &api.MockGatewayAPI{
-		ListGatewaysV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, opts ...api.ListGatewaysV5Option) (*api.GenericPaginatedResponse[api.GatewayV5ListItemResponse], error) {
+		ListGatewaysV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.ListGatewaysV5Option) (*api.GenericPaginatedResponse[api.GatewayV5ListItemResponse], error) {
 			return &api.GenericPaginatedResponse[api.GatewayV5ListItemResponse]{
 				Data: []api.GatewayV5ListItemResponse{},
 			}, nil
@@ -215,7 +217,8 @@ func TestDescribe_WithUnknownGatewayName(t *testing.T) {
 	cmd.Flags().String("gateway-name", "", "Gateway name")
 	cmd.Flags().Set("gateway-name", "missing-gateway")
 
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, gatewayDescribeTestProfile(), configuration.URLs{}, nil)
+	profile := gatewayDescribeTestProfile()
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, nil)
 	if err == nil {
 		t.Fatal("Expected error, got nil")
 	}
@@ -231,7 +234,8 @@ func TestDescribe_WithMultipleIdentifiers(t *testing.T) {
 	cmd.Flags().String("gateway-name", "", "Gateway name")
 	cmd.Flags().Set("gateway-id", "gateway-123")
 
-	err := Describe(Dependencies{GatewayAPI: &api.MockGatewayAPI{}}, cmd, gatewayDescribeTestProfile(), configuration.URLs{}, []string{"gateway-456"})
+	profile := gatewayDescribeTestProfile()
+	err := Describe(Dependencies{GatewayAPI: &api.MockGatewayAPI{}}, cmd, profile, []string{"gateway-456"})
 	if err == nil {
 		t.Fatal("Expected error, got nil")
 	}

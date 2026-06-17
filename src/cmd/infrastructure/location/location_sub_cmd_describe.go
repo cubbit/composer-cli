@@ -9,7 +9,7 @@ import (
 )
 
 func NewLocationSubCmdDescribe(
-	locationService service.LocationServiceInterface,
+	locationServiceFn service.LocationServiceInterface,
 ) *cobra.Command {
 	var clusterName string
 	var clusterID string
@@ -29,7 +29,7 @@ func NewLocationSubCmdDescribe(
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := locationService.ListAggregated(cmd, args); err != nil {
+			if err := locationServiceFn.ListAggregated(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},

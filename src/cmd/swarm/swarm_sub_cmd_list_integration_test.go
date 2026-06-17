@@ -8,12 +8,25 @@ import (
 	"time"
 
 	"github.com/cubbit/composer-cli/src/api"
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service"
 )
 
 func TestSwarmSubCmd_List_Integration_Success(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	createdAt := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 	status := api.EvaluatedStatusType("online")
@@ -21,7 +34,7 @@ func TestSwarmSubCmd_List_Integration_Success(t *testing.T) {
 	secondSync := createdAt.Add(90 * time.Minute)
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data: []api.ListSwarmV5ItemPresentation{
 					{
@@ -95,10 +108,22 @@ func TestSwarmSubCmd_List_Integration_Success(t *testing.T) {
 }
 
 func TestSwarmSubCmd_List_Integration_Empty(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return &api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation]{
 				Data:     []api.ListSwarmV5ItemPresentation{},
 				NextPage: nil,
@@ -134,10 +159,22 @@ func TestSwarmSubCmd_List_Integration_Empty(t *testing.T) {
 }
 
 func TestSwarmSubCmd_List_Integration_Error(t *testing.T) {
-	mockCfg := api.NewMockConfig(configuration.ProfileTypeComposer, "test-api-key", "test-org-id")
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return configuration_models.ProfileV2{
+			APIKey:         "test-api-key",
+			OrganizationID: "test-org-id",
+			Output:         configuration_models.OutputHuman,
+			Endpoints: configuration_models.EndpointsV2{
+				IAM:  "https://iam.example.com",
+				Dash: "https://dash.example.com",
+				CH:   "https://ch.example.com",
+			},
+		}, nil
+	}
 
 	mockSwarmAPI := &api.MockSwarmAPI{
-		ListSwarmsV5Func: func(urlConfig configuration.URLs, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
+		ListSwarmsV5Func: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, page int, items int) (*api.GenericPaginatedResponse[api.ListSwarmV5ItemPresentation], error) {
 			return nil, errors.New("network error")
 		},
 	}

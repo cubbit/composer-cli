@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cubbit/composer-cli/src/configuration"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
 )
 
@@ -35,13 +35,13 @@ func WithOwnerID(id string) ListProcessesOption {
 
 type ProcessAPIInterface interface {
 	ListProcesses(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		opts ...ListProcessesOption,
 	) ([]Process, error)
 	GetProcess(
-		urlConfig configuration.URLs,
+		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		processID string,
@@ -55,7 +55,7 @@ func NewProcessAPI() *ProcessAPI {
 }
 
 func (api *ProcessAPI) ListProcesses(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	opts ...ListProcessesOption,
@@ -84,7 +84,7 @@ func (api *ProcessAPI) ListProcesses(
 		q = strings.Join(qParts, ",")
 	}
 
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "process").
 		QueryParam("q", q).
 		Build()
@@ -105,12 +105,12 @@ func (api *ProcessAPI) ListProcesses(
 }
 
 func (api *ProcessAPI) GetProcess(
-	urlConfig configuration.URLs,
+	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	processID string,
 ) (*Process, error) {
-	url := NewURLBuilder(urlConfig.ChURL).
+	url := NewURLBuilder(endpoints.CH).
 		Path("v1", "organizations", organizationID, "process", processID).
 		Build()
 

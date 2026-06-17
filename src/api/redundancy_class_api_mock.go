@@ -1,14 +1,14 @@
 package api
 
-import "github.com/cubbit/composer-cli/src/configuration"
+import "github.com/cubbit/composer-cli/src/configuration/configuration_models"
 
 type MockRedundancyClassAPI struct {
-	ListRedundancyClassesBySwarmFunc func(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) ([]RedundancyClass, error)
+	ListRedundancyClassesBySwarmFunc func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) ([]RedundancyClass, error)
 }
 
-func (m *MockRedundancyClassAPI) ListRedundancyClassesBySwarm(urlConfig configuration.URLs, apiKey string, organizationID string, swarmID string) ([]RedundancyClass, error) {
+func (m *MockRedundancyClassAPI) ListRedundancyClassesBySwarm(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, swarmID string) ([]RedundancyClass, error) {
 	if m.ListRedundancyClassesBySwarmFunc != nil {
-		return m.ListRedundancyClassesBySwarmFunc(urlConfig, apiKey, organizationID, swarmID)
+		return m.ListRedundancyClassesBySwarmFunc(endpoints, apiKey, organizationID, swarmID)
 	}
 	return []RedundancyClass{}, nil
 }
