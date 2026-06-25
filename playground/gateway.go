@@ -99,10 +99,16 @@ func init() {
 	}
 
 	wireProcessAPI = func(m *api.MockProcessAPI) {
-		stepSequence := []api.ProcessStep{
+		gatewaySteps := []api.ProcessStep{
 			api.ProcessStepInitializing,
 			api.ProcessStepGatewayProfileDeployment,
 			api.ProcessStepGatewayInstallation,
+			api.ProcessStepCompleted,
+		}
+		tenantSteps := []api.ProcessStep{
+			api.ProcessStepInitializing,
+			api.ProcessStepCreatingTenantGateway,
+			api.ProcessStepWaitingForTenantGatewayToBeReady,
 			api.ProcessStepCompleted,
 		}
 
@@ -114,36 +120,57 @@ func init() {
 		) (*api.Process, error) {
 			delay()
 
-			idx := pollCount
-			if idx >= len(stepSequence) {
-				idx = len(stepSequence) - 1
-			}
-			step := stepSequence[idx]
-
-			status := api.ProcessStatusRunning
-			if step == api.ProcessStepCompleted {
-				status = api.ProcessStatusSuccess
-			}
-
-			pollCount++
-
 			p := &api.Process{
 				ID:     processID,
-				Step:   step,
-				Status: status,
+				Step:   api.ProcessStepInitializing,
+				Status: api.ProcessStatusRunning,
 			}
 
-			data := api.GatewayCreationProcessData{
-				ID: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-			}
-			if status == api.ProcessStatusFailed {
-				data.Error = &api.ProcessError{
-					Code:    "DEPLOY_FAILED",
-					Message: "gateway deployment encountered an error",
+			if processID == gatewayProcessID {
+				idx := pollCount
+				if idx >= len(gatewaySteps) {
+					idx = len(gatewaySteps) - 1
 				}
-			}
+				p.Step = gatewaySteps[idx]
+				if p.Step == api.ProcessStepCompleted {
+					p.Status = api.ProcessStatusSuccess
+				}
+				pollCount++
 
-			p.Data, _ = json.Marshal(data)
+				data := api.GatewayCreationProcessData{
+					ID: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+				}
+				if p.Status == api.ProcessStatusFailed {
+					data.Error = &api.ProcessError{
+						Code:    "DEPLOY_FAILED",
+						Message: "gateway deployment encountered an error",
+					}
+				}
+
+				p.Data, _ = json.Marshal(data)
+			} else {
+				idx := tenantPollCount
+				if idx >= len(tenantSteps) {
+					idx = len(tenantSteps) - 1
+				}
+				p.Step = tenantSteps[idx]
+				if p.Step == api.ProcessStepCompleted {
+					p.Status = api.ProcessStatusSuccess
+				}
+				tenantPollCount++
+
+				data := api.TenantCreationProcessData{
+					TenantID: "t-tenant-001",
+				}
+				if p.Status == api.ProcessStatusFailed {
+					data.Error = &api.ProcessError{
+						Code:    "TENANT_CREATION_FAILED",
+						Message: "tenant creation encountered an error",
+					}
+				}
+
+				p.Data, _ = json.Marshal(data)
+			}
 
 			return p, nil
 		}

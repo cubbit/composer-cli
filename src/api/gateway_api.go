@@ -45,11 +45,12 @@ type CreateGatewayV5Response struct {
 }
 
 type ListGatewaysV5Options struct {
-	Page      int
-	Items     int
-	SortKey   string
-	SortOrder string
-	Filter    string
+	Page          int
+	Items         int
+	SortKey       string
+	SortOrder     string
+	Filter        string
+	FetchAllPages bool
 }
 
 type ListGatewaysV5Option func(*ListGatewaysV5Options)
@@ -81,6 +82,12 @@ func WithSortOrder(sortOrder string) ListGatewaysV5Option {
 func WithFilter(filter string) ListGatewaysV5Option {
 	return func(opts *ListGatewaysV5Options) {
 		opts.Filter = filter
+	}
+}
+
+func WithListAllPages(fetchAll bool) ListGatewaysV5Option {
+	return func(opts *ListGatewaysV5Options) {
+		opts.FetchAllPages = fetchAll
 	}
 }
 
@@ -177,36 +184,59 @@ func (api *GatewayAPI) ListGatewaysV5(
 		opt(options)
 	}
 
-	urlBuilder := NewURLBuilder(endpoints.CH).
-		Path("v5", "organizations", organizationID, "gateways").
-		QueryParamInt("page", options.Page).
-		QueryParamInt("items", options.Items)
+	allData := make([]GatewayV5ListItemResponse, 0)
+	nextPage := &options.Page
 
-	if options.SortKey != "" {
-		urlBuilder = urlBuilder.QueryParam("sort_key", options.SortKey)
+	for nextPage != nil {
+		urlBuilder := NewURLBuilder(endpoints.CH).
+			Path("v5", "organizations", organizationID, "gateways").
+			QueryParamInt("page", *nextPage).
+			QueryParamInt("items", options.Items)
+
+		if options.SortKey != "" {
+			urlBuilder = urlBuilder.QueryParam("sort_key", options.SortKey)
+		}
+
+		if options.SortOrder != "" {
+			urlBuilder = urlBuilder.QueryParam("sort_order", options.SortOrder)
+		}
+
+		if options.Filter != "" {
+			urlBuilder = urlBuilder.QueryParam("q", options.Filter)
+		}
+
+		url := urlBuilder.Build()
+
+		var pageResponse GenericPaginatedResponse[GatewayV5ListItemResponse]
+
+		if err := request_utils.DoRequest(
+			url,
+			request_utils.WithRequestMethod(http.MethodGet),
+			request_utils.WithExpectedStatusCode(http.StatusOK),
+			request_utils.WithApiKey(apiKey),
+			ExtractGenericModel(&pageResponse),
+		); err != nil {
+			return nil, err
+		}
+
+		allData = append(allData, pageResponse.Data...)
+
+		if !options.FetchAllPages {
+			pageResponse.Data = allData
+			return &pageResponse, nil
+		}
+
+		nextPage = pageResponse.NextPage
 	}
 
-	if options.SortOrder != "" {
-		urlBuilder = urlBuilder.QueryParam("sort_order", options.SortOrder)
+	var count int
+	if len(allData) > 0 {
+		count = len(allData)
 	}
 
-	if options.Filter != "" {
-		urlBuilder = urlBuilder.QueryParam("q", options.Filter)
-	}
-
-	url := urlBuilder.Build()
-
-	var response GenericPaginatedResponse[GatewayV5ListItemResponse]
-
-	if err := request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodGet),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithApiKey(apiKey),
-		ExtractGenericModel(&response),
-	); err != nil {
-		return nil, err
-	}
-
-	return &response, nil
+	return &GenericPaginatedResponse[GatewayV5ListItemResponse]{
+		Data:     allData,
+		NextPage: nil,
+		Count:    count,
+	}, nil
 }

@@ -208,3 +208,20 @@ type CreateDomainRequestBody struct {
 }
 
 // #endregion
+
+// #region tenant v5
+
+type CreateTenantV5Connection struct {
+	DomainID   string   `json:"id" binding:"required,uuid"`
+	GatewayIDs []string `json:"gateway_ids" binding:"required,min=1,dive,uuid"`
+	Subdomain  *string  `json:"subdomain,omitempty"`
+}
+
+type CreateTenantV5Request struct {
+	Name        string                     `json:"name" binding:"required"`
+	Slug        string                     `json:"slug" binding:"required"`
+	Description *string                    `json:"description,omitempty"`
+	Connections []CreateTenantV5Connection `json:"connections" binding:"required,min=1"`
+}
+
+// #endregion

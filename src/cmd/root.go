@@ -9,10 +9,12 @@ import (
 	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
 	cmd_swarm "github.com/cubbit/composer-cli/src/cmd/swarm"
+	cmd_tenant "github.com/cubbit/composer-cli/src/cmd/tenant"
 	cmd_version "github.com/cubbit/composer-cli/src/cmd/version"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/service"
 	gateway_service "github.com/cubbit/composer-cli/src/service/gateway"
+	tenant_service "github.com/cubbit/composer-cli/src/service/tenant"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +26,7 @@ func NewRootCommand(
 	configService service.ConfigServiceInterface,
 	swarmService service.SwarmServiceInterface,
 	domainService service.DomainServiceInterface,
+	tenantService tenant_service.TenantServiceInterface,
 	gatewayService gateway_service.GatewayServiceInterface,
 	version string,
 ) *cobra.Command {
@@ -76,6 +79,9 @@ func NewRootCommand(
 
 	domainCmd := cmd_domain.NewDomainCmd(domainService)
 	rootCommand.AddCommand(domainCmd)
+
+	tenantCmd := cmd_tenant.NewTenantCmd(tenantService)
+	rootCommand.AddCommand(tenantCmd)
 
 	gatewayCmd := cmd_gateway.NewGatewayCmd(gatewayService)
 	rootCommand.AddCommand(gatewayCmd)
