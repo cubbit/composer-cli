@@ -9,6 +9,7 @@ import (
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service"
 	servicegateway "github.com/cubbit/composer-cli/src/service/gateway"
+	servicetenant "github.com/cubbit/composer-cli/src/service/tenant"
 	"github.com/spf13/cobra"
 )
 
@@ -30,16 +31,23 @@ func main() {
 	processAPI := &api.MockProcessAPI{}
 	redundancyClassAPI := &api.MockRedundancyClassAPI{}
 	locationAPI := &api.MockLocationAPI{}
+	tenantAPI := &api.MockTenantAPI{}
+	domainAPI := &api.MockDomainAPI{}
 
 	wireGatewayAPI(gatewayAPI)
 	wireSwarmAPI(swarmAPI)
 	wireProcessAPI(processAPI)
 	wireRedundancyClassAPI(redundancyClassAPI)
 	wireLocationAPI(locationAPI)
+	wireTenantAPI(tenantAPI)
+	wireDomainAPI(domainAPI)
+	wireGatewayListAPI(gatewayAPI)
 
 	// --- Real services using mocked APIs ---
 	gatewayService := servicegateway.NewGatewayService(mockCfg, gatewayAPI, swarmAPI, redundancyClassAPI, processAPI, locationAPI)
 	swarmService := service.NewSwarmService(mockCfg, swarmAPI, locationAPI, processAPI, service.NewRedundancyClassValidator())
+
+	tenantService := servicetenant.NewTenantService(mockCfg, tenantAPI, domainAPI, gatewayAPI, processAPI)
 
 	// Trivial stubs for services not under test (avoids needing MockAuthAPI etc.)
 	rootCmd := cmd.NewRootCommand(
@@ -50,6 +58,7 @@ func main() {
 		&trivialConfigService{},
 		swarmService,
 		&trivialDomainService{},
+		tenantService,
 		gatewayService,
 		"0.0.0-playground",
 	)
@@ -103,4 +112,7 @@ var (
 	wireProcessAPI         func(*api.MockProcessAPI)
 	wireRedundancyClassAPI func(*api.MockRedundancyClassAPI)
 	wireLocationAPI        func(*api.MockLocationAPI)
+	wireTenantAPI          func(*api.MockTenantAPI)
+	wireDomainAPI          func(*api.MockDomainAPI)
+	wireGatewayListAPI     func(*api.MockGatewayAPI)
 )

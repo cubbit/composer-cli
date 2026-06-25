@@ -970,6 +970,7 @@ type ProcessStep string
 const (
 	ProcessTypeSwarmCreation   ProcessType = "swarm_creation"
 	ProcessTypeGatewayCreation ProcessType = "gateway_creation"
+	ProcessTypeTenantCreation  ProcessType = "tenant_creation"
 
 	ProcessStatusRunning ProcessStatus = "running"
 	ProcessStatusSuccess ProcessStatus = "success"
@@ -984,6 +985,9 @@ const (
 
 	ProcessStepGatewayProfileDeployment ProcessStep = "gateway_profile_deployment"
 	ProcessStepGatewayInstallation      ProcessStep = "gateway_installation"
+
+	ProcessStepCreatingTenantGateway            ProcessStep = "creating_tenant_gateway"
+	ProcessStepWaitingForTenantGatewayToBeReady ProcessStep = "waiting_for_tenant_gateway_to_be_ready"
 )
 
 type Process struct {
@@ -1023,6 +1027,46 @@ func (p *Process) CastToGatewayCreationProcess() (*GatewayCreationProcess, bool)
 	}
 
 	return &GatewayCreationProcess{
+		ID:        p.ID,
+		Type:      p.Type,
+		CreatedAt: p.CreatedAt,
+		OwnerID:   p.OwnerID,
+		Step:      p.Step,
+		Status:    p.Status,
+		Data:      data,
+	}, true
+}
+
+type TenantCreationProcessData struct {
+	TenantID string                             `json:"tenant_id"`
+	Gateways []TenantGatewayCreationProcessData `json:"gateways,omitempty"`
+	Error    *ProcessError                      `json:"error,omitempty"`
+}
+
+type TenantGatewayCreationProcessData struct {
+	ID     string        `json:"id"`
+	Step   string        `json:"step"`
+	Status ProcessStatus `json:"status"`
+	Error  *ProcessError `json:"error,omitempty"`
+}
+
+type TenantCreationProcess struct {
+	ID        string                    `json:"id"`
+	Type      ProcessType               `json:"type"`
+	CreatedAt time.Time                 `json:"created_at"`
+	OwnerID   string                    `json:"owner_id"`
+	Step      ProcessStep               `json:"step"`
+	Status    ProcessStatus             `json:"status"`
+	Data      TenantCreationProcessData `json:"data"`
+}
+
+func (p *Process) CastToTenantCreationProcess() (*TenantCreationProcess, bool) {
+	var data TenantCreationProcessData
+	if err := json.Unmarshal(p.Data, &data); err != nil {
+		return nil, false
+	}
+
+	return &TenantCreationProcess{
 		ID:        p.ID,
 		Type:      p.Type,
 		CreatedAt: p.CreatedAt,
