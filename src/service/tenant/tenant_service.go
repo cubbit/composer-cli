@@ -7,11 +7,15 @@ import (
 	api "github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/service/tenant/create"
+	"github.com/cubbit/composer-cli/src/service/tenant/describe"
+	"github.com/cubbit/composer-cli/src/service/tenant/list"
 	"github.com/spf13/cobra"
 )
 
 type TenantServiceInterface interface {
 	Create(cmd *cobra.Command, args []string) error
+	List(cmd *cobra.Command, args []string) error
+	Describe(cmd *cobra.Command, args []string) error
 }
 
 type TenantService struct {
@@ -36,6 +40,32 @@ func NewTenantService(
 		gatewayAPI:    gatewayAPI,
 		processAPI:    processAPI,
 	}
+}
+
+func (s TenantService) List(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	deps := list.Dependencies{
+		TenantAPI: s.tenantAPI,
+	}
+
+	return list.List(deps, cmd, profile)
+}
+
+func (s TenantService) Describe(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	deps := describe.Dependencies{
+		TenantAPI: s.tenantAPI,
+	}
+
+	return describe.Describe(deps, cmd, profile, args)
 }
 
 func (s TenantService) Create(cmd *cobra.Command, args []string) error {

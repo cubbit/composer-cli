@@ -2,25 +2,34 @@ package utils
 
 import "fmt"
 
-func FormatBytes(bytes int64) string {
-	const (
-		KB = 1024
-		MB = KB * 1024
-		GB = MB * 1024
-		TB = GB * 1024
-	)
+const (
+	_  = iota
+	KB = 1 << (10 * iota)
+	MB
+	GB
+	TB
+	PB
+	EB
+)
 
-	if bytes >= TB {
-		return fmt.Sprintf("%.2f TB", float64(bytes)/float64(TB))
+var byteUnits = []string{"B", "KB", "MB", "GB", "TB", "PB", "EB"}
+
+func FormatBytes(bytes int64) string {
+	if bytes == 0 {
+		return "0"
 	}
-	if bytes >= GB {
-		return fmt.Sprintf("%.2f GB", float64(bytes)/float64(GB))
+
+	if bytes < KB {
+		return fmt.Sprintf("%d B", bytes)
 	}
-	if bytes >= MB {
-		return fmt.Sprintf("%.2f MB", float64(bytes)/float64(MB))
+
+	div := int64(KB)
+	for i := 1; i < len(byteUnits)-1; i++ {
+		if bytes < div*KB {
+			return fmt.Sprintf("%.1f %s", float64(bytes)/float64(div), byteUnits[i])
+		}
+		div *= KB
 	}
-	if bytes >= KB {
-		return fmt.Sprintf("%.2f KB", float64(bytes)/float64(KB))
-	}
-	return fmt.Sprintf("%d bytes", bytes)
+
+	return fmt.Sprintf("%.1f %s", float64(bytes)/float64(div), byteUnits[len(byteUnits)-1])
 }

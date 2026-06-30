@@ -14,7 +14,9 @@ func NewTenantCmd(
 	}
 
 	tenantCreateCmd := NewTenantSubCmdCreate(tenantService)
-	tenantCmd.AddCommand(tenantCreateCmd)
+	tenantListCmd := NewTenantSubCmdList(tenantService)
+	tenantDescribeCmd := NewTenantSubCmdDescribe(tenantService)
+	tenantCmd.AddCommand(tenantCreateCmd, tenantListCmd, tenantDescribeCmd)
 
 	return tenantCmd
 }

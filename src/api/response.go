@@ -86,17 +86,18 @@ type Tenant struct {
 }
 
 type TenantSettings struct {
-	ConsoleURL        *string                                    `json:"console_url"`
-	GatewayURL        *string                                    `json:"gateway_url"`
+	ConsoleUrl        *string                                    `json:"console_url"`
+	GatewayUrl        *string                                    `json:"gateway_url"`
 	Project           *TenantSettingsProject                     `json:"project"`
 	Account           *TenantSettingsAccount                     `json:"account"`
 	AllowedDomains    *[]string                                  `json:"allowed_domains"`
 	BlockedDomains    *[]string                                  `json:"blocked_domains"`
 	Notifications     *MonitoredResourceForSeverityNotifications `json:"notifications"`
-	SignupDisabled    bool                                       `json:"signup_disabled"`
+	SignupDisabled    *bool                                      `json:"signup_disabled"`
 	SupportLink       *string                                    `json:"support_link"`
 	DisplayName       *string                                    `json:"display_name"`
-	WhitelabelEnabled bool                                       `json:"whitelabel_enabled"`
+	WhitelabelEnabled *bool                                      `json:"whitelabel_enabled"`
+	WhitelabelAssets  *WhitelabelAssets                          `json:"whitelabel_assets"`
 	WhiteLabel        *WhiteLabel                                `json:"white_label"`
 }
 
@@ -125,14 +126,46 @@ type DNSChallengeRecord struct {
 }
 
 type TenantSettingsProject struct {
-	DefaultMaxProjectEgressBandwidth *int64 `json:"default_max_egress_bandwidth"`
-	DefaultMaxProjectStorage         *int64 `json:"default_max_storage"`
+	DefaultMaxProjectEgressBandwidthGB *int64 `json:"default_max_egress_bandwidth"`
+	DefaultMaxProjectStorageGB         *int64 `json:"default_max_storage"`
+}
+
+type WhitelabelAssets struct {
+	Icons      *IconAssets  `json:"icon_assets"`
+	LocalFiles *LocalAssets `json:"local_assets"`
+	LegalFiles *LegalAssets `json:"legal_assets"`
+}
+
+type IconAssets struct {
+	Favicon      *string `json:"favicon"`
+	Logo         *string `json:"logo"`
+	ExtendedLogo *string `json:"extended_logo"`
+	ComposerLogo *string `json:"composer_logo"`
+}
+
+type LocalAssets struct {
+	SignUp *string `json:"sign_up"`
+	SignIn *string `json:"sign_in"`
+}
+
+type LegalAssets struct {
+	TermsOfService *string `json:"terms_of_service"`
+	DataPrivacy    *string `json:"data_privacy"`
 }
 
 type TenantSettingsAccount struct {
 	DefaultMaxProject          *int                        `json:"default_max_project"`
 	EnabledAuthProviders       *[]AccountAuthProvider      `json:"enabled_auth_providers"`
 	EnabledAuthProvidersConfig *EnabledAuthProvidersConfig `json:"enabled_auth_providers_config"`
+	OAuthProviders             *[]OAuthProvider            `json:"oauth_providers"`
+}
+
+type OAuthProvider struct {
+	Name         string `json:"name"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	IssuerURL    string `json:"issuer_url"`
+	RedirectURL  string `json:"redirect_url"`
 }
 
 type AccountAuthProvider string
@@ -1093,6 +1126,28 @@ type DomainDTO struct {
 type DomainVerifyResult struct {
 	Verified bool    `json:"verified"`
 	Reasons  *string `json:"reasons,omitempty"`
+}
+
+// #endregion
+
+// #region tenant v5
+
+type TenantV5DTO struct {
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Slug        string          `json:"slug"`
+	Description *string         `json:"description"`
+	CreatedAt   time.Time       `json:"created_at"`
+	Storage     *UsageDTO       `json:"storage"`
+	Bandwidth   *UsageDTO       `json:"bandwidth"`
+	Settings    *TenantSettings `json:"settings"`
+	ZKEnabled   bool            `json:"zk_enabled"`
+}
+
+type UsageDTO struct {
+	Consumed   int64   `json:"consumed"`
+	Reserved   int64   `json:"reserved"`
+	Percentage float64 `json:"percentage"`
 }
 
 // #endregion

@@ -121,9 +121,9 @@ Owner: owner-123
 
 Storage Usage:
   Usage: [█████░░░░░] 50%
-  Total Used: 512 bytes
-  Total Assigned: 1.00 KB
-  Total Unused: 512 bytes
+  Total Used: 512 B
+  Total Assigned: 1.0 KB
+  Total Unused: 512 B
 
 Metadata:
   ID: swarm-123
@@ -253,9 +253,9 @@ Owner: owner-123
 
 Storage Usage:
   Usage: [█████░░░░░] 50%
-  Total Used: 1.00 KB
-  Total Assigned: 2.00 KB
-  Total Unused: 1.00 KB
+  Total Used: 1.0 KB
+  Total Assigned: 2.0 KB
+  Total Unused: 1.0 KB
 
 Metadata:
   ID: swarm-123
