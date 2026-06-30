@@ -17,6 +17,14 @@ func shouldPrint(cmd *cobra.Command) (bool, error) {
 	return f.Value.String() != "true", nil
 }
 
+func ShowSecrets(cmd *cobra.Command) bool {
+	f := cmd.Flag("show-secrets")
+	if f == nil {
+		return false
+	}
+	return f.Value.String() == "true"
+}
+
 func PrintTree(cmd *cobra.Command, nodes []tree.TreeNode, opts ...tree.Option) error {
 	should, err := shouldPrint(cmd)
 	if err != nil || !should {

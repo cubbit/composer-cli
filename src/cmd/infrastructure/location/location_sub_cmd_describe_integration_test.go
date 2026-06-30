@@ -265,8 +265,8 @@ node-1-host (6ba7b810-9dad-11d1-80b4-00c04fd430c8)
     └── Disk: 8e7d7a2e-3c5e-4f9a-9b8c-1d2e3f4a5b6c
         ├── Path: /dev/sda
         ├── Status: status_ok
-        ├── Total: 1.00 TB
-        ├── Used: 512.00 GB
+        ├── Total: 1.0 TB
+        ├── Used: 512.0 GB
         └── PV Reference: f47ac10b-58cc-4372-a567-0e02b2c3d479
 
 Virtual Nodes

@@ -164,14 +164,14 @@ node-1-host (6ba7b810-9dad-11d1-80b4-00c04fd430c8)
     ├── Disk: 8e7d7a2e-3c5e-4f9a-9b8c-1d2e3f4a5b6c
     │   ├── Path: /dev/sda
     │   ├── Status: status_ok
-    │   ├── Total: 1.00 TB
-    │   ├── Used: 512.00 GB
+    │   ├── Total: 1.0 TB
+    │   ├── Used: 512.0 GB
     │   └── PV Reference: f47ac10b-58cc-4372-a567-0e02b2c3d479
     └── Disk: c40c6d3f-1e2a-4b8c-9d5e-6f7a8b9c0d1e
         ├── Path: /dev/sdb
         ├── Status: status_ok
-        ├── Total: 2.00 TB
-        └── Used: 0 bytes
+        ├── Total: 2.0 TB
+        └── Used: 0
 node-2-host (f47ac10b-58cc-4372-a567-0e02b2c3d480)
 ├── Status: status_ok - All systems operational
 ├── Hardware
@@ -185,8 +185,8 @@ node-2-host (f47ac10b-58cc-4372-a567-0e02b2c3d480)
     └── Disk: 123e4567-e89b-12d3-a456-426614174000
         ├── Path: /dev/sdc
         ├── Status: status_ok
-        ├── Total: 10.00 TB
-        ├── Used: 3.00 TB
+        ├── Total: 10.0 TB
+        ├── Used: 3.0 TB
         └── PV Reference: 9f3a3651-3362-4c1e-8d5a-7e8f9a0b1c2d
 
 Virtual Nodes
