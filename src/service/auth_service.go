@@ -349,11 +349,7 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, username, orgName,
 		}
 	}
 
-	if len(operator.Emails) == 0 {
-		return fmt.Errorf("operator email is missing, cannot forge API key")
-	}
-
-	operatorApiKeyToken, err := as.authAPI.ForgeToken(endpoints, operator.ID, operator.Emails[0].Email, password, tfa, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
+	operatorApiKeyToken, err := as.authAPI.ForgeToken(endpoints, operator.ID, username, orgName, password, tfa, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to forge token: %w", err)
 	}

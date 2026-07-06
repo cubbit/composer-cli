@@ -43,7 +43,8 @@ type AuthAPIInterface interface {
 	ForgeToken(
 		endpoints configuration_models.EndpointsV2,
 		operatorID string,
-		email string,
+		username string,
+		organizationName string,
 		password string,
 		tfaCode string,
 		tokenType string,
@@ -214,37 +215,11 @@ func (api *AuthAPI) GenerateChallenge(
 	return &response, nil
 }
 
-func (api *AuthAPI) GenerateOldChallenge(
-	endpoints configuration_models.EndpointsV2,
-	email string,
-) (*ChallengeResponseModel, error) {
-	url := NewURLBuilder(endpoints.IAM).
-		Path("v1", "auth", "operators", "signin", "challenge").
-		Build()
-
-	body := map[string]string{
-		"email": email,
-	}
-
-	var response ChallengeResponseModel
-
-	if err := request_utils.DoRequest(
-		url,
-		request_utils.WithRequestMethod(http.MethodPost),
-		request_utils.WithRequestBodyObject(body),
-		request_utils.WithExpectedStatusCode(http.StatusOK),
-		ExtractGenericModel(&response),
-	); err != nil {
-		return nil, fmt.Errorf("failed to generate challenge: %w", err)
-	}
-
-	return &response, nil
-}
-
 func (api *AuthAPI) ForgeToken(
 	endpoints configuration_models.EndpointsV2,
 	operatorID string,
-	email string,
+	username string,
+	organizationName string,
 	password string,
 	tfaCode string,
 	tokenType string,
@@ -252,14 +227,16 @@ func (api *AuthAPI) ForgeToken(
 	refreshToken string,
 ) (string, error) {
 	url := NewURLBuilder(endpoints.IAM).
-		Path("v1", "auth", "operators", "forge", "token").
+		Path("v3", "auth", "operators", "forge", "token").
 		QueryParam("capabilities", tokenType).
 		QueryParam("operator_id", operatorID).
 		Build()
 
-	challenge, err := api.GenerateOldChallenge(
+	challenge, err := api.GenerateChallenge(
 		endpoints,
-		email,
+		nil,
+		&username,
+		&organizationName,
 	)
 
 	if err != nil {
@@ -277,9 +254,10 @@ func (api *AuthAPI) ForgeToken(
 	}
 
 	requestBody := map[string]interface{}{
-		"email":            email,
-		"signed_challenge": base64.StdEncoding.EncodeToString(signedChallenge),
-		"tfa_code":         tfaCode,
+		"username":          username,
+		"organization_name": organizationName,
+		"signed_challenge":  base64.StdEncoding.EncodeToString(signedChallenge),
+		"tfa_code":          tfaCode,
 	}
 
 	var response TokenAndExpirationResponseModel
