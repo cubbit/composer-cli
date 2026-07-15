@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -151,4 +152,20 @@ func SignChallenge(
 	signedChallenge := ed25519.Sign(privateKey, []byte(challenge))
 
 	return signedChallenge, nil
+}
+
+func AuthenticationPublicKeyFromPassword(
+	password string,
+	salt string,
+) (string, error) {
+	h := sha256.New()
+	h.Write([]byte(password + salt))
+	seed := h.Sum(nil)
+
+	publicKey, _, err := GenerateKeyPairFromSeed(seed)
+	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(publicKey), nil
 }

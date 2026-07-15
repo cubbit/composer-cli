@@ -241,6 +241,7 @@ type IAMUser struct {
 	Status             string         `json:"status"`
 	PolicyName         string         `json:"policy_name"`
 	OrganizationID     *string        `json:"organization_id"`
+	OrganizationName   *string        `json:"organization_name"`
 }
 
 type IAMUserList struct {
@@ -1126,6 +1127,21 @@ type DomainDTO struct {
 type DomainVerifyResult struct {
 	Verified bool    `json:"verified"`
 	Reasons  *string `json:"reasons,omitempty"`
+}
+
+// #region users v3
+
+type BulkCreateIAMUserResponseItem struct {
+	ID       string  `json:"id"`
+	Username string  `json:"username"`
+	Email    *string `json:"email"`
+	Created  bool    `json:"created"`
+	Status   string  `json:"status"`
+}
+
+type BulkCreateIAMUsersResponse struct {
+	Data  []BulkCreateIAMUserResponseItem `json:"data"`
+	Count int                             `json:"count"`
 }
 
 // #endregion

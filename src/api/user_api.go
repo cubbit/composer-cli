@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
@@ -25,6 +26,13 @@ type UserAPIInterface interface {
 		policyName,
 		secret string,
 	) error
+
+	BulkCreateIAMUsers(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		request *BulkCreateIAMUsersRequestBody,
+	) (*BulkCreateIAMUsersResponse, error)
 }
 
 type UserAPI struct{}
@@ -86,4 +94,33 @@ func (a *UserAPI) PromoteIAMUser(endpoints configuration_models.EndpointsV2, ema
 	}
 
 	return nil
+}
+
+func (a *UserAPI) BulkCreateIAMUsers(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	request *BulkCreateIAMUsersRequestBody,
+) (*BulkCreateIAMUsersResponse, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", "bulk").
+		Build()
+
+	requestBody := map[string][]BulkCreateIAMUserRequestBody{
+		"operators": request.Users,
+	}
+
+	var response BulkCreateIAMUsersResponse
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(requestBody),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to perform bulk create users request: %w", err)
+	}
+
+	return &response, nil
 }

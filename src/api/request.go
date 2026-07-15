@@ -207,6 +207,21 @@ type CreateDomainRequestBody struct {
 	DomainName string `json:"domain_name"`
 }
 
+// #region users v3
+
+type BulkCreateIAMUserRequestBody struct {
+	Username                string   `json:"username"`
+	AuthenticationPublicKey string   `json:"authentication_public_key"`
+	FirstName               *string  `json:"first_name,omitempty"`
+	LastName                *string  `json:"last_name,omitempty"`
+	Email                   *string  `json:"email,omitempty"`
+	AttachedPolicies        []string `json:"attached_policies,omitempty"`
+}
+
+type BulkCreateIAMUsersRequestBody struct {
+	Users []BulkCreateIAMUserRequestBody `json:"users"`
+}
+
 // #endregion
 
 // #region tenant v5

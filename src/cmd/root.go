@@ -6,6 +6,7 @@ import (
 	cmd_docs "github.com/cubbit/composer-cli/src/cmd/docs"
 	cmd_domain "github.com/cubbit/composer-cli/src/cmd/domain"
 	cmd_gateway "github.com/cubbit/composer-cli/src/cmd/gateway"
+	cmd_iam "github.com/cubbit/composer-cli/src/cmd/iam"
 	cmd_infrastructure "github.com/cubbit/composer-cli/src/cmd/infrastructure"
 	cmd_operator "github.com/cubbit/composer-cli/src/cmd/operator"
 	cmd_swarm "github.com/cubbit/composer-cli/src/cmd/swarm"
@@ -22,6 +23,7 @@ func NewRootCommand(
 	configurationHandler configuration_handler.ConfigurationHandlerInterface,
 	authService service.AuthServiceInterface,
 	operatorService service.OperatorServiceInterface,
+	userService service.UserServiceInterface,
 	locationService service.LocationServiceInterface,
 	configService service.ConfigServiceInterface,
 	swarmService service.SwarmServiceInterface,
@@ -61,6 +63,9 @@ func NewRootCommand(
 
 	operatorCmd := cmd_operator.NewOperatorCmd(operatorService)
 	rootCommand.AddCommand(operatorCmd)
+
+	iamCmd := cmd_iam.NewIAMCmd(userService)
+	rootCommand.AddCommand(iamCmd)
 
 	infrastructureCmd := cmd_infrastructure.NewInfrastructureCmd(locationService)
 	rootCommand.AddCommand(infrastructureCmd)

@@ -54,6 +54,7 @@ func main() {
 		mockCfg,
 		&trivialAuthService{},
 		&trivialOperatorService{},
+		&trivialUserService{},
 		&trivialLocationService{},
 		&trivialConfigService{},
 		swarmService,
@@ -87,6 +88,11 @@ func (s *trivialLocationService) CreateVirtualNode(c *cobra.Command, a []string)
 type trivialOperatorService struct{}
 
 func (s *trivialOperatorService) Connect(c *cobra.Command, a []string) error { return nil }
+
+type trivialUserService struct{}
+
+func (s *trivialUserService) ImportUsers(c *cobra.Command, a []string) error { return nil }
+func (s *trivialUserService) CreateUser(c *cobra.Command, a []string) error  { return nil }
 
 type trivialDomainService struct{}
 
