@@ -5,6 +5,7 @@ import "github.com/spf13/cobra"
 type UserServiceMock struct {
 	ImportUsersFunc func(cmd *cobra.Command, args []string) error
 	CreateUserFunc  func(cmd *cobra.Command, args []string) error
+	ListUsersFunc   func(cmd *cobra.Command, args []string) error
 }
 
 func NewUserServiceMock() *UserServiceMock {
@@ -13,6 +14,9 @@ func NewUserServiceMock() *UserServiceMock {
 			return nil
 		},
 		CreateUserFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		ListUsersFunc: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
@@ -28,6 +32,13 @@ func (m *UserServiceMock) ImportUsers(cmd *cobra.Command, args []string) error {
 func (m *UserServiceMock) CreateUser(cmd *cobra.Command, args []string) error {
 	if m.CreateUserFunc != nil {
 		return m.CreateUserFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *UserServiceMock) ListUsers(cmd *cobra.Command, args []string) error {
+	if m.ListUsersFunc != nil {
+		return m.ListUsersFunc(cmd, args)
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/request_utils"
@@ -33,6 +34,18 @@ type UserAPIInterface interface {
 		organizationID string,
 		request *BulkCreateIAMUsersRequestBody,
 	) (*BulkCreateIAMUsersResponse, error)
+
+	ListIAMUsers(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		enabled *bool,
+		search string,
+		page int,
+		items int,
+		sortKey string,
+		sortOrder string,
+	) (*GenericPaginatedResponse[IAMUserListItem], error)
 }
 
 type UserAPI struct{}
@@ -120,6 +133,51 @@ func (a *UserAPI) BulkCreateIAMUsers(
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, fmt.Errorf("failed to perform bulk create users request: %w", err)
+	}
+
+	return &response, nil
+}
+
+func (a *UserAPI) ListIAMUsers(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	enabled *bool,
+	search string,
+	page int,
+	items int,
+	sortKey string,
+	sortOrder string,
+) (*GenericPaginatedResponse[IAMUserListItem], error) {
+	urlBuilder := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators").
+		QueryParamInt("page", page).
+		QueryParamInt("items", items)
+
+	if enabled != nil {
+		urlBuilder.QueryParam("enabled", strconv.FormatBool(*enabled))
+	}
+	if search != "" {
+		urlBuilder.QueryParam("search", search)
+	}
+	if sortKey != "" {
+		urlBuilder.QueryParam("sort_key", sortKey)
+	}
+	if sortOrder != "" {
+		urlBuilder.QueryParam("sort_order", sortOrder)
+	}
+
+	url := urlBuilder.Build()
+
+	var response GenericPaginatedResponse[IAMUserListItem]
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to list IAM users: %w", err)
 	}
 
 	return &response, nil

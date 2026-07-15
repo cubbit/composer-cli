@@ -7,6 +7,7 @@ type MockUserAPI struct {
 	GetIAMUserSelfFunc     func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*IAMUser, error)
 	PromoteIAMUserFunc     func(endpoints configuration_models.EndpointsV2, email string, policyName string, secret string) error
 	BulkCreateIAMUsersFunc func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkCreateIAMUsersRequestBody) (*BulkCreateIAMUsersResponse, error)
+	ListIAMUsersFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error)
 }
 
 func (m *MockUserAPI) GetIAMUser(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string, meOrID string) (*IAMUser, error) {
@@ -39,6 +40,14 @@ func (m *MockUserAPI) BulkCreateIAMUsers(endpoints configuration_models.Endpoint
 	}
 
 	return &BulkCreateIAMUsersResponse{}, nil
+}
+
+func (m *MockUserAPI) ListIAMUsers(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error) {
+	if m.ListIAMUsersFunc != nil {
+		return m.ListIAMUsersFunc(endpoints, apiKey, organizationID, enabled, search, page, items, sortKey, sortOrder)
+	}
+
+	return &GenericPaginatedResponse[IAMUserListItem]{}, nil
 }
 
 var _ UserAPIInterface = (*MockUserAPI)(nil)

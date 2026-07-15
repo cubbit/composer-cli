@@ -1144,6 +1144,23 @@ type BulkCreateIAMUsersResponse struct {
 	Count int                             `json:"count"`
 }
 
+type IAMUserListItem struct {
+	ID               string        `json:"id"`
+	Username         string        `json:"username"`
+	FirstName        *string       `json:"first_name"`
+	LastName         *string       `json:"last_name"`
+	Enabled          bool          `json:"enabled"`
+	CreatedAt        time.Time     `json:"created_at"`
+	DeletedAt        *time.Time    `json:"deleted_at"`
+	Emails           []IAMUserEmail `json:"emails"`
+	PoliciesCount    int           `json:"policies_count"`
+	Status           string        `json:"status"`
+	IsRoot           bool          `json:"is_root"`
+	TwoFactorEnabled bool          `json:"two_factor_enabled"`
+	OrganizationID   string        `json:"organization_id"`
+	LastActivityAt   *time.Time    `json:"last_activity_at"`
+}
+
 // #endregion
 
 // #region tenant v5
