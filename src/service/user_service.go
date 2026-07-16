@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
@@ -17,6 +18,7 @@ type UserServiceInterface interface {
 	ImportUsers(cmd *cobra.Command, args []string) error
 	CreateUser(cmd *cobra.Command, args []string) error
 	ListUsers(cmd *cobra.Command, args []string) error
+	DescribeUser(cmd *cobra.Command, args []string) error
 }
 
 type UserService struct {
@@ -199,6 +201,125 @@ func (s *UserService) ListUsers(cmd *cobra.Command, args []string) error {
 	}
 
 	return PrintIAMUserList(cmd, allUsers)
+}
+
+func (s *UserService) DescribeUser(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	userID, err := s.resolveUserID(cmd, args, profile.Endpoints, profile.APIKey, profile.OrganizationID)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.userAPI.GetIAMUserByID(profile.Endpoints, profile.APIKey, profile.OrganizationID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDescribingIAMUserRequest, err)
+	}
+
+	user.OrganizationID = &profile.OrganizationID
+
+	organizationName, err := s.getProfileOrganizationName(profile)
+	if err == nil {
+		user.OrganizationName = &organizationName
+	}
+
+	output, err := resolveCommandOutput(cmd, profile.Output)
+	if err != nil {
+		return err
+	}
+
+	if output == string(configuration_models.OutputHuman) {
+		return PrintIAMUserDetails(cmd, *user)
+	}
+
+	utils.PrintFormattedData(cmd.OutOrStdout(), user, output)
+	return nil
+}
+
+func (s *UserService) resolveUserID(
+	cmd *cobra.Command,
+	args []string,
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+) (string, error) {
+	identifiers := 0
+
+	userIDFlag, err := cmd.Flags().GetString("user-id")
+	if err != nil {
+		return "", fmt.Errorf("%s user-id: %w", constants.ErrorRetrievingField, err)
+	}
+	if userIDFlag != "" {
+		identifiers++
+	}
+
+	usernameFlag, err := cmd.Flags().GetString("username")
+	if err != nil {
+		return "", fmt.Errorf("%s username: %w", constants.ErrorRetrievingField, err)
+	}
+	if usernameFlag != "" {
+		identifiers++
+	}
+
+	userIDPositional := ""
+	if len(args) > 0 {
+		userIDPositional = strings.TrimSpace(args[0])
+		if userIDPositional != "" {
+			identifiers++
+		}
+	}
+
+	if identifiers != 1 {
+		return "", fmt.Errorf("specify exactly one of USER_ID, --user-id or --username")
+	}
+
+	if userIDPositional != "" {
+		return userIDPositional, nil
+	}
+
+	if userIDFlag != "" {
+		return userIDFlag, nil
+	}
+
+	return s.resolveUserIDByName(endpoints, apiKey, organizationID, usernameFlag)
+}
+
+func (s *UserService) resolveUserIDByName(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	username string,
+) (string, error) {
+	page := 1
+	const itemsPerPage = 1000
+
+	for {
+		response, err := s.userAPI.ListIAMUsers(
+			endpoints, apiKey, organizationID,
+			nil, username, page, itemsPerPage, "", "",
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve username '%s': %w", username, err)
+		}
+
+		for _, item := range response.Data {
+			if item.Username == username {
+				return item.ID, nil
+			}
+		}
+
+		if response.NextPage != nil {
+			page = *response.NextPage
+			continue
+		}
+
+		break
+	}
+
+	return "", fmt.Errorf("IAM user with username '%s' not found", username)
 }
 
 func (s *UserService) getProfileOrganizationName(profile configuration_models.ProfileV2) (string, error) {

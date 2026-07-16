@@ -3,9 +3,10 @@ package service
 import "github.com/spf13/cobra"
 
 type UserServiceMock struct {
-	ImportUsersFunc func(cmd *cobra.Command, args []string) error
-	CreateUserFunc  func(cmd *cobra.Command, args []string) error
-	ListUsersFunc   func(cmd *cobra.Command, args []string) error
+	ImportUsersFunc  func(cmd *cobra.Command, args []string) error
+	CreateUserFunc   func(cmd *cobra.Command, args []string) error
+	ListUsersFunc    func(cmd *cobra.Command, args []string) error
+	DescribeUserFunc func(cmd *cobra.Command, args []string) error
 }
 
 func NewUserServiceMock() *UserServiceMock {
@@ -17,6 +18,9 @@ func NewUserServiceMock() *UserServiceMock {
 			return nil
 		},
 		ListUsersFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		DescribeUserFunc: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
@@ -39,6 +43,13 @@ func (m *UserServiceMock) CreateUser(cmd *cobra.Command, args []string) error {
 func (m *UserServiceMock) ListUsers(cmd *cobra.Command, args []string) error {
 	if m.ListUsersFunc != nil {
 		return m.ListUsersFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *UserServiceMock) DescribeUser(cmd *cobra.Command, args []string) error {
+	if m.DescribeUserFunc != nil {
+		return m.DescribeUserFunc(cmd, args)
 	}
 	return nil
 }

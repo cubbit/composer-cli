@@ -91,9 +91,10 @@ func (s *trivialOperatorService) Connect(c *cobra.Command, a []string) error { r
 
 type trivialUserService struct{}
 
-func (s *trivialUserService) ImportUsers(c *cobra.Command, a []string) error { return nil }
-func (s *trivialUserService) CreateUser(c *cobra.Command, a []string) error  { return nil }
-func (s *trivialUserService) ListUsers(c *cobra.Command, a []string) error   { return nil }
+func (s *trivialUserService) ImportUsers(c *cobra.Command, a []string) error  { return nil }
+func (s *trivialUserService) CreateUser(c *cobra.Command, a []string) error   { return nil }
+func (s *trivialUserService) ListUsers(c *cobra.Command, a []string) error    { return nil }
+func (s *trivialUserService) DescribeUser(c *cobra.Command, a []string) error { return nil }
 
 type trivialDomainService struct{}
 

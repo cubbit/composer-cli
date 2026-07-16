@@ -146,7 +146,8 @@ const (
 	ErrorDeletingDomainRequest   = "failed request to delete domain"
 	ErrorVerifyingDomainRequest  = "failed request to verify domain"
 
-	ErrorListingIAMUsersRequest = "failed request to list IAM users"
+	ErrorListingIAMUsersRequest   = "failed request to list IAM users"
+	ErrorDescribingIAMUserRequest = "failed request to describe IAM user"
 
 	// Gateway v5 errors
 	ErrorCreatingGatewayV5Request = "failed request to create gateway v5"

@@ -21,6 +21,13 @@ type UserAPIInterface interface {
 		accessToken, apiKey string,
 	) (*IAMUser, error)
 
+	GetIAMUserByID(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		userID string,
+	) (*IAMUser, error)
+
 	PromoteIAMUser(
 		endpoints configuration_models.EndpointsV2,
 		email,
@@ -52,6 +59,30 @@ type UserAPI struct{}
 
 func NewUserAPI() *UserAPI {
 	return &UserAPI{}
+}
+
+func (a *UserAPI) GetIAMUserByID(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	userID string,
+) (*IAMUser, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", userID).
+		Build()
+
+	var operator IAMUser
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		ExtractGenericModel(&operator),
+	); err != nil {
+		return nil, fmt.Errorf("failed to describe IAM user: %w", err)
+	}
+
+	return &operator, nil
 }
 
 func (a *UserAPI) GetIAMUser(endpoints configuration_models.EndpointsV2, accessToken, apiKey string, meOrID string) (*IAMUser, error) {

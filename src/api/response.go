@@ -226,22 +226,32 @@ type TenantSwarm struct {
 	RedundancyClassName string `json:"redundancy_class_name"`
 }
 
+type IAMUserPolicy struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type IAMUser struct {
-	ID                 string         `json:"id"`
-	FirstName          string         `json:"first_name"`
-	LastName           string         `json:"last_name"`
-	Internal           bool           `json:"internal"`
-	Banned             bool           `json:"banned"`
-	CreatedAt          time.Time      `json:"created_at"`
-	DeletedAt          *time.Time     `json:"deleted_at"`
-	MaxAllowedProjects int            `json:"max_allowed_projects"`
-	Email              string         `json:"email"`
-	Emails             []IAMUserEmail `json:"emails"`
-	TwoFactorEnabled   bool           `json:"two_factor_enabled"`
-	Status             string         `json:"status"`
-	PolicyName         string         `json:"policy_name"`
-	OrganizationID     *string        `json:"organization_id"`
-	OrganizationName   *string        `json:"organization_name"`
+	ID                 string          `json:"id"`
+	Username           string          `json:"username"`
+	FirstName          string          `json:"first_name"`
+	LastName           string          `json:"last_name"`
+	Email              string          `json:"email"`
+	Emails             []IAMUserEmail  `json:"emails"`
+	Enabled            bool            `json:"enabled"`
+	Internal           bool            `json:"internal"`
+	Banned             bool            `json:"banned"`
+	IsRoot             bool            `json:"is_root"`
+	TwoFactorEnabled   bool            `json:"two_factor_enabled"`
+	Status             string          `json:"status"`
+	CreatedAt          time.Time       `json:"created_at"`
+	DeletedAt          *time.Time      `json:"deleted_at"`
+	LastActivityAt     *time.Time      `json:"last_activity_at"`
+	MaxAllowedProjects int             `json:"max_allowed_projects"`
+	PoliciesCount      int             `json:"policies_count"`
+	Policies           []IAMUserPolicy `json:"policies"`
+	OrganizationID     *string         `json:"organization_id"`
+	OrganizationName   *string         `json:"organization_name"`
 }
 
 type IAMUserList struct {
