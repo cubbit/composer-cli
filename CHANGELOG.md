@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.6.0
+
+### Minor Changes
+
+- fcb5030: List and describe commands for tenant v5
+- bd8a968: Tenant create command
+
 ## 2.5.0
 
 ### Minor Changes
