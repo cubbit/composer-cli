@@ -222,6 +222,14 @@ type BulkCreateIAMUsersRequestBody struct {
 	Users []BulkCreateIAMUserRequestBody `json:"users"`
 }
 
+type BulkGenerateSaltRequestBodyItem struct {
+	Username string `json:"username"`
+}
+
+type BulkGenerateSaltsRequestBody struct {
+	Operators []BulkGenerateSaltRequestBodyItem `json:"operators"`
+}
+
 // #endregion
 
 // #region tenant v5

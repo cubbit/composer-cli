@@ -25,7 +25,7 @@ func TestUserService_ImportUsers_SampleSkipsProfileLoading(t *testing.T) {
 	cmd.Flags().String("file", "", "Users file")
 	cmd.Flags().Set("sample", "json")
 
-	service := NewUserService(mockCfg, nil, nil)
+	service := NewUserService(mockCfg, nil)
 	err := service.ImportUsers(cmd, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -47,7 +47,7 @@ func TestUserService_GetProfileOrganizationName(t *testing.T) {
 			}, nil
 		},
 	}
-	service := NewUserService(nil, nil, userAPI)
+	service := NewUserService(nil, userAPI)
 
 	actualOrganizationName, err := service.getProfileOrganizationName(configuration_models.ProfileV2{
 		APIKey: "test-api-key",
@@ -69,7 +69,7 @@ func TestUserService_GetProfileOrganizationName_Missing(t *testing.T) {
 			return &api.IAMUser{}, nil
 		},
 	}
-	service := NewUserService(nil, nil, userAPI)
+	service := NewUserService(nil, userAPI)
 
 	_, err := service.getProfileOrganizationName(configuration_models.ProfileV2{})
 	if err == nil {
@@ -153,7 +153,7 @@ func TestUserService_ListUsers_Human(t *testing.T) {
 		},
 	}
 
-	service := NewUserService(mockCfg, nil, mockUserAPI)
+	service := NewUserService(mockCfg, mockUserAPI)
 	cmd := setupListTestCommand()
 
 	err := service.ListUsers(cmd, nil)
@@ -214,7 +214,7 @@ func TestUserService_ListUsers_WithFilters(t *testing.T) {
 		},
 	}
 
-	service := NewUserService(mockCfg, nil, mockUserAPI)
+	service := NewUserService(mockCfg, mockUserAPI)
 	cmd := setupListTestCommand()
 	cmd.Flags().Set("enabled", "true")
 	cmd.Flags().Set("search", "bob")
@@ -273,7 +273,7 @@ func TestUserService_ListUsers_Pagination(t *testing.T) {
 		},
 	}
 
-	service := NewUserService(mockCfg, nil, mockUserAPI)
+	service := NewUserService(mockCfg, mockUserAPI)
 	cmd := setupListTestCommand()
 
 	err := service.ListUsers(cmd, nil)
@@ -329,7 +329,7 @@ func TestUserService_ListUsers_SinglePage(t *testing.T) {
 		},
 	}
 
-	service := NewUserService(mockCfg, nil, mockUserAPI)
+	service := NewUserService(mockCfg, mockUserAPI)
 	cmd := setupListTestCommand()
 	cmd.Flags().Set("page", "3")
 	cmd.Flags().Set("items", "50")
@@ -354,7 +354,7 @@ func TestUserService_ListUsers_InvalidEnabled(t *testing.T) {
 		}, nil
 	}
 
-	service := NewUserService(mockCfg, nil, &api.MockUserAPI{})
+	service := NewUserService(mockCfg, &api.MockUserAPI{})
 	cmd := setupListTestCommand()
 	cmd.Flags().Set("enabled", "not-a-bool")
 

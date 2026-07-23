@@ -42,6 +42,13 @@ type UserAPIInterface interface {
 		request *BulkCreateIAMUsersRequestBody,
 	) (*BulkCreateIAMUsersResponse, error)
 
+	BulkGenerateSalts(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		request *BulkGenerateSaltsRequestBody,
+	) (*BulkGenerateSaltsResponse, error)
+
 	ListIAMUsers(
 		endpoints configuration_models.EndpointsV2,
 		apiKey string,
@@ -164,6 +171,31 @@ func (a *UserAPI) BulkCreateIAMUsers(
 		ExtractGenericModel(&response),
 	); err != nil {
 		return nil, fmt.Errorf("failed to perform bulk create users request: %w", err)
+	}
+
+	return &response, nil
+}
+
+func (a *UserAPI) BulkGenerateSalts(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	request *BulkGenerateSaltsRequestBody,
+) (*BulkGenerateSaltsResponse, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", "salts", "bulk").
+		Build()
+
+	var response BulkGenerateSaltsResponse
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to bulk generate salts: %w", err)
 	}
 
 	return &response, nil

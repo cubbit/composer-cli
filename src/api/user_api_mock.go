@@ -3,12 +3,13 @@ package api
 import "github.com/cubbit/composer-cli/src/configuration/configuration_models"
 
 type MockUserAPI struct {
-	GetIAMUserFunc         func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string, meOrID string) (*IAMUser, error)
-	GetIAMUserSelfFunc     func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*IAMUser, error)
-	GetIAMUserByIDFunc     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error)
-	PromoteIAMUserFunc     func(endpoints configuration_models.EndpointsV2, email string, policyName string, secret string) error
-	BulkCreateIAMUsersFunc func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkCreateIAMUsersRequestBody) (*BulkCreateIAMUsersResponse, error)
-	ListIAMUsersFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error)
+	GetIAMUserFunc          func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string, meOrID string) (*IAMUser, error)
+	GetIAMUserSelfFunc      func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*IAMUser, error)
+	GetIAMUserByIDFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error)
+	PromoteIAMUserFunc      func(endpoints configuration_models.EndpointsV2, email string, policyName string, secret string) error
+	BulkCreateIAMUsersFunc  func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkCreateIAMUsersRequestBody) (*BulkCreateIAMUsersResponse, error)
+	BulkGenerateSaltsFunc   func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkGenerateSaltsRequestBody) (*BulkGenerateSaltsResponse, error)
+	ListIAMUsersFunc        func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error)
 }
 
 func (m *MockUserAPI) GetIAMUserByID(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error) {
@@ -49,6 +50,14 @@ func (m *MockUserAPI) BulkCreateIAMUsers(endpoints configuration_models.Endpoint
 	}
 
 	return &BulkCreateIAMUsersResponse{}, nil
+}
+
+func (m *MockUserAPI) BulkGenerateSalts(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkGenerateSaltsRequestBody) (*BulkGenerateSaltsResponse, error) {
+	if m.BulkGenerateSaltsFunc != nil {
+		return m.BulkGenerateSaltsFunc(endpoints, apiKey, organizationID, request)
+	}
+
+	return &BulkGenerateSaltsResponse{}, nil
 }
 
 func (m *MockUserAPI) ListIAMUsers(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error) {

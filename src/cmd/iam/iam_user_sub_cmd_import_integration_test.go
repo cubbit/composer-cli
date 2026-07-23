@@ -11,15 +11,19 @@ import (
 func TestIAMUserSubCmd_Import_Integration_HumanOutput(t *testing.T) {
 	usersFile := writeIAMUsersIntegrationFile(t, `{"users":[{"username":"alice","password":"test-password","email":"alice@example.com"},{"username":"bob","password":"test-password"}]}`)
 	email := "alice@example.com"
-	mockAuthAPI := iamUserCommandChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			return &api.ChallengeResponseModel{Salt: "test-salt"}, nil
-		},
-	}
 	mockUserAPI := &api.MockUserAPI{
 		GetIAMUserSelfFunc: func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*api.IAMUser, error) {
 			organizationName := "test-org"
 			return &api.IAMUser{OrganizationName: &organizationName}, nil
+		},
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			return &api.BulkGenerateSaltsResponse{
+				Count: 2,
+				Data: []api.BulkGenerateSaltResponseItem{
+					{Username: "alice", Salt: "test-salt"},
+					{Username: "bob", Salt: "test-salt"},
+				},
+			}, nil
 		},
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			if len(request.Users) != 2 {
@@ -47,7 +51,7 @@ func TestIAMUserSubCmd_Import_Integration_HumanOutput(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockAuthAPI, mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
 	iamCmd.SetArgs([]string{
 		"user",
 		"import",

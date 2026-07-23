@@ -20,18 +20,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type challengeAPI interface {
-	GenerateChallenge(
-		endpoints configuration_models.EndpointsV2,
-		email *string,
-		username *string,
-		organizationName *string,
-	) (*api.ChallengeResponseModel, error)
-}
-
 type Dependencies struct {
 	UserAPI api.UserAPIInterface
-	AuthAPI challengeAPI
 }
 
 type bulkCreateUsersFile struct {
@@ -330,10 +320,6 @@ func createBulkCreateUsersRequest(
 		return nil, fmt.Errorf("no users provided")
 	}
 
-	request := &api.BulkCreateIAMUsersRequestBody{
-		Users: make([]api.BulkCreateIAMUserRequestBody, 0, len(usersFile.Users)),
-	}
-
 	for _, user := range usersFile.Users {
 		if user.Username == "" {
 			return nil, fmt.Errorf("username is required")
@@ -349,20 +335,45 @@ func createBulkCreateUsersRequest(
 				return nil, fmt.Errorf("invalid attached policy %q for user %q: expected UUID", policyID, user.Username)
 			}
 		}
+	}
 
-		challenge, err := deps.AuthAPI.GenerateChallenge(
-			profile.Endpoints,
-			nil,
-			&user.Username,
-			&organizationName,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate challenge for user %q: %w", user.Username, err)
+	saltsRequest := &api.BulkGenerateSaltsRequestBody{
+		Operators: make([]api.BulkGenerateSaltRequestBodyItem, 0, len(usersFile.Users)),
+	}
+	for _, user := range usersFile.Users {
+		saltsRequest.Operators = append(saltsRequest.Operators, api.BulkGenerateSaltRequestBodyItem{
+			Username: user.Username,
+		})
+	}
+
+	saltsResponse, err := deps.UserAPI.BulkGenerateSalts(
+		profile.Endpoints,
+		profile.APIKey,
+		profile.OrganizationID,
+		saltsRequest,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to bulk generate salts: %w", err)
+	}
+
+	saltByUsername := make(map[string]string, len(saltsResponse.Data))
+	for _, item := range saltsResponse.Data {
+		saltByUsername[item.Username] = item.Salt
+	}
+
+	request := &api.BulkCreateIAMUsersRequestBody{
+		Users: make([]api.BulkCreateIAMUserRequestBody, 0, len(usersFile.Users)),
+	}
+
+	for _, user := range usersFile.Users {
+		salt, ok := saltByUsername[user.Username]
+		if !ok {
+			return nil, fmt.Errorf("salt not returned for user %q", user.Username)
 		}
 
 		authenticationPublicKey, err := utils.AuthenticationPublicKeyFromPassword(
 			user.Password,
-			challenge.Salt,
+			salt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate authentication public key for user %q: %w", user.Username, err)

@@ -23,18 +23,15 @@ type UserServiceInterface interface {
 
 type UserService struct {
 	configuration configuration_handler.ConfigurationHandlerInterface
-	authAPI       api.AuthAPIInterface
 	userAPI       api.UserAPIInterface
 }
 
 func NewUserService(
 	configuration configuration_handler.ConfigurationHandlerInterface,
-	authAPI api.AuthAPIInterface,
 	userAPI api.UserAPIInterface,
 ) *UserService {
 	return &UserService{
 		configuration: configuration,
-		authAPI:       authAPI,
 		userAPI:       userAPI,
 	}
 }
@@ -60,7 +57,6 @@ func (s *UserService) ImportUsers(cmd *cobra.Command, args []string) error {
 
 	return usercreate.ImportUsers(
 		usercreate.Dependencies{
-			AuthAPI: s.authAPI,
 			UserAPI: s.userAPI,
 		},
 		cmd,
@@ -82,7 +78,6 @@ func (s *UserService) CreateUser(cmd *cobra.Command, args []string) error {
 
 	return usercreate.CreateUser(
 		usercreate.Dependencies{
-			AuthAPI: s.authAPI,
 			UserAPI: s.userAPI,
 		},
 		cmd,

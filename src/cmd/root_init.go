@@ -60,7 +60,7 @@ func Execute(packageJSON []byte) {
 	configService := service.NewConfigService(configurationHandler)
 	locationService := service.NewLocationService(configurationHandler, locationAPI, userAPI)
 	operatorService := service.NewOperatorService(configurationHandler, operatorAPI, userAPI)
-	userService := service.NewUserService(configurationHandler, authAPI, userAPI)
+	userService := service.NewUserService(configurationHandler, userAPI)
 	redundancyClassValidator := service.NewRedundancyClassValidator()
 	swarmService := service.NewSwarmService(configurationHandler, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
 	domainService := service.NewDomainService(configurationHandler, domainAPI, userAPI)

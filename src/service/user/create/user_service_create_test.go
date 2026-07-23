@@ -128,18 +128,17 @@ func TestImportUsers_Quiet(t *testing.T) {
 	var actualAPIKey string
 	var actualOrganizationID string
 	var actualRequest *api.BulkCreateIAMUsersRequestBody
-	var actualChallengeUsername *string
-	var actualChallengeOrganizationName *string
-	mockAuthAPI := mockChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			actualChallengeUsername = username
-			actualChallengeOrganizationName = organizationName
-			return &api.ChallengeResponseModel{
-				Salt: "test-salt",
+	var actualSaltsRequest *api.BulkGenerateSaltsRequestBody
+	mockUserAPI := &api.MockUserAPI{
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			actualSaltsRequest = request
+			return &api.BulkGenerateSaltsResponse{
+				Count: 1,
+				Data: []api.BulkGenerateSaltResponseItem{
+					{Username: "user1", Salt: "test-salt"},
+				},
 			}, nil
 		},
-	}
-	mockUserAPI := &api.MockUserAPI{
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			actualEndpoints = endpoints
 			actualAPIKey = apiKey
@@ -164,7 +163,7 @@ func TestImportUsers_Quiet(t *testing.T) {
 	cmd.Flags().Set("file", usersFile)
 	cmd.Flags().Set("quiet", "true")
 
-	err := ImportUsers(Dependencies{AuthAPI: mockAuthAPI, UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -188,11 +187,8 @@ func TestImportUsers_Quiet(t *testing.T) {
 	if actualOrganizationID != "test-org-id" {
 		t.Fatalf("Expected organization ID to be propagated, got %q", actualOrganizationID)
 	}
-	if actualChallengeUsername == nil || *actualChallengeUsername != "user1" {
-		t.Fatalf("Expected challenge username user1, got %v", actualChallengeUsername)
-	}
-	if actualChallengeOrganizationName == nil || *actualChallengeOrganizationName != "test-org" {
-		t.Fatalf("Expected challenge organization test-org, got %v", actualChallengeOrganizationName)
+	if actualSaltsRequest == nil || len(actualSaltsRequest.Operators) != 1 || actualSaltsRequest.Operators[0].Username != "user1" {
+		t.Fatalf("Expected salts request with user1, got %+v", actualSaltsRequest)
 	}
 	if !reflect.DeepEqual(actualRequest, expectedRequest) {
 		t.Fatalf("Expected request %+v, got %+v", expectedRequest, actualRequest)
@@ -207,14 +203,15 @@ func TestImportUsers_Quiet(t *testing.T) {
 
 func TestImportUsers_JSONIncludesCount(t *testing.T) {
 	usersFile := writeUsersFile(t, `{"users":[{"username":"user1","password":"test-password"}]}`)
-	mockAuthAPI := mockChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			return &api.ChallengeResponseModel{
-				Salt: "test-salt",
+	mockUserAPI := &api.MockUserAPI{
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			return &api.BulkGenerateSaltsResponse{
+				Count: 1,
+				Data: []api.BulkGenerateSaltResponseItem{
+					{Username: "user1", Salt: "test-salt"},
+				},
 			}, nil
 		},
-	}
-	mockUserAPI := &api.MockUserAPI{
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			return &api.BulkCreateIAMUsersResponse{
 				Count: 1,
@@ -234,7 +231,7 @@ func TestImportUsers_JSONIncludesCount(t *testing.T) {
 	cmd.Flags().Set("file", usersFile)
 	cmd.Flags().Set("output", "json")
 
-	err := ImportUsers(Dependencies{AuthAPI: mockAuthAPI, UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -256,14 +253,15 @@ user1,test-password,John,Doe,user1@example.com,695ed3dd-e77d-42b9-88ed-70bd3a170
 	lastName := "Doe"
 	email := "user1@example.com"
 	var actualRequest *api.BulkCreateIAMUsersRequestBody
-	mockAuthAPI := mockChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			return &api.ChallengeResponseModel{
-				Salt: "test-salt",
+	mockUserAPI := &api.MockUserAPI{
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			return &api.BulkGenerateSaltsResponse{
+				Count: 1,
+				Data: []api.BulkGenerateSaltResponseItem{
+					{Username: "user1", Salt: "test-salt"},
+				},
 			}, nil
 		},
-	}
-	mockUserAPI := &api.MockUserAPI{
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			actualRequest = request
 			return &api.BulkCreateIAMUsersResponse{
@@ -285,7 +283,7 @@ user1,test-password,John,Doe,user1@example.com,695ed3dd-e77d-42b9-88ed-70bd3a170
 	cmd.Flags().Set("file", usersFile)
 	cmd.Flags().Set("quiet", "true")
 
-	err := ImportUsers(Dependencies{AuthAPI: mockAuthAPI, UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -310,14 +308,15 @@ user1,test-password,John,Doe,user1@example.com,695ed3dd-e77d-42b9-88ed-70bd3a170
 func TestCreateUser(t *testing.T) {
 	email := "user1@example.com"
 	var actualRequest *api.BulkCreateIAMUsersRequestBody
-	mockAuthAPI := mockChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			return &api.ChallengeResponseModel{
-				Salt: "test-salt",
+	mockUserAPI := &api.MockUserAPI{
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			return &api.BulkGenerateSaltsResponse{
+				Count: 1,
+				Data: []api.BulkGenerateSaltResponseItem{
+					{Username: "user1", Salt: "test-salt"},
+				},
 			}, nil
 		},
-	}
-	mockUserAPI := &api.MockUserAPI{
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			actualRequest = request
 			return &api.BulkCreateIAMUsersResponse{
@@ -342,7 +341,7 @@ func TestCreateUser(t *testing.T) {
 	cmd.Flags().Set("policy", "695ed3dd-e77d-42b9-88ed-70bd3a1704ee")
 	cmd.Flags().Set("quiet", "true")
 
-	err := CreateUser(Dependencies{AuthAPI: mockAuthAPI, UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := CreateUser(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -389,15 +388,13 @@ func TestImportUsers_InvalidJSON(t *testing.T) {
 
 func TestImportUsers_MissingPassword(t *testing.T) {
 	usersFile := writeUsersFile(t, `{"users":[{"username":"user1"}]}`)
-	challengeCalled := false
+	saltsCalled := false
 	bulkCreateCalled := false
-	mockAuthAPI := mockChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			challengeCalled = true
+	mockUserAPI := &api.MockUserAPI{
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			saltsCalled = true
 			return nil, nil
 		},
-	}
-	mockUserAPI := &api.MockUserAPI{
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			bulkCreateCalled = true
 			return nil, nil
@@ -407,15 +404,15 @@ func TestImportUsers_MissingPassword(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("file", usersFile)
 
-	err := ImportUsers(Dependencies{AuthAPI: mockAuthAPI, UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected missing password error, got nil")
 	}
 	if !strings.Contains(err.Error(), `password is required for user "user1"`) {
 		t.Fatalf("Expected missing password error, got %v", err)
 	}
-	if challengeCalled {
-		t.Fatal("Challenge API should not be called when password is missing")
+	if saltsCalled {
+		t.Fatal("BulkGenerateSalts should not be called when password is missing")
 	}
 	if bulkCreateCalled {
 		t.Fatal("BulkCreateIAMUsers API should not be called when password is missing")
@@ -424,15 +421,13 @@ func TestImportUsers_MissingPassword(t *testing.T) {
 
 func TestImportUsers_InvalidAttachedPolicy(t *testing.T) {
 	usersFile := writeUsersFile(t, `{"users":[{"username":"user1","password":"test-password","attached_policies":["$POLICY_ID"]}]}`)
-	challengeCalled := false
+	saltsCalled := false
 	bulkCreateCalled := false
-	mockAuthAPI := mockChallengeAPI{
-		GenerateChallengeFunc: func(endpoints configuration_models.EndpointsV2, email *string, username *string, organizationName *string) (*api.ChallengeResponseModel, error) {
-			challengeCalled = true
+	mockUserAPI := &api.MockUserAPI{
+		BulkGenerateSaltsFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkGenerateSaltsRequestBody) (*api.BulkGenerateSaltsResponse, error) {
+			saltsCalled = true
 			return nil, nil
 		},
-	}
-	mockUserAPI := &api.MockUserAPI{
 		BulkCreateIAMUsersFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *api.BulkCreateIAMUsersRequestBody) (*api.BulkCreateIAMUsersResponse, error) {
 			bulkCreateCalled = true
 			return nil, nil
@@ -442,15 +437,15 @@ func TestImportUsers_InvalidAttachedPolicy(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("file", usersFile)
 
-	err := ImportUsers(Dependencies{AuthAPI: mockAuthAPI, UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected invalid attached policy error, got nil")
 	}
 	if !strings.Contains(err.Error(), `invalid attached policy "$POLICY_ID" for user "user1": expected UUID`) {
 		t.Fatalf("Expected invalid attached policy error, got %v", err)
 	}
-	if challengeCalled {
-		t.Fatal("Challenge API should not be called when attached policy is invalid")
+	if saltsCalled {
+		t.Fatal("BulkGenerateSalts should not be called when attached policy is invalid")
 	}
 	if bulkCreateCalled {
 		t.Fatal("BulkCreateIAMUsers API should not be called when attached policy is invalid")
@@ -475,24 +470,6 @@ func writeUsersFileWithPattern(t *testing.T, pattern string, content string) str
 	}
 
 	return file.Name()
-}
-
-type mockChallengeAPI struct {
-	GenerateChallengeFunc func(
-		endpoints configuration_models.EndpointsV2,
-		email *string,
-		username *string,
-		organizationName *string,
-	) (*api.ChallengeResponseModel, error)
-}
-
-func (m mockChallengeAPI) GenerateChallenge(
-	endpoints configuration_models.EndpointsV2,
-	email *string,
-	username *string,
-	organizationName *string,
-) (*api.ChallengeResponseModel, error) {
-	return m.GenerateChallengeFunc(endpoints, email, username, organizationName)
 }
 
 func testAuthenticationPublicKey(password string, salt string) string {

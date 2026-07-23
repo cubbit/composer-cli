@@ -59,7 +59,7 @@ func TestIAMUserSubCmd_Describe_Integration_HumanOutput(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(nil, mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
 	iamCmd.SetArgs([]string{
 		"user",
 		"describe",

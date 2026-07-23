@@ -1154,6 +1154,16 @@ type BulkCreateIAMUsersResponse struct {
 	Count int                             `json:"count"`
 }
 
+type BulkGenerateSaltResponseItem struct {
+	Username string `json:"username"`
+	Salt     string `json:"salt"`
+}
+
+type BulkGenerateSaltsResponse struct {
+	Data  []BulkGenerateSaltResponseItem `json:"data"`
+	Count int                            `json:"count"`
+}
+
 type IAMUserListItem struct {
 	ID               string        `json:"id"`
 	Username         string        `json:"username"`

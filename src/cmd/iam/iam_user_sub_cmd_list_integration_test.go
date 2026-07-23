@@ -16,7 +16,6 @@ import (
 )
 
 func setupIAMUserIntegrationCommand(
-	authAPI api.AuthAPIInterface,
 	userAPI api.UserAPIInterface,
 ) (*cobra.Command, *bytes.Buffer) {
 	mockCfg := configuration_handler.NewMockConfigurationHandler()
@@ -31,7 +30,7 @@ func setupIAMUserIntegrationCommand(
 		}, nil
 	}
 
-	userService := service.NewUserService(mockCfg, authAPI, userAPI)
+	userService := service.NewUserService(mockCfg, userAPI)
 	iamCmd := NewIAMCmd(userService)
 	iamCmd.PersistentFlags().String("profile", "", "Profile")
 	iamCmd.PersistentFlags().String("output", "human", "Output format")
@@ -194,7 +193,7 @@ func TestIAMUserSubCmd_List_Integration_HumanOutput(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(nil, mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
 	iamCmd.SetArgs([]string{"user", "list"})
 
 	err := iamCmd.Execute()
@@ -254,7 +253,7 @@ func TestIAMUserSubCmd_List_Integration_WithFilters(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(nil, mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
 	iamCmd.SetArgs([]string{
 		"user",
 		"list",
