@@ -1,4 +1,4 @@
-package service
+package user
 
 import "github.com/spf13/cobra"
 
@@ -7,6 +7,7 @@ type UserServiceMock struct {
 	CreateUserFunc   func(cmd *cobra.Command, args []string) error
 	ListUsersFunc    func(cmd *cobra.Command, args []string) error
 	DescribeUserFunc func(cmd *cobra.Command, args []string) error
+	DeleteUserFunc   func(cmd *cobra.Command, args []string) error
 }
 
 func NewUserServiceMock() *UserServiceMock {
@@ -21,6 +22,9 @@ func NewUserServiceMock() *UserServiceMock {
 			return nil
 		},
 		DescribeUserFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		DeleteUserFunc: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
@@ -50,6 +54,13 @@ func (m *UserServiceMock) ListUsers(cmd *cobra.Command, args []string) error {
 func (m *UserServiceMock) DescribeUser(cmd *cobra.Command, args []string) error {
 	if m.DescribeUserFunc != nil {
 		return m.DescribeUserFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *UserServiceMock) DeleteUser(cmd *cobra.Command, args []string) error {
+	if m.DeleteUserFunc != nil {
+		return m.DeleteUserFunc(cmd, args)
 	}
 	return nil
 }

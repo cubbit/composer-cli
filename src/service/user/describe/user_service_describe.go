@@ -1,79 +1,64 @@
-package service
+package describe
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	"github.com/cubbit/composer-cli/src/service/user/shared"
+	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
-	"github.com/cubbit/composer-cli/utils/printer/table"
-	"github.com/cubbit/composer-cli/utils/printer/utils"
+	printerutils "github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
 
-func PrintIAMUserList(cmd *cobra.Command, users []api.IAMUserListItem) error {
-	if len(users) == 0 {
-		return printer.PrintText(cmd, "No IAM users found.\n")
-	}
-
-	noHeaders, err := cmd.Flags().GetBool("no-headers")
-	if err != nil {
-		return fmt.Errorf("failed to read no-headers flag: %w", err)
-	}
-
-	tableColumns := []table.Column[api.IAMUserListItem]{
-		{Title: "Username"},
-		{Title: "ID"},
-		{Title: "Email"},
-		{Title: "First Name"},
-		{Title: "Last Name"},
-		{Title: "Status"},
-		{Title: "Enabled"},
-		{Title: "Created At"},
-	}
-
-	rowMapper := func(item api.IAMUserListItem) []string {
-		firstName := ""
-		if item.FirstName != nil {
-			firstName = *item.FirstName
-		}
-		lastName := ""
-		if item.LastName != nil {
-			lastName = *item.LastName
-		}
-
-		return []string{
-			item.Username,
-			item.ID,
-			defaultIAMUserEmail(item.Emails),
-			firstName,
-			lastName,
-			item.Status,
-			fmt.Sprintf("%t", item.Enabled),
-			utils.FormatTime(item.CreatedAt),
-		}
-	}
-
-	return printer.CreateTable(
-		cmd,
-		users,
-		table.WithColumns(tableColumns),
-		table.WithRowMapper(rowMapper),
-		table.WithShowHeader[api.IAMUserListItem](!noHeaders),
-		table.WithSuffix[api.IAMUserListItem]("\n"),
-	)
+type Dependencies struct {
+	UserAPI api.UserAPIInterface
 }
 
-func defaultIAMUserEmail(emails []api.IAMUserEmail) string {
-	for _, email := range emails {
-		if email.Default {
-			return email.Email
-		}
+func DescribeUser(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, args []string) error {
+	userID, err := shared.ResolveUserID(deps.UserAPI, cmd, args, profile)
+	if err != nil {
+		return err
 	}
-	if len(emails) > 0 {
-		return emails[0].Email
+
+	user, err := deps.UserAPI.GetIAMUserByID(profile.Endpoints, profile.APIKey, profile.OrganizationID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorDescribingIAMUserRequest, err)
 	}
-	return ""
+
+	user.OrganizationID = &profile.OrganizationID
+
+	organizationName, err := getProfileOrganizationName(deps, profile)
+	if err == nil {
+		user.OrganizationName = &organizationName
+	}
+
+	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
+	if err != nil {
+		return err
+	}
+
+	if output == string(configuration_models.OutputHuman) {
+		return PrintIAMUserDetails(cmd, *user)
+	}
+
+	utils.PrintFormattedData(cmd.OutOrStdout(), user, output)
+	return nil
+}
+
+func getProfileOrganizationName(deps Dependencies, profile configuration_models.ProfileV2) (string, error) {
+	user, err := deps.UserAPI.GetIAMUserSelf(profile.Endpoints, "", profile.APIKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to retrieve current IAM user: %w", err)
+	}
+	if user.OrganizationName == nil || *user.OrganizationName == "" {
+		return "", fmt.Errorf("current IAM user does not expose an organization name")
+	}
+
+	return *user.OrganizationName, nil
 }
 
 func PrintIAMUserDetails(cmd *cobra.Command, user api.IAMUser) error {
@@ -103,7 +88,7 @@ func buildIAMUserDetailsOutput(user api.IAMUser) string {
 
 	deletedAt := "N/A"
 	if user.DeletedAt != nil {
-		deletedAt = utils.FormatTime(*user.DeletedAt)
+		deletedAt = printerutils.FormatTime(*user.DeletedAt)
 	}
 
 	var policyNames []string
@@ -150,7 +135,7 @@ func buildIAMUserDetailsOutput(user api.IAMUser) string {
 		"Metadata:",
 		fmt.Sprintf("  ID: %s", user.ID),
 		fmt.Sprintf("  Two-Factor: %s", twoFactor),
-		fmt.Sprintf("  Created At: %s", utils.FormatTime(user.CreatedAt)),
+		fmt.Sprintf("  Created At: %s", printerutils.FormatTime(user.CreatedAt)),
 		fmt.Sprintf("  Deleted At: %s", deletedAt),
 	)
 

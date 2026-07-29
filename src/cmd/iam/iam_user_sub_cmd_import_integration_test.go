@@ -51,7 +51,7 @@ func TestIAMUserSubCmd_Import_Integration_HumanOutput(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(iamUserCommandChallengeAPI{}, mockUserAPI)
 	iamCmd.SetArgs([]string{
 		"user",
 		"import",

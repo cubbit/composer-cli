@@ -20,8 +20,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type challengeAPI interface {
+	GenerateChallenge(
+		endpoints configuration_models.EndpointsV2,
+		email *string,
+		username *string,
+		organizationName *string,
+	) (*api.ChallengeResponseModel, error)
+}
+
 type Dependencies struct {
 	UserAPI api.UserAPIInterface
+	AuthAPI challengeAPI
 }
 
 type bulkCreateUsersFile struct {

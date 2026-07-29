@@ -60,6 +60,14 @@ type UserAPIInterface interface {
 		sortKey string,
 		sortOrder string,
 	) (*GenericPaginatedResponse[IAMUserListItem], error)
+
+	DeleteIAMUser(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		userID string,
+		deleteToken string,
+	) error
 }
 
 type UserAPI struct{}
@@ -244,4 +252,28 @@ func (a *UserAPI) ListIAMUsers(
 	}
 
 	return &response, nil
+}
+
+func (a *UserAPI) DeleteIAMUser(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	userID string,
+	deleteToken string,
+) error {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", userID).
+		QueryParam("token", deleteToken).
+		Build()
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+		request_utils.WithApiKey(apiKey),
+	); err != nil {
+		return fmt.Errorf("failed to delete IAM user: %w", err)
+	}
+
+	return nil
 }

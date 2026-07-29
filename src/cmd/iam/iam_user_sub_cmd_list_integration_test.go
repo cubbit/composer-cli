@@ -11,11 +11,12 @@ import (
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
-	"github.com/cubbit/composer-cli/src/service"
+	"github.com/cubbit/composer-cli/src/service/user"
 	"github.com/spf13/cobra"
 )
 
 func setupIAMUserIntegrationCommand(
+	authAPI api.AuthAPIInterface,
 	userAPI api.UserAPIInterface,
 ) (*cobra.Command, *bytes.Buffer) {
 	mockCfg := configuration_handler.NewMockConfigurationHandler()
@@ -30,7 +31,7 @@ func setupIAMUserIntegrationCommand(
 		}, nil
 	}
 
-	userService := service.NewUserService(mockCfg, userAPI)
+	userService := user.NewUserService(mockCfg, authAPI, userAPI)
 	iamCmd := NewIAMCmd(userService)
 	iamCmd.PersistentFlags().String("profile", "", "Profile")
 	iamCmd.PersistentFlags().String("output", "human", "Output format")
@@ -67,6 +68,24 @@ type iamUserCommandChallengeAPI struct {
 		username *string,
 		organizationName *string,
 	) (*api.ChallengeResponseModel, error)
+	SignInFunc func(
+		endpoints configuration_models.EndpointsV2,
+		username string,
+		organization string,
+		password string,
+		tfaCode string,
+	) (*api.SignInToken, error)
+	ForgeTokenFunc func(
+		endpoints configuration_models.EndpointsV2,
+		operatorID string,
+		username string,
+		organizationName string,
+		password string,
+		tfaCode string,
+		tokenType string,
+		token string,
+		refreshToken string,
+	) (string, error)
 }
 
 func (m iamUserCommandChallengeAPI) GenerateChallenge(
@@ -106,7 +125,10 @@ func (m iamUserCommandChallengeAPI) SignIn(
 	password string,
 	tfaCode string,
 ) (*api.SignInToken, error) {
-	return nil, nil
+	if m.SignInFunc != nil {
+		return m.SignInFunc(endpoints, username, organization, password, tfaCode)
+	}
+	return nil, fmt.Errorf("SignInFunc not set on test stub")
 }
 
 func (m iamUserCommandChallengeAPI) ForgeToken(
@@ -120,7 +142,10 @@ func (m iamUserCommandChallengeAPI) ForgeToken(
 	token string,
 	refreshToken string,
 ) (string, error) {
-	return "", nil
+	if m.ForgeTokenFunc != nil {
+		return m.ForgeTokenFunc(endpoints, operatorID, username, organizationName, password, tfaCode, tokenType, token, refreshToken)
+	}
+	return "", fmt.Errorf("ForgeTokenFunc not set on test stub")
 }
 
 func (m iamUserCommandChallengeAPI) CreateApiKey(
@@ -193,7 +218,7 @@ func TestIAMUserSubCmd_List_Integration_HumanOutput(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(iamUserCommandChallengeAPI{}, mockUserAPI)
 	iamCmd.SetArgs([]string{"user", "list"})
 
 	err := iamCmd.Execute()
@@ -253,7 +278,7 @@ func TestIAMUserSubCmd_List_Integration_WithFilters(t *testing.T) {
 		},
 	}
 
-	iamCmd, commandOutput := setupIAMUserIntegrationCommand(mockUserAPI)
+	iamCmd, commandOutput := setupIAMUserIntegrationCommand(iamUserCommandChallengeAPI{}, mockUserAPI)
 	iamCmd.SetArgs([]string{
 		"user",
 		"list",

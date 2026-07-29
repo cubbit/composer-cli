@@ -16,6 +16,7 @@ import (
 	"github.com/cubbit/composer-cli/src/service"
 	gateway_service "github.com/cubbit/composer-cli/src/service/gateway"
 	tenant_service "github.com/cubbit/composer-cli/src/service/tenant"
+	user_service "github.com/cubbit/composer-cli/src/service/user"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +24,7 @@ func NewRootCommand(
 	configurationHandler configuration_handler.ConfigurationHandlerInterface,
 	authService service.AuthServiceInterface,
 	operatorService service.OperatorServiceInterface,
-	userService service.UserServiceInterface,
+	userService user_service.UserServiceInterface,
 	locationService service.LocationServiceInterface,
 	configService service.ConfigServiceInterface,
 	swarmService service.SwarmServiceInterface,

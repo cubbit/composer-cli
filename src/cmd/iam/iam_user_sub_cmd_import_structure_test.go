@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/cubbit/composer-cli/src/service"
+	"github.com/cubbit/composer-cli/src/service/user"
 	"github.com/spf13/cobra"
 )
 
 func TestIAMUserSubCmd_Structure_Import_WithFile(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	mockService.ImportUsersFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: Users imported successfully")
 		return nil
@@ -38,7 +38,7 @@ func TestIAMUserSubCmd_Structure_Import_WithFile(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_Import_WithSample(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	importCalled := false
 	mockService.ImportUsersFunc = func(cmd *cobra.Command, args []string) error {
 		importCalled = true
@@ -66,7 +66,7 @@ func TestIAMUserSubCmd_Structure_Import_WithSample(t *testing.T) {
 	}
 }
 func TestIAMUserSubCmd_Structure_List(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	mockService.ListUsersFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: Users listed successfully")
 		return nil
@@ -91,7 +91,7 @@ func TestIAMUserSubCmd_Structure_List(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_List_WithFilters(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	listCalled := false
 	mockService.ListUsersFunc = func(cmd *cobra.Command, args []string) error {
 		listCalled = true
@@ -143,7 +143,7 @@ func TestIAMUserSubCmd_Structure_List_WithFilters(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_List_Alias(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	listCalled := false
 	mockService.ListUsersFunc = func(cmd *cobra.Command, args []string) error {
 		listCalled = true

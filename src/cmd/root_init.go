@@ -9,6 +9,7 @@ import (
 	"github.com/cubbit/composer-cli/src/service"
 	service_gateway "github.com/cubbit/composer-cli/src/service/gateway"
 	service_tenant "github.com/cubbit/composer-cli/src/service/tenant"
+	service_user "github.com/cubbit/composer-cli/src/service/user"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +61,7 @@ func Execute(packageJSON []byte) {
 	configService := service.NewConfigService(configurationHandler)
 	locationService := service.NewLocationService(configurationHandler, locationAPI, userAPI)
 	operatorService := service.NewOperatorService(configurationHandler, operatorAPI, userAPI)
-	userService := service.NewUserService(configurationHandler, userAPI)
+	userService := service_user.NewUserService(configurationHandler, authAPI, userAPI)
 	redundancyClassValidator := service.NewRedundancyClassValidator()
 	swarmService := service.NewSwarmService(configurationHandler, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
 	domainService := service.NewDomainService(configurationHandler, domainAPI, userAPI)

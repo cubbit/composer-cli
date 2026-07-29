@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cubbit/composer-cli/src/service"
+	"github.com/cubbit/composer-cli/src/service/user"
 	"github.com/spf13/cobra"
 )
 
 func TestIAMUserSubCmd_Structure_Create(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	mockService.CreateUserFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: User created successfully")
 		return nil
@@ -40,7 +40,7 @@ func TestIAMUserSubCmd_Structure_Create(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_Create_MissingUsername(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	createCalled := false
 	mockService.CreateUserFunc = func(cmd *cobra.Command, args []string) error {
 		createCalled = true

@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cubbit/composer-cli/src/service"
+	"github.com/cubbit/composer-cli/src/service/user"
 	"github.com/spf13/cobra"
 )
 
 func TestIAMUserSubCmd_Structure_Describe(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	mockService.DescribeUserFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: User described successfully")
 		return nil
@@ -39,7 +39,7 @@ func TestIAMUserSubCmd_Structure_Describe(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_Describe_PositionalArg(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	var capturedUserID string
 	mockService.DescribeUserFunc = func(cmd *cobra.Command, args []string) error {
 		capturedUserID = args[0]
@@ -74,7 +74,7 @@ func TestIAMUserSubCmd_Structure_Describe_PositionalArg(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_Describe_WithUsername(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 	mockService.DescribeUserFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: User described successfully")
 		return nil
@@ -103,7 +103,7 @@ func TestIAMUserSubCmd_Structure_Describe_WithUsername(t *testing.T) {
 }
 
 func TestIAMUserSubCmd_Structure_Describe_TooManyArgs(t *testing.T) {
-	mockService := service.NewUserServiceMock()
+	mockService := user.NewUserServiceMock()
 
 	iamCmd := NewIAMCmd(mockService)
 

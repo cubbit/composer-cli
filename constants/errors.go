@@ -148,6 +148,7 @@ const (
 
 	ErrorListingIAMUsersRequest   = "failed request to list IAM users"
 	ErrorDescribingIAMUserRequest = "failed request to describe IAM user"
+	ErrorDeletingIAMUserRequest   = "failed request to delete IAM user"
 
 	// Gateway v5 errors
 	ErrorCreatingGatewayV5Request = "failed request to create gateway v5"
