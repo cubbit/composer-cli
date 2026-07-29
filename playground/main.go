@@ -95,6 +95,9 @@ func (s *trivialUserService) ImportUsers(c *cobra.Command, a []string) error  { 
 func (s *trivialUserService) CreateUser(c *cobra.Command, a []string) error   { return nil }
 func (s *trivialUserService) ListUsers(c *cobra.Command, a []string) error    { return nil }
 func (s *trivialUserService) DescribeUser(c *cobra.Command, a []string) error { return nil }
+func (s *trivialUserService) EditUser(c *cobra.Command, a []string) error     { return nil }
+func (s *trivialUserService) EnableUser(c *cobra.Command, a []string) error   { return nil }
+func (s *trivialUserService) DisableUser(c *cobra.Command, a []string) error  { return nil }
 func (s *trivialUserService) DeleteUser(c *cobra.Command, a []string) error   { return nil }
 
 type trivialDomainService struct{}

@@ -8,6 +8,14 @@ type UpdateAccountRequest struct {
 	MaxAllowedProjects *int    `json:"max_allowed_projects"`
 }
 
+type UpdateIAMUserRequestBody struct {
+	FirstName        *string   `json:"first_name,omitempty"`
+	LastName         *string   `json:"last_name,omitempty"`
+	Email            *string   `json:"email,omitempty"`
+	Enabled          *bool     `json:"enabled,omitempty"`
+	AttachedPolicies *[]string `json:"attached_policies,omitempty"`
+}
+
 type UpdateTenantProjectRequestBody struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`

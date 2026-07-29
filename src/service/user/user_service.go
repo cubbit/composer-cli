@@ -11,6 +11,7 @@ import (
 	userdelete "github.com/cubbit/composer-cli/src/service/user/delete"
 	userdescribe "github.com/cubbit/composer-cli/src/service/user/describe"
 	userlist "github.com/cubbit/composer-cli/src/service/user/list"
+	userupdate "github.com/cubbit/composer-cli/src/service/user/update"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,9 @@ type UserServiceInterface interface {
 	CreateUser(cmd *cobra.Command, args []string) error
 	ListUsers(cmd *cobra.Command, args []string) error
 	DescribeUser(cmd *cobra.Command, args []string) error
+	EditUser(cmd *cobra.Command, args []string) error
+	EnableUser(cmd *cobra.Command, args []string) error
+	DisableUser(cmd *cobra.Command, args []string) error
 	DeleteUser(cmd *cobra.Command, args []string) error
 }
 
@@ -108,6 +112,33 @@ func (s *UserService) DescribeUser(cmd *cobra.Command, args []string) error {
 	}
 
 	return userdescribe.DescribeUser(userdescribe.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+}
+
+func (s *UserService) EditUser(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	return userupdate.EditUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+}
+
+func (s *UserService) EnableUser(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	return userupdate.EnableUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+}
+
+func (s *UserService) DisableUser(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	return userupdate.DisableUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
 }
 
 func (s *UserService) DeleteUser(cmd *cobra.Command, args []string) error {

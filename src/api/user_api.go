@@ -68,6 +68,14 @@ type UserAPIInterface interface {
 		userID string,
 		deleteToken string,
 	) error
+
+	UpdateIAMUser(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		userID string,
+		request *UpdateIAMUserRequestBody,
+	) (*IAMUser, error)
 }
 
 type UserAPI struct{}
@@ -276,4 +284,30 @@ func (a *UserAPI) DeleteIAMUser(
 	}
 
 	return nil
+}
+
+func (a *UserAPI) UpdateIAMUser(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	userID string,
+	request *UpdateIAMUserRequestBody,
+) (*IAMUser, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", userID).
+		Build()
+
+	var user IAMUser
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&user),
+	); err != nil {
+		return nil, fmt.Errorf("failed to update IAM user: %w", err)
+	}
+
+	return &user, nil
 }

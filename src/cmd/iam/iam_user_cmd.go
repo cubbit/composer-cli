@@ -7,6 +7,9 @@ type iamUserService interface {
 	CreateUser(cmd *cobra.Command, args []string) error
 	ListUsers(cmd *cobra.Command, args []string) error
 	DescribeUser(cmd *cobra.Command, args []string) error
+	EditUser(cmd *cobra.Command, args []string) error
+	EnableUser(cmd *cobra.Command, args []string) error
+	DisableUser(cmd *cobra.Command, args []string) error
 	DeleteUser(cmd *cobra.Command, args []string) error
 }
 
@@ -22,6 +25,9 @@ func NewIAMUserCmd(
 	userCmd.AddCommand(NewIAMUserSubCmdCreate(userService))
 	userCmd.AddCommand(NewIAMUserSubCmdList(userService))
 	userCmd.AddCommand(NewIAMUserSubCmdDescribe(userService))
+	userCmd.AddCommand(NewIAMUserSubCmdEdit(userService))
+	userCmd.AddCommand(NewIAMUserSubCmdEnable(userService))
+	userCmd.AddCommand(NewIAMUserSubCmdDisable(userService))
 	userCmd.AddCommand(NewIAMUserSubCmdDelete(userService))
 
 	return userCmd

@@ -11,6 +11,7 @@ type MockUserAPI struct {
 	BulkGenerateSaltsFunc  func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkGenerateSaltsRequestBody) (*BulkGenerateSaltsResponse, error)
 	ListIAMUsersFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error)
 	DeleteIAMUserFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, deleteToken string) error
+	UpdateIAMUserFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *UpdateIAMUserRequestBody) (*IAMUser, error)
 }
 
 func (m *MockUserAPI) GetIAMUserByID(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error) {
@@ -75,6 +76,14 @@ func (m *MockUserAPI) DeleteIAMUser(endpoints configuration_models.EndpointsV2, 
 	}
 
 	return nil
+}
+
+func (m *MockUserAPI) UpdateIAMUser(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *UpdateIAMUserRequestBody) (*IAMUser, error) {
+	if m.UpdateIAMUserFunc != nil {
+		return m.UpdateIAMUserFunc(endpoints, apiKey, organizationID, userID, request)
+	}
+
+	return &IAMUser{}, nil
 }
 
 var _ UserAPIInterface = (*MockUserAPI)(nil)
