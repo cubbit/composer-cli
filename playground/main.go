@@ -55,6 +55,7 @@ func main() {
 		&trivialAuthService{},
 		&trivialOperatorService{},
 		&trivialUserService{},
+		&trivialAPIKeyService{},
 		&trivialLocationService{},
 		&trivialConfigService{},
 		swarmService,
@@ -99,6 +100,14 @@ func (s *trivialUserService) EditUser(c *cobra.Command, a []string) error     { 
 func (s *trivialUserService) EnableUser(c *cobra.Command, a []string) error   { return nil }
 func (s *trivialUserService) DisableUser(c *cobra.Command, a []string) error  { return nil }
 func (s *trivialUserService) DeleteUser(c *cobra.Command, a []string) error   { return nil }
+
+type trivialAPIKeyService struct{}
+
+func (s *trivialAPIKeyService) CreateAPIKey(c *cobra.Command, a []string) error   { return nil }
+func (s *trivialAPIKeyService) ListAPIKeys(c *cobra.Command, a []string) error    { return nil }
+func (s *trivialAPIKeyService) DescribeAPIKey(c *cobra.Command, a []string) error { return nil }
+func (s *trivialAPIKeyService) EditAPIKey(c *cobra.Command, a []string) error     { return nil }
+func (s *trivialAPIKeyService) RevokeAPIKey(c *cobra.Command, a []string) error   { return nil }
 
 type trivialDomainService struct{}
 

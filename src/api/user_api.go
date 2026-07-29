@@ -76,6 +76,50 @@ type UserAPIInterface interface {
 		userID string,
 		request *UpdateIAMUserRequestBody,
 	) (*IAMUser, error)
+
+	CreateIAMAPIKey(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		request *CreateIAMAPIKeyRequestBody,
+	) (*OperatorAPIKey, error)
+
+	ListIAMAPIKeys(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		page int,
+		items int,
+		sortKey string,
+		sortOrder string,
+	) (*GenericPaginatedResponse[OperatorAPIKey], error)
+
+	GetIAMAPIKeyByID(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		apiKeyID string,
+	) (*OperatorAPIKey, error)
+
+	UpdateIAMAPIKey(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		apiKeyID string,
+		request *UpdateIAMAPIKeyRequestBody,
+	) (*OperatorAPIKey, error)
+
+	DeleteIAMAPIKey(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		apiKeyID string,
+	) error
 }
 
 type UserAPI struct{}
@@ -310,4 +354,143 @@ func (a *UserAPI) UpdateIAMUser(
 	}
 
 	return &user, nil
+}
+
+func (a *UserAPI) CreateIAMAPIKey(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	request *CreateIAMAPIKeyRequestBody,
+) (*OperatorAPIKey, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "api-keys").
+		Build()
+
+	var response OperatorAPIKey
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusCreated),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to create IAM API key: %w", err)
+	}
+
+	return &response, nil
+}
+
+func (a *UserAPI) ListIAMAPIKeys(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	page int,
+	items int,
+	sortKey string,
+	sortOrder string,
+) (*GenericPaginatedResponse[OperatorAPIKey], error) {
+	urlBuilder := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "api-keys").
+		QueryParamInt("page", page).
+		QueryParamInt("items", items)
+
+	if sortKey != "" {
+		urlBuilder.QueryParam("sort_key", sortKey)
+	}
+	if sortOrder != "" {
+		urlBuilder.QueryParam("sort_order", sortOrder)
+	}
+
+	url := urlBuilder.Build()
+
+	var response GenericPaginatedResponse[OperatorAPIKey]
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to list IAM API keys: %w", err)
+	}
+
+	return &response, nil
+}
+
+func (a *UserAPI) GetIAMAPIKeyByID(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	apiKeyID string,
+) (*OperatorAPIKey, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "api-keys", apiKeyID).
+		Build()
+
+	var response OperatorAPIKey
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodGet),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to describe IAM API key: %w", err)
+	}
+
+	return &response, nil
+}
+
+func (a *UserAPI) DeleteIAMAPIKey(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	apiKeyID string,
+) error {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "api-keys", apiKeyID).
+		Build()
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+		request_utils.WithApiKey(apiKey),
+	); err != nil {
+		return fmt.Errorf("failed to delete IAM API key: %w", err)
+	}
+
+	return nil
+}
+
+func (a *UserAPI) UpdateIAMAPIKey(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	apiKeyID string,
+	request *UpdateIAMAPIKeyRequestBody,
+) (*OperatorAPIKey, error) {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "api-keys", apiKeyID).
+		Build()
+
+	var response OperatorAPIKey
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithExpectedStatusCode(http.StatusOK),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+		ExtractGenericModel(&response),
+	); err != nil {
+		return nil, fmt.Errorf("failed to edit IAM API key: %w", err)
+	}
+
+	return &response, nil
 }

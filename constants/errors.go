@@ -146,9 +146,14 @@ const (
 	ErrorDeletingDomainRequest   = "failed request to delete domain"
 	ErrorVerifyingDomainRequest  = "failed request to verify domain"
 
-	ErrorListingIAMUsersRequest   = "failed request to list IAM users"
-	ErrorDescribingIAMUserRequest = "failed request to describe IAM user"
-	ErrorDeletingIAMUserRequest   = "failed request to delete IAM user"
+	ErrorListingIAMUsersRequest     = "failed request to list IAM users"
+	ErrorDescribingIAMUserRequest   = "failed request to describe IAM user"
+	ErrorDeletingIAMUserRequest     = "failed request to delete IAM user"
+	ErrorCreatingIAMAPIKeyRequest   = "failed request to create IAM API key"
+	ErrorListingIAMAPIKeysRequest   = "failed request to list IAM API keys"
+	ErrorDescribingIAMAPIKeyRequest = "failed request to describe IAM API key"
+	ErrorEditingIAMAPIKeyRequest    = "failed request to edit IAM API key"
+	ErrorDeletingIAMAPIKeyRequest   = "failed request to delete IAM API key"
 
 	// Gateway v5 errors
 	ErrorCreatingGatewayV5Request = "failed request to create gateway v5"

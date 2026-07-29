@@ -1,5 +1,7 @@
 package api
 
+import "time"
+
 type UpdateAccountRequest struct {
 	FirstName          *string `json:"first_name"`
 	LastName           *string `json:"last_name"`
@@ -236,6 +238,17 @@ type BulkGenerateSaltRequestBodyItem struct {
 
 type BulkGenerateSaltsRequestBody struct {
 	Operators []BulkGenerateSaltRequestBodyItem `json:"operators"`
+}
+
+type CreateIAMAPIKeyRequestBody struct {
+	Name      string     `json:"name"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+}
+
+type UpdateIAMAPIKeyRequestBody struct {
+	Name      *string    `json:"name,omitempty"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Enabled   *bool      `json:"enabled,omitempty"`
 }
 
 // #endregion

@@ -7,6 +7,7 @@ import (
 	api "github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/service"
+	service_api_key "github.com/cubbit/composer-cli/src/service/api_key"
 	service_gateway "github.com/cubbit/composer-cli/src/service/gateway"
 	service_tenant "github.com/cubbit/composer-cli/src/service/tenant"
 	service_user "github.com/cubbit/composer-cli/src/service/user"
@@ -62,6 +63,7 @@ func Execute(packageJSON []byte) {
 	locationService := service.NewLocationService(configurationHandler, locationAPI, userAPI)
 	operatorService := service.NewOperatorService(configurationHandler, operatorAPI, userAPI)
 	userService := service_user.NewUserService(configurationHandler, authAPI, userAPI)
+	apiKeyService := service_api_key.NewAPIKeyService(configurationHandler, userAPI)
 	redundancyClassValidator := service.NewRedundancyClassValidator()
 	swarmService := service.NewSwarmService(configurationHandler, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
 	domainService := service.NewDomainService(configurationHandler, domainAPI, userAPI)
@@ -73,6 +75,7 @@ func Execute(packageJSON []byte) {
 		authService,
 		operatorService,
 		userService,
+		apiKeyService,
 		locationService,
 		configService,
 		swarmService,
