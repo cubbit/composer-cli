@@ -3,14 +3,15 @@ package user
 import "github.com/spf13/cobra"
 
 type UserServiceMock struct {
-	ImportUsersFunc  func(cmd *cobra.Command, args []string) error
-	CreateUserFunc   func(cmd *cobra.Command, args []string) error
-	ListUsersFunc    func(cmd *cobra.Command, args []string) error
-	DescribeUserFunc func(cmd *cobra.Command, args []string) error
-	EditUserFunc     func(cmd *cobra.Command, args []string) error
-	EnableUserFunc   func(cmd *cobra.Command, args []string) error
-	DisableUserFunc  func(cmd *cobra.Command, args []string) error
-	DeleteUserFunc   func(cmd *cobra.Command, args []string) error
+	ImportUsersFunc       func(cmd *cobra.Command, args []string) error
+	CreateUserFunc        func(cmd *cobra.Command, args []string) error
+	ListUsersFunc         func(cmd *cobra.Command, args []string) error
+	DescribeUserFunc      func(cmd *cobra.Command, args []string) error
+	EditUserFunc          func(cmd *cobra.Command, args []string) error
+	EnableUserFunc        func(cmd *cobra.Command, args []string) error
+	DisableUserFunc       func(cmd *cobra.Command, args []string) error
+	DeleteUserFunc        func(cmd *cobra.Command, args []string) error
+	ResetUserPasswordFunc func(cmd *cobra.Command, args []string) error
 }
 
 func NewUserServiceMock() *UserServiceMock {
@@ -37,6 +38,9 @@ func NewUserServiceMock() *UserServiceMock {
 			return nil
 		},
 		DeleteUserFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		ResetUserPasswordFunc: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
@@ -94,6 +98,13 @@ func (m *UserServiceMock) DisableUser(cmd *cobra.Command, args []string) error {
 func (m *UserServiceMock) DeleteUser(cmd *cobra.Command, args []string) error {
 	if m.DeleteUserFunc != nil {
 		return m.DeleteUserFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *UserServiceMock) ResetUserPassword(cmd *cobra.Command, args []string) error {
+	if m.ResetUserPasswordFunc != nil {
+		return m.ResetUserPasswordFunc(cmd, args)
 	}
 	return nil
 }

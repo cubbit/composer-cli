@@ -16,6 +16,7 @@ import (
 
 type Dependencies struct {
 	UserAPI api.UserAPIInterface
+	AuthAPI api.AuthAPIInterface
 }
 
 func EditUser(

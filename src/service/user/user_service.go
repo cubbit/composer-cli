@@ -24,6 +24,7 @@ type UserServiceInterface interface {
 	EnableUser(cmd *cobra.Command, args []string) error
 	DisableUser(cmd *cobra.Command, args []string) error
 	DeleteUser(cmd *cobra.Command, args []string) error
+	ResetUserPassword(cmd *cobra.Command, args []string) error
 }
 
 type UserService struct {
@@ -149,6 +150,23 @@ func (s *UserService) DeleteUser(cmd *cobra.Command, args []string) error {
 
 	return userdelete.DeleteUser(
 		userdelete.Dependencies{
+			UserAPI: s.userAPI,
+		},
+		cmd,
+		profile,
+		args,
+	)
+}
+
+func (s *UserService) ResetUserPassword(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	return userupdate.ResetUserPassword(
+		userupdate.Dependencies{
+			AuthAPI: s.authAPI,
 			UserAPI: s.userAPI,
 		},
 		cmd,

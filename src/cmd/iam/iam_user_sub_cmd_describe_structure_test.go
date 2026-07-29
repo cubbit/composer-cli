@@ -102,6 +102,43 @@ func TestIAMUserSubCmd_Structure_Describe_WithUsername(t *testing.T) {
 	}
 }
 
+func TestIAMUserSubCmd_Structure_Describe_CurrentUser(t *testing.T) {
+	mockService := user.NewUserServiceMock()
+	describeCalled := false
+	mockService.DescribeUserFunc = func(cmd *cobra.Command, args []string) error {
+		describeCalled = true
+		if len(args) != 0 {
+			t.Fatalf("Expected no args, got %v", args)
+		}
+		cmd.Println("Mock: User described successfully")
+		return nil
+	}
+
+	iamCmd := NewIAMCmd(mockService)
+
+	commandOutput := new(bytes.Buffer)
+	iamCmd.SetOut(commandOutput)
+	iamCmd.SetErr(commandOutput)
+	iamCmd.SetArgs([]string{
+		"user",
+		"describe",
+		"--self",
+	})
+
+	err := iamCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if !describeCalled {
+		t.Fatal("DescribeUser should be called")
+	}
+
+	expectedOutput := "Mock: User described successfully\n"
+	if commandOutput.String() != expectedOutput {
+		t.Fatalf("Expected output %q, got %q", expectedOutput, commandOutput.String())
+	}
+}
+
 func TestIAMUserSubCmd_Structure_Describe_TooManyArgs(t *testing.T) {
 	mockService := user.NewUserServiceMock()
 

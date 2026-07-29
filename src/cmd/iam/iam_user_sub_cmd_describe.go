@@ -9,6 +9,7 @@ func NewIAMUserSubCmdDescribe(
 	userService iamUserService,
 ) *cobra.Command {
 	var userID string
+	var self bool
 
 	userDescribeCmd := &cobra.Command{
 		Use:     "describe [USER_ID]",
@@ -17,6 +18,7 @@ func NewIAMUserSubCmdDescribe(
 		Long: `Describe an IAM user in the current profile organization.
 
 Examples:
+  cubbit iam user describe --self
   cubbit iam user describe --user-id <uuid>
   cubbit iam user describe <uuid>
   cubbit iam user describe --username jdoe`,
@@ -30,6 +32,7 @@ Examples:
 
 	userDescribeCmd.Flags().StringVar(&userID, "user-id", "", "ID of the IAM user to describe")
 	userDescribeCmd.Flags().String("username", "", "Username of the IAM user to describe")
+	userDescribeCmd.Flags().BoolVar(&self, "self", false, "Describe the current authenticated user")
 
 	return userDescribeCmd
 }

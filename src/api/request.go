@@ -240,6 +240,11 @@ type BulkGenerateSaltsRequestBody struct {
 	Operators []BulkGenerateSaltRequestBodyItem `json:"operators"`
 }
 
+type ResetIAMUserPasswordRequestBody struct {
+	IAMPasswordChangeToken  string `json:"iam_password_change_token"`
+	AuthenticationPublicKey string `json:"authentication_public_key"`
+}
+
 type CreateIAMAPIKeyRequestBody struct {
 	Name      string     `json:"name"`
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`

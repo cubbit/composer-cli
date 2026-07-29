@@ -19,22 +19,12 @@ type Dependencies struct {
 }
 
 func DescribeUser(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, args []string) error {
-	userID, err := shared.ResolveUserID(deps.UserAPI, cmd, args, profile)
-	if err != nil {
-		return err
-	}
-
-	user, err := deps.UserAPI.GetIAMUserByID(profile.Endpoints, profile.APIKey, profile.OrganizationID, userID)
+	user, err := resolveUser(deps, cmd, profile, args)
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorDescribingIAMUserRequest, err)
 	}
 
 	user.OrganizationID = &profile.OrganizationID
-
-	organizationName, err := getProfileOrganizationName(deps, profile)
-	if err == nil {
-		user.OrganizationName = &organizationName
-	}
 
 	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
 	if err != nil {
@@ -49,16 +39,48 @@ func DescribeUser(deps Dependencies, cmd *cobra.Command, profile configuration_m
 	return nil
 }
 
-func getProfileOrganizationName(deps Dependencies, profile configuration_models.ProfileV2) (string, error) {
-	user, err := deps.UserAPI.GetIAMUserSelf(profile.Endpoints, "", profile.APIKey)
+func resolveUser(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, args []string) (*api.IAMUser, error) {
+	self, err := shouldDescribeCurrentUser(cmd, args)
 	if err != nil {
-		return "", fmt.Errorf("failed to retrieve current IAM user: %w", err)
+		return nil, err
 	}
-	if user.OrganizationName == nil || *user.OrganizationName == "" {
-		return "", fmt.Errorf("current IAM user does not expose an organization name")
+	if self {
+		return deps.UserAPI.GetIAMUserSelfV3(profile.Endpoints, profile.APIKey, profile.OrganizationID)
 	}
 
-	return *user.OrganizationName, nil
+	userID, err := shared.ResolveUserID(deps.UserAPI, cmd, args, profile)
+	if err != nil {
+		return nil, err
+	}
+
+	return deps.UserAPI.GetIAMUserByID(profile.Endpoints, profile.APIKey, profile.OrganizationID, userID)
+}
+
+func shouldDescribeCurrentUser(cmd *cobra.Command, args []string) (bool, error) {
+	selfFlag, err := cmd.Flags().GetBool("self")
+	if err != nil {
+		return false, fmt.Errorf("%s self: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if !selfFlag {
+		return false, nil
+	}
+
+	userIDFlag, err := cmd.Flags().GetString("user-id")
+	if err != nil {
+		return false, fmt.Errorf("%s user-id: %w", constants.ErrorRetrievingField, err)
+	}
+
+	usernameFlag, err := cmd.Flags().GetString("username")
+	if err != nil {
+		return false, fmt.Errorf("%s username: %w", constants.ErrorRetrievingField, err)
+	}
+
+	if userIDFlag != "" || usernameFlag != "" || len(args) > 0 {
+		return false, fmt.Errorf("specify exactly one of USER_ID, --user-id, --username or --self")
+	}
+
+	return true, nil
 }
 
 func PrintIAMUserDetails(cmd *cobra.Command, user api.IAMUser) error {

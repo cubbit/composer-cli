@@ -21,6 +21,12 @@ type UserAPIInterface interface {
 		accessToken, apiKey string,
 	) (*IAMUser, error)
 
+	GetIAMUserSelfV3(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+	) (*IAMUser, error)
+
 	GetIAMUserByID(
 		endpoints configuration_models.EndpointsV2,
 		apiKey string,
@@ -76,6 +82,14 @@ type UserAPIInterface interface {
 		userID string,
 		request *UpdateIAMUserRequestBody,
 	) (*IAMUser, error)
+
+	ResetIAMUserPassword(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		userID string,
+		request *ResetIAMUserPasswordRequestBody,
+	) error
 
 	CreateIAMAPIKey(
 		endpoints configuration_models.EndpointsV2,
@@ -185,6 +199,14 @@ func (a *UserAPI) GetIAMUser(endpoints configuration_models.EndpointsV2, accessT
 
 func (a *UserAPI) GetIAMUserSelf(endpoints configuration_models.EndpointsV2, accessToken, apiKey string) (*IAMUser, error) {
 	return a.GetIAMUser(endpoints, accessToken, apiKey, "me")
+}
+
+func (a *UserAPI) GetIAMUserSelfV3(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+) (*IAMUser, error) {
+	return a.GetIAMUserByID(endpoints, apiKey, organizationID, "me")
 }
 
 func (a *UserAPI) PromoteIAMUser(endpoints configuration_models.EndpointsV2, email, policyName, secret string) error {
@@ -354,6 +376,30 @@ func (a *UserAPI) UpdateIAMUser(
 	}
 
 	return &user, nil
+}
+
+func (a *UserAPI) ResetIAMUserPassword(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	userID string,
+	request *ResetIAMUserPasswordRequestBody,
+) error {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", userID, "password", "reset").
+		Build()
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPost),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+	); err != nil {
+		return fmt.Errorf("failed to reset IAM user password: %w", err)
+	}
+
+	return nil
 }
 
 func (a *UserAPI) CreateIAMAPIKey(

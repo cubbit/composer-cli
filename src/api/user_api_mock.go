@@ -3,20 +3,22 @@ package api
 import "github.com/cubbit/composer-cli/src/configuration/configuration_models"
 
 type MockUserAPI struct {
-	GetIAMUserFunc         func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string, meOrID string) (*IAMUser, error)
-	GetIAMUserSelfFunc     func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*IAMUser, error)
-	GetIAMUserByIDFunc     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error)
-	PromoteIAMUserFunc     func(endpoints configuration_models.EndpointsV2, email string, policyName string, secret string) error
-	BulkCreateIAMUsersFunc func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkCreateIAMUsersRequestBody) (*BulkCreateIAMUsersResponse, error)
-	BulkGenerateSaltsFunc  func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkGenerateSaltsRequestBody) (*BulkGenerateSaltsResponse, error)
-	ListIAMUsersFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error)
-	DeleteIAMUserFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, deleteToken string) error
-	UpdateIAMUserFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *UpdateIAMUserRequestBody) (*IAMUser, error)
-	CreateIAMAPIKeyFunc    func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKey, error)
-	ListIAMAPIKeysFunc     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[OperatorAPIKey], error)
-	GetIAMAPIKeyByIDFunc   func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string) (*OperatorAPIKey, error)
-	UpdateIAMAPIKeyFunc    func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string, request *UpdateIAMAPIKeyRequestBody) (*OperatorAPIKey, error)
-	DeleteIAMAPIKeyFunc    func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string) error
+	GetIAMUserFunc           func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string, meOrID string) (*IAMUser, error)
+	GetIAMUserSelfFunc       func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*IAMUser, error)
+	GetIAMUserSelfV3Func     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) (*IAMUser, error)
+	GetIAMUserByIDFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error)
+	PromoteIAMUserFunc       func(endpoints configuration_models.EndpointsV2, email string, policyName string, secret string) error
+	BulkCreateIAMUsersFunc   func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkCreateIAMUsersRequestBody) (*BulkCreateIAMUsersResponse, error)
+	BulkGenerateSaltsFunc    func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, request *BulkGenerateSaltsRequestBody) (*BulkGenerateSaltsResponse, error)
+	ListIAMUsersFunc         func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, enabled *bool, search string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[IAMUserListItem], error)
+	DeleteIAMUserFunc        func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, deleteToken string) error
+	UpdateIAMUserFunc        func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *UpdateIAMUserRequestBody) (*IAMUser, error)
+	ResetIAMUserPasswordFunc func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *ResetIAMUserPasswordRequestBody) error
+	CreateIAMAPIKeyFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKey, error)
+	ListIAMAPIKeysFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[OperatorAPIKey], error)
+	GetIAMAPIKeyByIDFunc     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string) (*OperatorAPIKey, error)
+	UpdateIAMAPIKeyFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string, request *UpdateIAMAPIKeyRequestBody) (*OperatorAPIKey, error)
+	DeleteIAMAPIKeyFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string) error
 }
 
 func (m *MockUserAPI) GetIAMUserByID(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string) (*IAMUser, error) {
@@ -38,6 +40,14 @@ func (m *MockUserAPI) GetIAMUser(endpoints configuration_models.EndpointsV2, acc
 func (m *MockUserAPI) GetIAMUserSelf(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*IAMUser, error) {
 	if m.GetIAMUserSelfFunc != nil {
 		return m.GetIAMUserSelfFunc(endpoints, accessToken, apiKey)
+	}
+
+	return &IAMUser{}, nil
+}
+
+func (m *MockUserAPI) GetIAMUserSelfV3(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) (*IAMUser, error) {
+	if m.GetIAMUserSelfV3Func != nil {
+		return m.GetIAMUserSelfV3Func(endpoints, apiKey, organizationID)
 	}
 
 	return &IAMUser{}, nil
@@ -89,6 +99,14 @@ func (m *MockUserAPI) UpdateIAMUser(endpoints configuration_models.EndpointsV2, 
 	}
 
 	return &IAMUser{}, nil
+}
+
+func (m *MockUserAPI) ResetIAMUserPassword(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *ResetIAMUserPasswordRequestBody) error {
+	if m.ResetIAMUserPasswordFunc != nil {
+		return m.ResetIAMUserPasswordFunc(endpoints, apiKey, organizationID, userID, request)
+	}
+
+	return nil
 }
 
 func (m *MockUserAPI) CreateIAMAPIKey(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKey, error) {
