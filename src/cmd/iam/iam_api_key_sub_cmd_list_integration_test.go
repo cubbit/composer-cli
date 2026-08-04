@@ -182,3 +182,95 @@ func TestIAMAPIKeySubCmd_List_Integration_WithPaginationAndSorting(t *testing.T)
 		t.Fatalf("Expected output %q, got %q", expectedResult, actualResult)
 	}
 }
+
+func TestIAMAPIKeySubCmd_List_Integration_WithUsername(t *testing.T) {
+	mockUserAPI := &api.MockUserAPI{
+		GetIAMUserSelfFunc: func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*api.IAMUser, error) {
+			t.Fatal("List with --username should not resolve the current IAM user")
+			return nil, nil
+		},
+		ListIAMUsersFunc: func(
+			endpoints configuration_models.EndpointsV2,
+			apiKey string,
+			organizationID string,
+			enabled *bool,
+			search string,
+			page int,
+			items int,
+			sortKey string,
+			sortOrder string,
+		) (*api.GenericPaginatedResponse[api.IAMUserListItem], error) {
+			if search != "alice" {
+				t.Fatalf("Expected username search %q, got %q", "alice", search)
+			}
+
+			return &api.GenericPaginatedResponse[api.IAMUserListItem]{
+				Data: []api.IAMUserListItem{
+					{ID: "operator-002", Username: "alice"},
+				},
+			}, nil
+		},
+		ListIAMAPIKeysFunc: func(
+			endpoints configuration_models.EndpointsV2,
+			apiKey string,
+			organizationID string,
+			operatorID string,
+			page int,
+			items int,
+			sortKey string,
+			sortOrder string,
+		) (*api.GenericPaginatedResponse[api.OperatorAPIKey], error) {
+			if operatorID != "operator-002" {
+				t.Fatalf("Expected target operator ID %q, got %q", "operator-002", operatorID)
+			}
+
+			return &api.GenericPaginatedResponse[api.OperatorAPIKey]{Data: []api.OperatorAPIKey{}}, nil
+		},
+	}
+
+	iamCmd, commandOutput := setupIAMAPIKeyIntegrationCommand(nil, mockUserAPI)
+	iamCmd.SetArgs([]string{"api-key", "list", "--username", "alice"})
+
+	err := iamCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	expectedResult := "No IAM API keys found.\n"
+	if commandOutput.String() != expectedResult {
+		t.Fatalf("Expected output %q, got %q", expectedResult, commandOutput.String())
+	}
+}
+
+func TestIAMAPIKeySubCmd_List_Integration_RejectsMultipleUserTargets(t *testing.T) {
+	mockUserAPI := &api.MockUserAPI{
+		GetIAMUserSelfFunc: func(endpoints configuration_models.EndpointsV2, accessToken string, apiKey string) (*api.IAMUser, error) {
+			t.Fatal("List with invalid target flags should not resolve the current IAM user")
+			return nil, nil
+		},
+		ListIAMAPIKeysFunc: func(
+			endpoints configuration_models.EndpointsV2,
+			apiKey string,
+			organizationID string,
+			operatorID string,
+			page int,
+			items int,
+			sortKey string,
+			sortOrder string,
+		) (*api.GenericPaginatedResponse[api.OperatorAPIKey], error) {
+			t.Fatal("List with invalid target flags should not list API keys")
+			return nil, nil
+		},
+	}
+
+	iamCmd, commandOutput := setupIAMAPIKeyIntegrationCommand(nil, mockUserAPI)
+	iamCmd.SetArgs([]string{"api-key", "list", "--user-id", "operator-002", "--username", "alice"})
+
+	err := iamCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no command execution error, got %v", err)
+	}
+	if !strings.Contains(commandOutput.String(), "specify at most one of --user-id or --username") {
+		t.Fatalf("Expected conflicting target flags error, got %q", commandOutput.String())
+	}
+}

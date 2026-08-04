@@ -1,4 +1,4 @@
-package apikey
+package edit
 
 import (
 	"fmt"
@@ -7,11 +7,12 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
-func EditAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func EditAPIKey(deps shared.Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
 	apiKeyID, err := cmd.Flags().GetString("id")
 	if err != nil {
 		return fmt.Errorf("%s id: %w", constants.ErrorRetrievingField, err)
@@ -22,7 +23,7 @@ func EditAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 		return err
 	}
 
-	operator, _, err := resolveCurrentOperator(deps, profile)
+	operatorID, err := shared.ResolveAPIKeyTargetOperatorID(deps, cmd, profile)
 	if err != nil {
 		return err
 	}
@@ -31,7 +32,7 @@ func EditAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 		profile.Endpoints,
 		profile.APIKey,
 		profile.OrganizationID,
-		operator.ID,
+		operatorID,
 		apiKeyID,
 		request,
 	)
@@ -39,7 +40,7 @@ func EditAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 		return fmt.Errorf("%s: %w", constants.ErrorEditingIAMAPIKeyRequest, err)
 	}
 
-	output, err := resolveOutput(cmd, profile.Output)
+	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
 	if err != nil {
 		return err
 	}
@@ -56,7 +57,7 @@ func EditAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 		return nil
 	}
 
-	return PrintAPIKeyDetails(cmd, *apiKey)
+	return shared.PrintAPIKeyDetails(cmd, *apiKey)
 }
 
 func buildEditAPIKeyRequest(cmd *cobra.Command) (*api.UpdateIAMAPIKeyRequestBody, error) {
@@ -73,7 +74,7 @@ func buildEditAPIKeyRequest(cmd *cobra.Command) (*api.UpdateIAMAPIKeyRequestBody
 	}
 
 	if cmd.Flags().Changed("expires-at") {
-		expiresAt, err := parseOptionalExpiresAt(cmd)
+		expiresAt, err := shared.ParseOptionalExpiresAt(cmd)
 		if err != nil {
 			return nil, err
 		}

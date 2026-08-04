@@ -69,10 +69,10 @@ func ResolveUserID(
 		return userIDFlag, nil
 	}
 
-	return resolveUserIDByName(userAPI, profile, usernameFlag)
+	return ResolveUserIDByUsername(userAPI, profile, usernameFlag)
 }
 
-func resolveUserIDByName(
+func ResolveUserIDByUsername(
 	userAPI api.UserAPIInterface,
 	profile configuration_models.ProfileV2,
 	username string,

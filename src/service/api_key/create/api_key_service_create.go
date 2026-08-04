@@ -1,4 +1,4 @@
-package apikey
+package create
 
 import (
 	"fmt"
@@ -7,21 +7,22 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
-func CreateAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func CreateAPIKey(deps shared.Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
 		return fmt.Errorf("%s name: %w", constants.ErrorRetrievingField, err)
 	}
-	expiresAt, err := parseOptionalExpiresAt(cmd)
+	expiresAt, err := shared.ParseOptionalExpiresAt(cmd)
 	if err != nil {
 		return err
 	}
 
-	operator, _, err := resolveCurrentOperator(deps, profile)
+	operatorID, err := shared.ResolveAPIKeyTargetOperatorID(deps, cmd, profile)
 	if err != nil {
 		return err
 	}
@@ -30,7 +31,7 @@ func CreateAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_m
 		profile.Endpoints,
 		profile.APIKey,
 		profile.OrganizationID,
-		operator.ID,
+		operatorID,
 		&api.CreateIAMAPIKeyRequestBody{
 			Name:      name,
 			ExpiresAt: expiresAt,
@@ -40,7 +41,7 @@ func CreateAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_m
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingIAMAPIKeyRequest, err)
 	}
 
-	output, err := resolveOutput(cmd, profile.Output)
+	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
 	if err != nil {
 		return err
 	}
@@ -57,5 +58,5 @@ func CreateAPIKey(deps Dependencies, cmd *cobra.Command, profile configuration_m
 		return nil
 	}
 
-	return PrintAPIKeyCreated(cmd, *apiKey)
+	return shared.PrintAPIKeyCreated(cmd, *apiKey)
 }

@@ -6,7 +6,12 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
-	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	apikeycreate "github.com/cubbit/composer-cli/src/service/api_key/create"
+	apikeydescribe "github.com/cubbit/composer-cli/src/service/api_key/describe"
+	apikeyedit "github.com/cubbit/composer-cli/src/service/api_key/edit"
+	apikeylist "github.com/cubbit/composer-cli/src/service/api_key/list"
+	apikeyrevoke "github.com/cubbit/composer-cli/src/service/api_key/revoke"
+	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +44,7 @@ func (s *APIKeyService) CreateAPIKey(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return CreateAPIKey(Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeycreate.CreateAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
 }
 
 func (s *APIKeyService) ListAPIKeys(cmd *cobra.Command, args []string) error {
@@ -48,7 +53,7 @@ func (s *APIKeyService) ListAPIKeys(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return ListAPIKeys(Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeylist.ListAPIKeys(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
 }
 
 func (s *APIKeyService) DescribeAPIKey(cmd *cobra.Command, args []string) error {
@@ -57,7 +62,7 @@ func (s *APIKeyService) DescribeAPIKey(cmd *cobra.Command, args []string) error 
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return DescribeAPIKey(Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeydescribe.DescribeAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
 }
 
 func (s *APIKeyService) EditAPIKey(cmd *cobra.Command, args []string) error {
@@ -66,7 +71,7 @@ func (s *APIKeyService) EditAPIKey(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return EditAPIKey(Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeyedit.EditAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
 }
 
 func (s *APIKeyService) RevokeAPIKey(cmd *cobra.Command, args []string) error {
@@ -75,26 +80,7 @@ func (s *APIKeyService) RevokeAPIKey(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return RevokeAPIKey(Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeyrevoke.RevokeAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
 }
 
 var _ APIKeyServiceInterface = (*APIKeyService)(nil)
-
-type Dependencies struct {
-	UserAPI api.UserAPIInterface
-}
-
-func resolveCurrentOperator(deps Dependencies, profile configuration_models.ProfileV2) (*api.IAMUser, string, error) {
-	operator, err := deps.UserAPI.GetIAMUserSelf(profile.Endpoints, "", profile.APIKey)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to retrieve current IAM user: %w", err)
-	}
-	if operator.ID == "" {
-		return nil, "", fmt.Errorf("current IAM user does not expose an ID")
-	}
-	if operator.OrganizationName == nil || *operator.OrganizationName == "" {
-		return nil, "", fmt.Errorf("current IAM user does not expose an organization name")
-	}
-
-	return operator, *operator.OrganizationName, nil
-}

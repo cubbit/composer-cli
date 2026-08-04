@@ -1,4 +1,4 @@
-package apikey
+package describe
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -73,7 +74,7 @@ func TestDescribeAPIKey_UsesGetByID(t *testing.T) {
 	cmd.Flags().Bool("quiet", false, "Quiet")
 
 	err := DescribeAPIKey(
-		Dependencies{UserAPI: userAPI},
+		shared.Dependencies{UserAPI: userAPI},
 		cmd,
 		configuration_models.ProfileV2{
 			APIKey:         "test-api-key",

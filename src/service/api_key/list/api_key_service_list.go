@@ -1,4 +1,4 @@
-package apikey
+package list
 
 import (
 	"fmt"
@@ -7,12 +7,13 @@ import (
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
-func ListAPIKeys(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
-	operator, _, err := resolveCurrentOperator(deps, profile)
+func ListAPIKeys(deps shared.Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+	operatorID, err := shared.ResolveAPIKeyTargetOperatorID(deps, cmd, profile)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func ListAPIKeys(deps Dependencies, cmd *cobra.Command, profile configuration_mo
 
 	var allAPIKeys []api.OperatorAPIKey
 	if cmd.Flags().Changed("page") {
-		response, err := deps.UserAPI.ListIAMAPIKeys(profile.Endpoints, profile.APIKey, profile.OrganizationID, operator.ID, page, items, sortKey, sortOrder)
+		response, err := deps.UserAPI.ListIAMAPIKeys(profile.Endpoints, profile.APIKey, profile.OrganizationID, operatorID, page, items, sortKey, sortOrder)
 		if err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorListingIAMAPIKeysRequest, err)
 		}
@@ -47,7 +48,7 @@ func ListAPIKeys(deps Dependencies, cmd *cobra.Command, profile configuration_mo
 	} else {
 		page = 1
 		for {
-			response, err := deps.UserAPI.ListIAMAPIKeys(profile.Endpoints, profile.APIKey, profile.OrganizationID, operator.ID, page, items, sortKey, sortOrder)
+			response, err := deps.UserAPI.ListIAMAPIKeys(profile.Endpoints, profile.APIKey, profile.OrganizationID, operatorID, page, items, sortKey, sortOrder)
 			if err != nil {
 				return fmt.Errorf("%s: %w", constants.ErrorListingIAMAPIKeysRequest, err)
 			}
@@ -59,7 +60,7 @@ func ListAPIKeys(deps Dependencies, cmd *cobra.Command, profile configuration_mo
 		}
 	}
 
-	output, err := resolveOutput(cmd, profile.Output)
+	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
 	if err != nil {
 		return err
 	}
@@ -78,5 +79,5 @@ func ListAPIKeys(deps Dependencies, cmd *cobra.Command, profile configuration_mo
 		return nil
 	}
 
-	return PrintAPIKeyList(cmd, allAPIKeys)
+	return shared.PrintAPIKeyList(cmd, allAPIKeys)
 }

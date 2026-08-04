@@ -1,4 +1,4 @@
-package apikey
+package edit
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
+	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -78,7 +79,7 @@ func TestEditAPIKey_UsesUpdateByID(t *testing.T) {
 	_ = cmd.Flags().Set("enabled", "false")
 
 	err := EditAPIKey(
-		Dependencies{UserAPI: userAPI},
+		shared.Dependencies{UserAPI: userAPI},
 		cmd,
 		configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
@@ -117,7 +118,7 @@ func TestEditAPIKey_RequiresUpdateField(t *testing.T) {
 	cmd.Flags().Bool("enabled", true, "Enabled")
 
 	err := EditAPIKey(
-		Dependencies{UserAPI: &api.MockUserAPI{}},
+		shared.Dependencies{UserAPI: &api.MockUserAPI{}},
 		cmd,
 		configuration_models.ProfileV2{},
 	)
