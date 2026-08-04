@@ -67,8 +67,6 @@ func TestValidateLocalNK(t *testing.T) {
 		{name: "valid divisible", localNK: 6, aag: 3, minNodesPerLocation: 2, minDisksAcrossLoc: 10, expected: ""},
 		{name: "zero localNK", localNK: 0, aag: 1, minNodesPerLocation: 1, minDisksAcrossLoc: 10, expected: "Local N+K must be at least 1"},
 		{name: "exceeds min disks", localNK: 15, aag: 1, minNodesPerLocation: 1, minDisksAcrossLoc: 10, expected: "Local N+K cannot exceed minimum disks across locations (10)"},
-		{name: "not divisible by aag", localNK: 5, aag: 3, minNodesPerLocation: 2, minDisksAcrossLoc: 10, expected: "Local N+K must be divisible by AAG (3)"},
-		{name: "exceeds aag x nodes", localNK: 10, aag: 3, minNodesPerLocation: 2, minDisksAcrossLoc: 10, expected: "Local N+K (10) exceeds AAG × min nodes per location (3 × 2 = 6)"},
 		{name: "aag is zero", localNK: 5, aag: 0, minNodesPerLocation: 1, minDisksAcrossLoc: 10, expected: ""},
 	}
 	for _, tt := range tests {

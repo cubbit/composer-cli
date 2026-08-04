@@ -117,15 +117,6 @@ func ValidateLocalNK(localNK, aag, minNodesPerLocation, minLocationDisks int) st
 	if localNK > minLocationDisks {
 		return fmt.Sprintf("Local N+K cannot exceed minimum disks across locations (%d)", minLocationDisks)
 	}
-	if aag > 0 && minNodesPerLocation > 0 {
-		maxLocalNK := aag * minNodesPerLocation
-		if localNK > maxLocalNK {
-			return fmt.Sprintf("Local N+K (%d) exceeds AAG × min nodes per location (%d × %d = %d)", localNK, aag, minNodesPerLocation, maxLocalNK)
-		}
-	}
-	if aag > 0 && localNK%aag != 0 {
-		return fmt.Sprintf("Local N+K must be divisible by AAG (%d)", aag)
-	}
 	return ""
 }
 

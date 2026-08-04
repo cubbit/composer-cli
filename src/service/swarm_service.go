@@ -390,7 +390,7 @@ func collectRedundancyClasses(
 		}
 
 		aagValue := tui.CollectIntParameter(
-			"Phase 2 - Redundancy Class Definition\nStep 6.1 of 9: Anti-Affinity Group (disks per node)",
+			"Phase 2 - Redundancy Class Definition\nStep 6.1 of 9: Anti-Affinity Group (max disks used per node)",
 			fmt.Sprintf("How many disks per node would you like to use?\n(Min: 1, Max: %d)", limits.minDisksPerNode),
 			"AAG defines the max disks we can use per node to satisfy Local N+K",
 			func(v string) string {
