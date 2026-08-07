@@ -17,7 +17,7 @@ func NewLocationSubCmdDescribe(
 	var locationDescribeCmd = &cobra.Command{
 		Use:   "describe",
 		Short: "Describe aggregated locations",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if clusterName != "" && clusterID != "" {
 				return fmt.Errorf("--cluster-name and --cluster-id are mutually exclusive")
 			}
