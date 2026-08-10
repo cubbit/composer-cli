@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.6.1
+
+### Patch Changes
+
+- 47069e0: Fix infra location describe cli command
+- 90d7895: Fix small issue linked with disk selection in interactive swarm creation
+
 ## 2.6.0
 
 ### Minor Changes
