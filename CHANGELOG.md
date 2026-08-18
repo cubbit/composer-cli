@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.7.0
+
+### Minor Changes
+
+- f327cd9: Improve api-key commands to manage other users' keys
+  Add CLI commands to create, list, describe, update, and delete IAM users
+  Add CLI commands for password reset and user API key management
+  Implement bulk salt generation
+  Support operator authentication without email address
+
 ## 2.6.1
 
 ### Patch Changes
