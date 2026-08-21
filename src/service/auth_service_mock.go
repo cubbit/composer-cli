@@ -1,0 +1,49 @@
+package service
+
+import "github.com/spf13/cobra"
+
+type AuthServiceMock struct {
+	ActivateFunc func(cmd *cobra.Command, args []string) error
+	SignUpFunc   func(cmd *cobra.Command, args []string) error
+	LoginFunc    func(cmd *cobra.Command, args []string) error
+	LogoutFunc   func(cmd *cobra.Command, args []string) error
+}
+
+func NewAuthServiceMock() *AuthServiceMock {
+	return &AuthServiceMock{
+		LoginFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		LogoutFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+}
+
+func (m *AuthServiceMock) Activate(cmd *cobra.Command, args []string) error {
+	if m.ActivateFunc != nil {
+		return m.ActivateFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *AuthServiceMock) SignUp(cmd *cobra.Command, args []string) error {
+	if m.SignUpFunc != nil {
+		return m.SignUpFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *AuthServiceMock) Login(cmd *cobra.Command, args []string) error {
+	if m.LoginFunc != nil {
+		return m.LoginFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *AuthServiceMock) Logout(cmd *cobra.Command, args []string) error {
+	if m.LogoutFunc != nil {
+		return m.LogoutFunc(cmd, args)
+	}
+	return nil
+}
