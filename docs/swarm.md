@@ -1,3 +1,10 @@
+---
+id: client-cli-swarm
+title: "Swarm Commands"
+sidebar_label: "Swarm"
+slug: /client/cli/swarm
+---
+
 # Swarm Commands
 
 The Cubbit CLI provides swarm management commands to create and manage distributed storage swarms across your DS3 Composer environment. Swarms are the foundation of your geo-distributed cloud storage infrastructure.

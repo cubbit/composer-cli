@@ -1,3 +1,10 @@
+---
+id: client-cli-location
+title: "Location Commands"
+sidebar_label: "Location"
+slug: /client/cli/location
+---
+
 # Location Commands
 
 The Cubbit CLI provides infrastructure location commands to manage clusters and virtual nodes across your DS3 Composer environment. This lets you organize and control your distributed storage infrastructure.
