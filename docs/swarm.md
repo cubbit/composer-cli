@@ -197,6 +197,7 @@ cluster-id:node-id1,node-id2,node-id3
 ```
 
 **How it works**:
+
 - The CLI automatically fetches cluster details from the backend
 - All **volumes** (disks), in status ok, from each specified node are automatically included
 - For **physical clusters**: specify physical node IDs
@@ -247,6 +248,7 @@ Redundancy classes define how data is protected using erasure coding. Each redun
 | `anti_affinity_group` | int | No | Anti-affinity group number represent how many volumes could be used from the same physical machine, multiple volumes sharing the same physical machine may face a common destiny if machine fall apart |
 
 **Erasure Coding Explained**:
+
 - **Geographical level (outer)**: Data is distributed across `outer_n + outer_k` datacenters. System tolerates failure of any `outer_k` datacenters
 - **Machine/volume level (inner)**: Each datacenter uses `inner_n + inner_k` volumes. System tolerates failure of any `inner_k` volumes within each datacenter
 - **Example**: `outer_n=2, outer_k=2` means 4 datacenters total, can lose any 2. `inner_n=2, inner_k=2` means 4 volumes per datacenter, can lose any 2
@@ -368,9 +370,11 @@ cubbit swarm create \
 The CLI automatically checks for ongoing swarm creation processes:
 
 - If a `swarm_creation` process is already **running**, the command fails with:
+
   ```
   Error: swarm creation already in progress.
   ```
+
 - This prevents duplicate swarm creation requests
 - Only one swarm creation process can run at a time per organization
 
@@ -393,6 +397,7 @@ cubbit infrastructure location describe --cluster-name production
 ### Step 2: Plan Your Swarm
 
 Determine:
+
 - Which clusters to use
 - Which nodes from each cluster
 - Redundancy class parameters based on your availability requirements
@@ -430,6 +435,7 @@ Wait creation to complete.
 **Cause**: Invalid cluster ID in nexus specification
 
 **Solution**:
+
 ```bash
 # List available clusters
 cubbit infrastructure location list
@@ -443,6 +449,7 @@ cubbit infrastructure location describe --cluster-id <your-cluster-id>
 **Cause**: Invalid node ID or node doesn't belong to specified cluster
 
 **Solution**:
+
 ```bash
 # Get detailed cluster information with all nodes
 cubbit infrastructure location describe --cluster-id <cluster-id>
@@ -453,6 +460,7 @@ cubbit infrastructure location describe --cluster-id <cluster-id>
 **Cause**: Specified node has no volumes in status ok
 
 **Solution**:
+
 - Ensure the node has configured and used storage volumes
 - Check node configuration in the cluster details
 

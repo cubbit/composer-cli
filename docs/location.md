@@ -49,6 +49,7 @@ cubbit infrastructure location describe --cluster-id <cluster-id>
 ```
 
 **Note**: The `--cluster-name` and `--cluster-id` flags are mutually exclusive. When used, the command displays detailed information including:
+
 - Cluster configuration and status
 - Physical nodes with hardware details (OS, CPU, RAM, network, disks)
 - Virtual nodes with storage configuration
