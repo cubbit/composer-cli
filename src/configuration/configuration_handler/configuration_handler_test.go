@@ -74,6 +74,10 @@ func TestGetConfigurationPath_Default(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().String("config-path", "", "")
 
+	// The default path is only reached when the env override is absent, and CI
+	// runners export it. Clear it so the test measures the default, not the host.
+	t.Setenv(configuration_models.ConfigurationPathEnvVariable, "")
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		t.Fatalf("failed to get home dir: %v", err)
