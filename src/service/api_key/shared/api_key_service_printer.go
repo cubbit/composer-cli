@@ -6,23 +6,24 @@ import (
 	"time"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
 	printerutils "github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
 
-func PrintAPIKeyCreated(cmd *cobra.Command, apiKey api.OperatorAPIKey) error {
-	return printer.PrintText(cmd, buildAPIKeyDetailsOutput(apiKey, true))
+func PrintAPIKeyCreated(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKey api.OperatorAPIKey) error {
+	return printer.PrintText(cmd, handler, buildAPIKeyDetailsOutput(apiKey, true))
 }
 
-func PrintAPIKeyDetails(cmd *cobra.Command, apiKey api.OperatorAPIKey) error {
-	return printer.PrintText(cmd, buildAPIKeyDetailsOutput(apiKey, false))
+func PrintAPIKeyDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKey api.OperatorAPIKey) error {
+	return printer.PrintText(cmd, handler, buildAPIKeyDetailsOutput(apiKey, false))
 }
 
-func PrintAPIKeyList(cmd *cobra.Command, apiKeys []api.OperatorAPIKey) error {
+func PrintAPIKeyList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKeys []api.OperatorAPIKey) error {
 	if len(apiKeys) == 0 {
-		return printer.PrintText(cmd, "No IAM API keys found.\n")
+		return printer.PrintText(cmd, handler, "No IAM API keys found.\n")
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -48,8 +49,9 @@ func PrintAPIKeyList(cmd *cobra.Command, apiKeys []api.OperatorAPIKey) error {
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		apiKeys,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),

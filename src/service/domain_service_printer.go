@@ -5,15 +5,16 @@ import (
 	"strings"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
 	"github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
 
-func PrintDomainList(cmd *cobra.Command, domains []api.DomainDTO) error {
+func PrintDomainList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, domains []api.DomainDTO) error {
 	if len(domains) == 0 {
-		return printer.PrintText(cmd, "No domains found.\n")
+		return printer.PrintText(cmd, handler, "No domains found.\n")
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -44,8 +45,9 @@ func PrintDomainList(cmd *cobra.Command, domains []api.DomainDTO) error {
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		domains,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),
@@ -54,8 +56,8 @@ func PrintDomainList(cmd *cobra.Command, domains []api.DomainDTO) error {
 	)
 }
 
-func PrintDomainDetails(cmd *cobra.Command, domain api.DomainDTO) error {
-	return printer.PrintText(cmd, buildDomainDetailsOutput(domain))
+func PrintDomainDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, domain api.DomainDTO) error {
+	return printer.PrintText(cmd, handler, buildDomainDetailsOutput(domain))
 }
 
 func buildDomainDetailsOutput(domain api.DomainDTO) string {

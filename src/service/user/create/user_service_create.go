@@ -12,6 +12,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
@@ -51,7 +52,7 @@ var (
 	usernamePattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-_]+[a-zA-Z0-9]$`)
 )
 
-func ImportUsers(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, organizationName string) error {
+func ImportUsers(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2, organizationName string) error {
 	sampleFormat, err := cmd.Flags().GetString("sample")
 	if err != nil {
 		return fmt.Errorf("%s sample: %w", constants.ErrorRetrievingField, err)
@@ -78,10 +79,10 @@ func ImportUsers(deps Dependencies, cmd *cobra.Command, profile configuration_mo
 		return err
 	}
 
-	return createUsers(deps, cmd, profile, organizationName, usersFile)
+	return createUsers(deps, cmd, handler, profile, organizationName, usersFile)
 }
 
-func CreateUser(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, organizationName string) error {
+func CreateUser(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2, organizationName string) error {
 	username, err := cmd.Flags().GetString("username")
 	if err != nil {
 		return fmt.Errorf("%s username: %w", constants.ErrorRetrievingField, err)
@@ -104,7 +105,7 @@ func CreateUser(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 		emailPtr = &email
 	}
 
-	return createUsers(deps, cmd, profile, organizationName, bulkCreateUsersFile{
+	return createUsers(deps, cmd, handler, profile, organizationName, bulkCreateUsersFile{
 		Users: []bulkCreateUserFileItem{
 			{
 				Username:         username,
@@ -119,6 +120,7 @@ func CreateUser(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 func createUsers(
 	deps Dependencies,
 	cmd *cobra.Command,
+	handler configuration_handler.ConfigurationHandlerInterface,
 	profile configuration_models.ProfileV2,
 	organizationName string,
 	usersFile bulkCreateUsersFile,
@@ -135,35 +137,6 @@ func createUsers(
 	)
 	if err != nil {
 		return fmt.Errorf("failed to bulk create users: %w", err)
-	}
-
-	output, err := cmd.Flags().GetString("output")
-	if err != nil {
-		return fmt.Errorf("failed to get output flag: %w", err)
-	}
-	quiet, err := cmd.Flags().GetBool("quiet")
-	if err != nil {
-		return fmt.Errorf("failed to get quiet flag: %w", err)
-	}
-	if profile.Output != "" &&
-		!cmd.Flags().Changed("output") &&
-		!cmd.Flags().Changed("quiet") {
-		output = string(profile.Output)
-	}
-	if output != "human" && !quiet {
-		utils.PrintFormattedData(cmd.OutOrStdout(), response, output)
-		return nil
-	}
-
-	if quiet {
-		for _, item := range response.Data {
-			email := ""
-			if item.Email != nil {
-				email = *item.Email
-			}
-			utils.PrintQuiet(cmd.OutOrStdout(), item.Username, item.ID, email, fmt.Sprintf("%t", item.Created), item.Status)
-		}
-		return nil
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -188,13 +161,18 @@ func createUsers(
 		return []string{item.Username, item.ID, email, fmt.Sprintf("%t", item.Created), item.Status}
 	}
 
-	return printer.CreateTable(
-		cmd,
-		response.Data,
-		table.WithColumns(tableColumns),
-		table.WithRowMapper(rowMapper),
-		table.WithShowHeader[api.BulkCreateIAMUserResponseItem](!noHeaders),
-		table.WithSuffix[api.BulkCreateIAMUserResponseItem]("\n"),
+	return printer.ComposeStructured(cmd, handler, response,
+		func() error {
+			return printer.PrintTable(
+				cmd,
+				handler,
+				response.Data,
+				table.WithColumns(tableColumns),
+				table.WithRowMapper(rowMapper),
+				table.WithShowHeader[api.BulkCreateIAMUserResponseItem](!noHeaders),
+				table.WithSuffix[api.BulkCreateIAMUserResponseItem]("\n"),
+			)
+		},
 	)
 }
 

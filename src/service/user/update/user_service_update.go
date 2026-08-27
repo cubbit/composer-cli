@@ -5,6 +5,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service/user/shared"
 	"github.com/cubbit/composer-cli/utils"
@@ -22,6 +23,7 @@ type Dependencies struct {
 func EditUser(
 	deps Dependencies,
 	cmd *cobra.Command,
+	handler configuration_handler.ConfigurationHandlerInterface,
 	profile configuration_models.ProfileV2,
 	args []string,
 ) error {
@@ -35,12 +37,13 @@ func EditUser(
 		return err
 	}
 
-	return updateUser(deps, cmd, profile, userID, request)
+	return updateUser(deps, cmd, handler, profile, userID, request)
 }
 
 func EnableUser(
 	deps Dependencies,
 	cmd *cobra.Command,
+	handler configuration_handler.ConfigurationHandlerInterface,
 	profile configuration_models.ProfileV2,
 	args []string,
 ) error {
@@ -50,12 +53,13 @@ func EnableUser(
 	}
 
 	enabled := true
-	return updateUser(deps, cmd, profile, userID, &api.UpdateIAMUserRequestBody{Enabled: &enabled})
+	return updateUser(deps, cmd, handler, profile, userID, &api.UpdateIAMUserRequestBody{Enabled: &enabled})
 }
 
 func DisableUser(
 	deps Dependencies,
 	cmd *cobra.Command,
+	handler configuration_handler.ConfigurationHandlerInterface,
 	profile configuration_models.ProfileV2,
 	args []string,
 ) error {
@@ -65,12 +69,13 @@ func DisableUser(
 	}
 
 	enabled := false
-	return updateUser(deps, cmd, profile, userID, &api.UpdateIAMUserRequestBody{Enabled: &enabled})
+	return updateUser(deps, cmd, handler, profile, userID, &api.UpdateIAMUserRequestBody{Enabled: &enabled})
 }
 
 func updateUser(
 	deps Dependencies,
 	cmd *cobra.Command,
+	handler configuration_handler.ConfigurationHandlerInterface,
 	profile configuration_models.ProfileV2,
 	userID string,
 	request *api.UpdateIAMUserRequestBody,
@@ -86,18 +91,9 @@ func updateUser(
 		return err
 	}
 
-	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
 	quiet, err := cmd.Flags().GetBool("quiet")
 	if err != nil {
 		return fmt.Errorf("%s quiet: %w", constants.ErrorRetrievingField, err)
-	}
-
-	if output != string(configuration_models.OutputHuman) && !quiet {
-		utils.PrintFormattedData(cmd.OutOrStdout(), updatedUser, output)
-		return nil
 	}
 
 	if quiet {
@@ -105,7 +101,9 @@ func updateUser(
 		return nil
 	}
 
-	return PrintIAMUserUpdate(cmd, *updatedUser)
+	return printer.ComposeStructured(cmd, handler, updatedUser,
+		func() error { return PrintIAMUserUpdate(cmd, handler, *updatedUser) },
+	)
 }
 
 func buildEditIAMUserRequest(cmd *cobra.Command) (*api.UpdateIAMUserRequestBody, error) {
@@ -146,7 +144,7 @@ func buildEditIAMUserRequest(cmd *cobra.Command) (*api.UpdateIAMUserRequestBody,
 	return request, nil
 }
 
-func PrintIAMUserUpdate(cmd *cobra.Command, user api.IAMUser) error {
+func PrintIAMUserUpdate(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, user api.IAMUser) error {
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
 	if err != nil {
 		return fmt.Errorf("%s no-headers: %w", constants.ErrorRetrievingField, err)
@@ -176,8 +174,9 @@ func PrintIAMUserUpdate(cmd *cobra.Command, user api.IAMUser) error {
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		[]api.IAMUser{user},
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),

@@ -3,6 +3,7 @@ package configuration_handler
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
@@ -24,7 +25,7 @@ func (h *ConfigurationHandler) getConfigurationPath(cmd *cobra.Command, args []s
 
 	configPathFromEnv := os.Getenv(configuration_models.ConfigurationPathEnvVariable)
 	if configPathFromEnv != "" {
-		return configPathFromEnv, nil
+		return filepath.Join(configPathFromEnv, filepath.Base(configuration_models.ConfigurationDefaultDirName), configuration_models.ConfigurationFileName), nil
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -32,11 +33,5 @@ func (h *ConfigurationHandler) getConfigurationPath(cmd *cobra.Command, args []s
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
 
-	defaultConfigPath := fmt.Sprintf(
-		"%s/%s/%s",
-		homeDir,
-		configuration_models.ConfigurationDefaultDirName,
-		configuration_models.ConfigurationFileName,
-	)
-	return defaultConfigPath, nil
+	return filepath.Join(homeDir, configuration_models.ConfigurationDefaultDirName, configuration_models.ConfigurationFileName), nil
 }

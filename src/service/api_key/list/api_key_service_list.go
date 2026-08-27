@@ -6,13 +6,14 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
-func ListAPIKeys(deps shared.Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func ListAPIKeys(deps shared.Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2) error {
 	operatorID, err := shared.ResolveAPIKeyTargetOperatorID(deps, cmd, profile)
 	if err != nil {
 		return err
@@ -79,5 +80,5 @@ func ListAPIKeys(deps shared.Dependencies, cmd *cobra.Command, profile configura
 		return nil
 	}
 
-	return shared.PrintAPIKeyList(cmd, allAPIKeys)
+	return shared.PrintAPIKeyList(cmd, handler, allAPIKeys)
 }

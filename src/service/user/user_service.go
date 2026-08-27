@@ -51,7 +51,7 @@ func (s *UserService) ImportUsers(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s sample: %w", constants.ErrorRetrievingField, err)
 	}
 	if sampleFormat != "" {
-		return usercreate.ImportUsers(usercreate.Dependencies{}, cmd, configuration_models.ProfileV2{}, "")
+		return usercreate.ImportUsers(usercreate.Dependencies{}, cmd, s.configuration, configuration_models.ProfileV2{}, "")
 	}
 
 	profile, err := s.configuration.GetActiveProfile()
@@ -70,6 +70,7 @@ func (s *UserService) ImportUsers(cmd *cobra.Command, args []string) error {
 			UserAPI: s.userAPI,
 		},
 		cmd,
+		s.configuration,
 		profile,
 		organizationName,
 	)
@@ -92,6 +93,7 @@ func (s *UserService) CreateUser(cmd *cobra.Command, args []string) error {
 			UserAPI: s.userAPI,
 		},
 		cmd,
+		s.configuration,
 		profile,
 		organizationName,
 	)
@@ -103,7 +105,7 @@ func (s *UserService) ListUsers(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return userlist.ListUsers(userlist.Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return userlist.ListUsers(userlist.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile)
 }
 
 func (s *UserService) DescribeUser(cmd *cobra.Command, args []string) error {
@@ -112,7 +114,7 @@ func (s *UserService) DescribeUser(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return userdescribe.DescribeUser(userdescribe.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+	return userdescribe.DescribeUser(userdescribe.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile, args)
 }
 
 func (s *UserService) EditUser(cmd *cobra.Command, args []string) error {
@@ -121,7 +123,7 @@ func (s *UserService) EditUser(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return userupdate.EditUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+	return userupdate.EditUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile, args)
 }
 
 func (s *UserService) EnableUser(cmd *cobra.Command, args []string) error {
@@ -130,7 +132,7 @@ func (s *UserService) EnableUser(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return userupdate.EnableUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+	return userupdate.EnableUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile, args)
 }
 
 func (s *UserService) DisableUser(cmd *cobra.Command, args []string) error {
@@ -139,7 +141,7 @@ func (s *UserService) DisableUser(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return userupdate.DisableUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, profile, args)
+	return userupdate.DisableUser(userupdate.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile, args)
 }
 
 func (s *UserService) DeleteUser(cmd *cobra.Command, args []string) error {

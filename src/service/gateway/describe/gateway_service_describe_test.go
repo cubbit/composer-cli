@@ -64,7 +64,7 @@ func TestDescribe_WithPositionalID_Human(t *testing.T) {
 	cmd.Flags().String("gateway-name", "", "Gateway name")
 
 	profile := gatewayDescribeTestProfile()
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, []string{"gateway-123"})
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, nil, profile, []string{"gateway-123"})
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -119,7 +119,7 @@ func TestDescribe_WithGatewayName_JSON(t *testing.T) {
 	cmd.Flags().Set("output", "json")
 
 	profile := gatewayDescribeTestProfile()
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, nil)
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, nil, profile, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -193,7 +193,7 @@ func TestDescribe_WithGatewayName_PaginatesUntilFound(t *testing.T) {
 	cmd.Flags().Set("output", "json")
 
 	profile := gatewayDescribeTestProfile()
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, nil)
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, nil, profile, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -218,7 +218,7 @@ func TestDescribe_WithUnknownGatewayName(t *testing.T) {
 	cmd.Flags().Set("gateway-name", "missing-gateway")
 
 	profile := gatewayDescribeTestProfile()
-	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, profile, nil)
+	err := Describe(Dependencies{GatewayAPI: mockGatewayAPI}, cmd, nil, profile, nil)
 	if err == nil {
 		t.Fatal("Expected error, got nil")
 	}
@@ -235,7 +235,7 @@ func TestDescribe_WithMultipleIdentifiers(t *testing.T) {
 	cmd.Flags().Set("gateway-id", "gateway-123")
 
 	profile := gatewayDescribeTestProfile()
-	err := Describe(Dependencies{GatewayAPI: &api.MockGatewayAPI{}}, cmd, profile, []string{"gateway-456"})
+	err := Describe(Dependencies{GatewayAPI: &api.MockGatewayAPI{}}, cmd, nil, profile, []string{"gateway-456"})
 	if err == nil {
 		t.Fatal("Expected error, got nil")
 	}

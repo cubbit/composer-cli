@@ -7,7 +7,6 @@ import (
 	api "github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
-	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
@@ -62,12 +61,9 @@ func (s DomainService) Create(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorCreatingDomainRequest, err)
 	}
 
-	if profile.Output == configuration_models.OutputHuman {
-		return PrintDomainDetails(cmd, *response)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), response, string(profile.Output))
-	return nil
+	return printer.ComposeStructured(cmd, s.configuration, response,
+		func() error { return PrintDomainDetails(cmd, s.configuration, *response) },
+	)
 }
 
 func (s DomainService) Describe(cmd *cobra.Command, args []string) error {
@@ -87,12 +83,9 @@ func (s DomainService) Describe(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDescribingDomainRequest, err)
 	}
 
-	if profile.Output == configuration_models.OutputHuman {
-		return PrintDomainDetails(cmd, *response)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), response, string(profile.Output))
-	return nil
+	return printer.ComposeStructured(cmd, s.configuration, response,
+		func() error { return PrintDomainDetails(cmd, s.configuration, *response) },
+	)
 }
 
 func (s DomainService) List(cmd *cobra.Command, args []string) error {
@@ -106,12 +99,9 @@ func (s DomainService) List(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorListingDomainsRequest, err)
 	}
 
-	if profile.Output == configuration_models.OutputHuman {
-		return PrintDomainList(cmd, domains)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), domains, string(profile.Output))
-	return nil
+	return printer.ComposeStructured(cmd, s.configuration, domains,
+		func() error { return PrintDomainList(cmd, s.configuration, domains) },
+	)
 }
 
 func (s DomainService) fetchAllDomains(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) ([]api.DomainDTO, error) {
@@ -153,7 +143,7 @@ func (s DomainService) Delete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorDeletingDomainRequest, err)
 	}
 
-	return printer.PrintText(cmd, fmt.Sprintf("Domain %s deleted successfully\n", domainID))
+	return printer.PrintText(cmd, s.configuration, fmt.Sprintf("Domain %s deleted successfully\n", domainID))
 }
 
 func (s DomainService) Verify(cmd *cobra.Command, args []string) error {
@@ -172,14 +162,16 @@ func (s DomainService) Verify(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorVerifyingDomainRequest, err)
 	}
 
-	if profile.Output == configuration_models.OutputHuman {
-		verified := "is not verified"
-		if result.Verified {
-			verified = "is verified"
-		}
-		return printer.PrintText(cmd, fmt.Sprintf("Domain %s %s\n", domainID, verified))
+	verified := "is not verified"
+	if result.Verified {
+		verified = "is verified"
 	}
+	sentence := fmt.Sprintf("Domain %s %s\n", domainID, verified)
 
-	utils.PrintFormattedData(cmd.OutOrStdout(), result, string(profile.Output))
-	return nil
+	return printer.ComposeStructured(cmd, s.configuration, result,
+		func() error {
+			_, err := fmt.Fprint(cmd.OutOrStdout(), sentence)
+			return err
+		},
+	)
 }

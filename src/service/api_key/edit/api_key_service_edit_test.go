@@ -81,6 +81,7 @@ func TestEditAPIKey_UsesUpdateByID(t *testing.T) {
 	err := EditAPIKey(
 		shared.Dependencies{UserAPI: userAPI},
 		cmd,
+		nil,
 		configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
@@ -120,6 +121,7 @@ func TestEditAPIKey_RequiresUpdateField(t *testing.T) {
 	err := EditAPIKey(
 		shared.Dependencies{UserAPI: &api.MockUserAPI{}},
 		cmd,
+		nil,
 		configuration_models.ProfileV2{},
 	)
 	if err == nil {

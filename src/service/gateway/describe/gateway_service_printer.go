@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
 
-func PrintGatewayDetails(cmd *cobra.Command, gateway api.GatewayV5GetResponse) error {
-	return printer.PrintText(cmd, buildGatewayDetailsOutput(gateway))
+func PrintGatewayDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, gateway api.GatewayV5GetResponse) error {
+	return printer.PrintText(cmd, handler, buildGatewayDetailsOutput(gateway))
 }
 
 func buildGatewayDetailsOutput(gateway api.GatewayV5GetResponse) string {

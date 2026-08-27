@@ -6,13 +6,13 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
-	"github.com/cubbit/composer-cli/src/service/gateway/shared"
-	"github.com/cubbit/composer-cli/utils"
+	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
 
-func ListInline(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func ListInline(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2) error {
 	filters, err := cmd.Flags().GetStringArray("query")
 	if err != nil {
 		return fmt.Errorf("%s filter: %w", constants.ErrorRetrievingField, err)
@@ -53,17 +53,9 @@ func ListInline(deps Dependencies, cmd *cobra.Command, profile configuration_mod
 		}
 	}
 
-	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
-
-	if output == string(configuration_models.OutputHuman) {
-		return PrintGatewayList(cmd, gateways)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), gateways, output)
-	return nil
+	return printer.ComposeStructured(cmd, handler, gateways,
+		func() error { return PrintGatewayList(cmd, handler, gateways) },
+	)
 }
 
 func fetchAllGateways(deps Dependencies, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, filter string) ([]api.GatewayV5ListItemResponse, error) {

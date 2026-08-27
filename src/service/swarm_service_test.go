@@ -75,7 +75,7 @@ func TestSwarmService_Describe_WithPositionalID_Human(t *testing.T) {
 	}
 
 	output := cmd.OutOrStdout().(*bytes.Buffer).String()
-	if !strings.Contains(output, "Swarm: test-swarm") || !strings.Contains(output, "Metadata:") || !strings.Contains(output, "ID: swarm-123") {
+	if !strings.Contains(output, "test-swarm") || !strings.Contains(output, "Metadata") || !strings.Contains(output, "ID: swarm-123") {
 		t.Fatalf("Expected human output to contain swarm details, got %q", output)
 	}
 }
@@ -152,7 +152,7 @@ func TestSwarmService_Describe_WithSwarmName_JSON(t *testing.T) {
 
 	output := cmd.OutOrStdout().(*bytes.Buffer).String()
 	if !strings.Contains(output, `"id": "swarm-456"`) {
-		t.Fatalf("Expected json output to contain resolved swarm, got %q", output)
+		t.Fatalf("Expected json output to contain 'id: swarm-456', got %q", output)
 	}
 }
 

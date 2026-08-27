@@ -24,11 +24,11 @@ type ConfigServiceInterface interface {
 }
 
 type ConfigService struct {
-	configuration *configuration_handler.ConfigurationHandler
+	configuration configuration_handler.ConfigurationHandlerInterface
 }
 
 func NewConfigService(
-	configuration *configuration_handler.ConfigurationHandler,
+	configuration configuration_handler.ConfigurationHandlerInterface,
 ) *ConfigService {
 	return &ConfigService{
 		configuration: configuration,
@@ -41,12 +41,15 @@ func (s *ConfigService) View(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	encoder := toml.NewEncoder(cmd.OutOrStdout())
-	if err = encoder.Encode(config); err != nil {
-		return fmt.Errorf("failed to encode config: %w", err)
-	}
-
-	return nil
+	return printer.ComposeStructured(cmd, s.configuration, config,
+		func() error {
+			encoder := toml.NewEncoder(cmd.OutOrStdout())
+			if err = encoder.Encode(config); err != nil {
+				return fmt.Errorf("failed to encode config: %w", err)
+			}
+			return nil
+		},
+	)
 }
 
 func (s *ConfigService) InitConfiguration(cmd *cobra.Command, args []string) error {
@@ -64,6 +67,7 @@ func (s *ConfigService) InitConfiguration(cmd *cobra.Command, args []string) err
 
 		return printer.PrintText(
 			cmd,
+			s.configuration,
 			fmt.Sprintf("Created configuration file template in %s\n", configPath),
 		)
 	} else if err != nil {
@@ -72,6 +76,7 @@ func (s *ConfigService) InitConfiguration(cmd *cobra.Command, args []string) err
 
 	return printer.PrintText(
 		cmd,
+		s.configuration,
 		fmt.Sprintf("Configuration file already exists at %s\n", configPath),
 	)
 }
@@ -131,7 +136,7 @@ func (s *ConfigService) Profiles(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return PrintProfiles(cmd, profiles, activeProfileName)
+	return PrintProfiles(cmd, s.configuration, profiles, activeProfileName)
 }
 
 func (s *ConfigService) SwitchProfile(cmd *cobra.Command, args []string) error {
@@ -159,6 +164,7 @@ func (s *ConfigService) Validate(cmd *cobra.Command, args []string) error {
 
 	return printer.PrintText(
 		cmd,
+		s.configuration,
 		fmt.Sprintf("Configuration file at %s is valid", configPath),
 	)
 }

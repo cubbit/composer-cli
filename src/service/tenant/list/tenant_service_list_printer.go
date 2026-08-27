@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
 	"github.com/spf13/cobra"
@@ -11,9 +12,9 @@ import (
 
 const descriptionMaxLen = 256
 
-func PrintTenantList(cmd *cobra.Command, tenants []api.TenantV5DTO) error {
+func PrintTenantList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, tenants []api.TenantV5DTO) error {
 	if len(tenants) == 0 {
-		return printer.PrintText(cmd, "No tenants found.\n")
+		return printer.PrintText(cmd, handler, "No tenants found.\n")
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -39,8 +40,9 @@ func PrintTenantList(cmd *cobra.Command, tenants []api.TenantV5DTO) error {
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		tenants,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),

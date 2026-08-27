@@ -6,13 +6,14 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
 
-func createInline(deps Dependencies, cmd *cobra.Command, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) error {
+func createInline(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) error {
 	createRequest, err := collectGatewayCreateFlags(cmd)
 	if err != nil {
 		return err
@@ -38,7 +39,7 @@ func createInline(deps Dependencies, cmd *cobra.Command, endpoints configuration
 		return fmt.Errorf("unexpected process type: expected gateway creation process, got %s", process.Type)
 	}
 
-	return printer.PrintText(cmd, fmt.Sprintf("Gateway creation started — Gateway ID: %s\n", gatewayCreationProcess.Data.ID))
+	return printer.PrintText(cmd, handler, fmt.Sprintf("Gateway creation started — Gateway ID: %s\n", gatewayCreationProcess.Data.ID))
 }
 
 func collectGatewayCreateFlags(cmd *cobra.Command) (*api.CreateGatewayV5Request, error) {

@@ -54,7 +54,7 @@ func (s GatewayService) List(cmd *cobra.Command, args []string) error {
 		GatewayAPI: s.gatewayAPI,
 	}
 
-	return list.ListInline(deps, cmd, profile)
+	return list.ListInline(deps, cmd, s.configuration, profile)
 }
 
 func (s GatewayService) Create(cmd *cobra.Command, args []string) error {
@@ -76,7 +76,7 @@ func (s GatewayService) Create(cmd *cobra.Command, args []string) error {
 		LocationAPI:        s.locationAPI,
 	}
 
-	return create.Create(deps, cmd, profile, interactiveMode)
+	return create.Create(deps, cmd, s.configuration, profile, interactiveMode)
 }
 
 func (s GatewayService) Describe(cmd *cobra.Command, args []string) error {
@@ -89,5 +89,5 @@ func (s GatewayService) Describe(cmd *cobra.Command, args []string) error {
 		GatewayAPI: s.gatewayAPI,
 	}
 
-	return describe.Describe(deps, cmd, profile, args)
+	return describe.Describe(deps, cmd, s.configuration, profile, args)
 }

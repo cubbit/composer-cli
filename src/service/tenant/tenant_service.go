@@ -52,7 +52,7 @@ func (s TenantService) List(cmd *cobra.Command, args []string) error {
 		TenantAPI: s.tenantAPI,
 	}
 
-	return list.List(deps, cmd, profile)
+	return list.List(deps, cmd, s.configuration, profile)
 }
 
 func (s TenantService) Describe(cmd *cobra.Command, args []string) error {
@@ -65,7 +65,7 @@ func (s TenantService) Describe(cmd *cobra.Command, args []string) error {
 		TenantAPI: s.tenantAPI,
 	}
 
-	return describe.Describe(deps, cmd, profile, args)
+	return describe.Describe(deps, cmd, s.configuration, profile, args)
 }
 
 func (s TenantService) Create(cmd *cobra.Command, args []string) error {
@@ -86,5 +86,5 @@ func (s TenantService) Create(cmd *cobra.Command, args []string) error {
 		ProcessAPI: s.processAPI,
 	}
 
-	return create.Create(deps, cmd, profile, interactiveMode)
+	return create.Create(deps, cmd, s.configuration, profile, interactiveMode)
 }

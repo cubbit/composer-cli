@@ -4,14 +4,17 @@ import (
 	"fmt"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/tree"
 	printerutils "github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
 
-func PrintTenantDetails(cmd *cobra.Command, tenant api.TenantV5DTO) error {
-	return printer.PrintTree(cmd, buildTenantTree(cmd, tenant))
+func PrintTenantDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, tenant api.TenantV5DTO) error {
+	return printer.PrintTree(cmd, handler, tenant, func(t api.TenantV5DTO) []tree.TreeNode {
+		return buildTenantTree(cmd, t)
+	})
 }
 
 func buildTenantTree(cmd *cobra.Command, tenant api.TenantV5DTO) []tree.TreeNode {

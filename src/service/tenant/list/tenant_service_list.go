@@ -6,9 +6,8 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	api "github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
-	"github.com/cubbit/composer-cli/src/service/gateway/shared"
-	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +15,7 @@ type Dependencies struct {
 	TenantAPI api.TenantAPIInterface
 }
 
-func List(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func List(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2) error {
 	filters, err := cmd.Flags().GetStringArray("query")
 	if err != nil {
 		return fmt.Errorf("%s filter: %w", constants.ErrorRetrievingField, err)
@@ -57,17 +56,7 @@ func List(deps Dependencies, cmd *cobra.Command, profile configuration_models.Pr
 		}
 	}
 
-	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
-
-	if output == string(configuration_models.OutputHuman) {
-		return PrintTenantList(cmd, tenants)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), tenants, output)
-	return nil
+	return PrintTenantList(cmd, handler, tenants)
 }
 
 func fetchAllTenants(deps Dependencies, endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, filter string) ([]api.TenantV5DTO, error) {

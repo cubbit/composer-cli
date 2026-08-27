@@ -9,7 +9,6 @@ import (
 	api "github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils"
-	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +52,7 @@ func (s LocationService) List(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to list locations: %w", err)
 	}
 
-	return PrintClusters(cmd, locations)
+	return PrintClusters(cmd, s.configuration, locations)
 }
 
 func (s LocationService) ListAggregated(cmd *cobra.Command, args []string) error {
@@ -109,7 +108,7 @@ func (s LocationService) ListAggregated(cmd *cobra.Command, args []string) error
 		return fmt.Errorf("cluster with ID '%s' not found", clusterID)
 	}
 
-	return PrintClusterDetails(cmd, *filteredCluster)
+	return PrintClusterDetails(cmd, s.configuration, *filteredCluster)
 }
 
 func (s LocationService) CreateVirtual(cmd *cobra.Command, args []string) error {
@@ -179,9 +178,5 @@ func (s LocationService) CreateVirtualNode(cmd *cobra.Command, args []string) er
 		return fmt.Errorf("failed to create virtual node: %w", err)
 	}
 
-	printFuncs := []func() error{
-		func() error { return PrintVirtualNodes(cmd, []api.InfraAggregateVirtualNodeDetail{*node}) },
-	}
-
-	return printer.Compose(cmd, printFuncs...)
+	return PrintVirtualNodes(cmd, s.configuration, []api.InfraAggregateVirtualNodeDetail{*node})
 }

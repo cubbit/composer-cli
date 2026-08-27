@@ -7,15 +7,17 @@ import (
 	"strings"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
+	"github.com/cubbit/composer-cli/utils/printer/tree"
 	"github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
 
-func PrintSwarmList(cmd *cobra.Command, swarms []api.ListSwarmV5ItemPresentation) error {
+func PrintSwarmList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, swarms []api.ListSwarmV5ItemPresentation) error {
 	if len(swarms) == 0 {
-		return printer.PrintText(cmd, "No swarms found.\n")
+		return printer.PrintText(cmd, handler, "No swarms found.\n")
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -55,8 +57,9 @@ func PrintSwarmList(cmd *cobra.Command, swarms []api.ListSwarmV5ItemPresentation
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		swarms,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),
@@ -65,11 +68,11 @@ func PrintSwarmList(cmd *cobra.Command, swarms []api.ListSwarmV5ItemPresentation
 	)
 }
 
-func PrintSwarmDetails(cmd *cobra.Command, swarm api.SwarmV5Presentation) error {
-	return printer.PrintText(cmd, buildSwarmDetailsOutput(swarm))
+func PrintSwarmDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, swarm api.SwarmV5Presentation) error {
+	return printer.PrintTree(cmd, handler, swarm, buildSwarmDetailNodes)
 }
 
-func buildSwarmDetailsOutput(swarm api.SwarmV5Presentation) string {
+func buildSwarmDetailNodes(swarm api.SwarmV5Presentation) []tree.TreeNode {
 	description := "N/A"
 	if swarm.Description != nil && *swarm.Description != "" {
 		description = *swarm.Description
@@ -95,38 +98,55 @@ func buildSwarmDetailsOutput(swarm api.SwarmV5Presentation) string {
 		availableStorage = 0
 	}
 
-	lines := []string{
-		fmt.Sprintf("Swarm: %s", swarm.Name),
-		fmt.Sprintf("Status: %s", formatSwarmStatus(evaluatedStatus)),
-		fmt.Sprintf("Last Update: %s", evaluatedStatusUpdatedAt),
-		fmt.Sprintf("Organization: %s", swarm.OrganizationID),
-		fmt.Sprintf("Owner: %s", swarm.OwnerID),
-		"",
-		"Storage Usage:",
-		fmt.Sprintf("  Usage: %s %s", formatStorageBar(swarm.UsedStorageBytes, swarm.TotalStorageBytes, 10), formatStoragePercent(swarm.UsedStorageBytes, swarm.TotalStorageBytes)),
-		fmt.Sprintf("  Total Used: %s", utils.FormatBytes(swarm.UsedStorageBytes)),
-		fmt.Sprintf("  Total Assigned: %s", utils.FormatBytes(swarm.TotalStorageBytes)),
-		fmt.Sprintf("  Total Unused: %s", utils.FormatBytes(availableStorage)),
-		"",
-		"Metadata:",
-		fmt.Sprintf("  ID: %s", swarm.ID),
-		fmt.Sprintf("  Description: %s", description),
-		fmt.Sprintf("  Created At: %s", utils.FormatTime(swarm.CreatedAt)),
-		fmt.Sprintf("  Creation Status: %s", creationStatus),
-		"",
-		"Composition:",
-		fmt.Sprintf("  Nexus Count: %d", swarm.NexusCount),
-		fmt.Sprintf("  Redundancy Class Count: %d", swarm.RedundancyClassCount),
-		"",
-		"Configuration:",
+	return []tree.TreeNode{
+		{
+			Value: swarm.Name,
+			Children: []tree.TreeNode{
+				{Value: fmt.Sprintf("Status: %s", formatSwarmStatus(evaluatedStatus))},
+				{Value: fmt.Sprintf("Last Update: %s", evaluatedStatusUpdatedAt)},
+				{Value: fmt.Sprintf("Organization: %s", swarm.OrganizationID)},
+				{Value: fmt.Sprintf("Owner: %s", swarm.OwnerID)},
+				{
+					Value: "Storage Usage",
+					Children: []tree.TreeNode{
+						{Value: fmt.Sprintf("Usage: %s %s", formatStorageBar(swarm.UsedStorageBytes, swarm.TotalStorageBytes, 10), formatStoragePercent(swarm.UsedStorageBytes, swarm.TotalStorageBytes))},
+						{Value: fmt.Sprintf("Total Used: %s", utils.FormatBytes(swarm.UsedStorageBytes))},
+						{Value: fmt.Sprintf("Total Assigned: %s", utils.FormatBytes(swarm.TotalStorageBytes))},
+						{Value: fmt.Sprintf("Total Unused: %s", utils.FormatBytes(availableStorage))},
+					},
+				},
+				{
+					Value: "Metadata",
+					Children: []tree.TreeNode{
+						{Value: fmt.Sprintf("ID: %s", swarm.ID)},
+						{Value: fmt.Sprintf("Description: %s", description)},
+						{Value: fmt.Sprintf("Created At: %s", utils.FormatTime(swarm.CreatedAt))},
+						{Value: fmt.Sprintf("Creation Status: %s", creationStatus)},
+					},
+				},
+				{
+					Value: "Composition",
+					Children: []tree.TreeNode{
+						{Value: fmt.Sprintf("Nexus Count: %d", swarm.NexusCount)},
+						{Value: fmt.Sprintf("Redundancy Class Count: %d", swarm.RedundancyClassCount)},
+					},
+				},
+				{
+					Value: "Configuration",
+					Children: swarmDetailConfigurationNodes(swarm.Configuration),
+				},
+			},
+		},
 	}
+}
 
-	configurationLines := formatSwarmConfiguration(swarm.Configuration)
-	for _, line := range configurationLines {
-		lines = append(lines, "  "+line)
+func swarmDetailConfigurationNodes(configuration map[string]interface{}) []tree.TreeNode {
+	configLines := formatSwarmConfiguration(configuration)
+	nodes := make([]tree.TreeNode, len(configLines))
+	for i, line := range configLines {
+		nodes[i] = tree.TreeNode{Value: line}
 	}
-
-	return strings.Join(lines, "\n")
+	return nodes
 }
 
 func formatSwarmStatus(status string) string {

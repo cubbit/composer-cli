@@ -113,30 +113,26 @@ func TestSwarmSubCmd_Describe_Integration_Success_WithSwarmName(t *testing.T) {
 
 	output := commandOutput.String()
 	expectedOutput := strings.TrimSpace(`
-Swarm: test-swarm
-Status: ● Online
-Last Update: N/A
-Organization: test-org-id
-Owner: owner-123
-
-Storage Usage:
-  Usage: [█████░░░░░] 50%
-  Total Used: 512 B
-  Total Assigned: 1.0 KB
-  Total Unused: 512 B
-
-Metadata:
-  ID: swarm-123
-  Description: Test swarm
-  Created At: 2024-01-15 10:30:00
-  Creation Status: created
-
-Composition:
-  Nexus Count: 2
-  Redundancy Class Count: 1
-
-Configuration:
-  tier: hot`)
+test-swarm
+├── Status: ● Online
+├── Last Update: N/A
+├── Organization: test-org-id
+├── Owner: owner-123
+├── Storage Usage
+│   ├── Usage: [█████░░░░░] 50%
+│   ├── Total Used: 512 B
+│   ├── Total Assigned: 1.0 KB
+│   └── Total Unused: 512 B
+├── Metadata
+│   ├── ID: swarm-123
+│   ├── Description: Test swarm
+│   ├── Created At: 2024-01-15 10:30:00
+│   └── Creation Status: created
+├── Composition
+│   ├── Nexus Count: 2
+│   └── Redundancy Class Count: 1
+└── Configuration
+    └── tier: hot`)
 
 	if strings.TrimSpace(output) != expectedOutput {
 		t.Fatalf("Expected output:\n%s\nactual:\n%s", expectedOutput, strings.TrimSpace(output))
@@ -245,30 +241,26 @@ func TestSwarmSubCmd_Describe_Integration_Success_WithPositionalID(t *testing.T)
 
 	output := commandOutput.String()
 	expectedOutput := strings.TrimSpace(`
-Swarm: test-swarm
-Status: ● Online
-Last Update: N/A
-Organization: test-org-id
-Owner: owner-123
-
-Storage Usage:
-  Usage: [█████░░░░░] 50%
-  Total Used: 1.0 KB
-  Total Assigned: 2.0 KB
-  Total Unused: 1.0 KB
-
-Metadata:
-  ID: swarm-123
-  Description: N/A
-  Created At: 2024-01-15 10:30:00
-  Creation Status: created
-
-Composition:
-  Nexus Count: 3
-  Redundancy Class Count: 2
-
-Configuration:
-  replication: 3`)
+test-swarm
+├── Status: ● Online
+├── Last Update: N/A
+├── Organization: test-org-id
+├── Owner: owner-123
+├── Storage Usage
+│   ├── Usage: [█████░░░░░] 50%
+│   ├── Total Used: 1.0 KB
+│   ├── Total Assigned: 2.0 KB
+│   └── Total Unused: 1.0 KB
+├── Metadata
+│   ├── ID: swarm-123
+│   ├── Description: N/A
+│   ├── Created At: 2024-01-15 10:30:00
+│   └── Creation Status: created
+├── Composition
+│   ├── Nexus Count: 3
+│   └── Redundancy Class Count: 2
+└── Configuration
+    └── replication: 3`)
 
 	if strings.TrimSpace(output) != expectedOutput {
 		t.Fatalf("Expected output:\n%s\nactual:\n%s", expectedOutput, strings.TrimSpace(output))

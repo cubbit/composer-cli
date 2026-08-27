@@ -58,14 +58,16 @@ func TestGetConfigurationPath_FromEnv(t *testing.T) {
 	cmd.Flags().String("config-path", "", "")
 	cmd.Flags().Set("config-path", "")
 
-	t.Setenv(configuration_models.ConfigurationPathEnvVariable, "/env/path/config.toml")
+	t.Setenv(configuration_models.ConfigurationPathEnvVariable, "/env/path")
 
 	path, err := h.getConfigurationPath(cmd, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if path != "/env/path/config.toml" {
-		t.Errorf("expected /env/path/config.toml, got %q", path)
+
+	expected := filepath.Join("/env/path", filepath.Base(configuration_models.ConfigurationDefaultDirName), configuration_models.ConfigurationFileName)
+	if path != expected {
+		t.Errorf("expected %q, got %q", expected, path)
 	}
 }
 
