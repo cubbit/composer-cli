@@ -6,13 +6,14 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
-func CreateAPIKey(deps shared.Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func CreateAPIKey(deps shared.Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2) error {
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
 		return fmt.Errorf("%s name: %w", constants.ErrorRetrievingField, err)
@@ -58,5 +59,5 @@ func CreateAPIKey(deps shared.Dependencies, cmd *cobra.Command, profile configur
 		return nil
 	}
 
-	return shared.PrintAPIKeyCreated(cmd, *apiKey)
+	return shared.PrintAPIKeyCreated(cmd, handler, *apiKey)
 }

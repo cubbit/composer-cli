@@ -1,6 +1,8 @@
 package cmd_tenant
 
 import (
+	"fmt"
+
 	servicetenant "github.com/cubbit/composer-cli/src/service/tenant"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
@@ -42,13 +44,20 @@ Examples:
 
    # Create a tenant in interactive mode
    cubbit tenant create --interactive`,
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool("interactive")
+			if interactive {
+				outputFlag := cmd.Flag("output")
+				if outputFlag != nil && outputFlag.Changed {
+					return fmt.Errorf("--interactive and --output flags are mutually exclusive")
+				}
+			}
 			if !interactive {
 				cmd.MarkFlagRequired("name")
 				cmd.MarkFlagRequired("slug")
 				cmd.MarkFlagRequired("connection")
 			}
+			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := tenantService.Create(cmd, args); err != nil {

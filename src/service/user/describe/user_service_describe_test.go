@@ -43,6 +43,7 @@ func TestDescribeUserRejectsSelfWithExplicitTarget(t *testing.T) {
 			err := DescribeUser(
 				Dependencies{UserAPI: &api.MockUserAPI{}},
 				cmd,
+				nil,
 				configuration_models.ProfileV2{},
 				tc.args,
 			)

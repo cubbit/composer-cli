@@ -5,9 +5,8 @@ import (
 	"strings"
 
 	api "github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
-	"github.com/cubbit/composer-cli/src/service/gateway/shared"
-	"github.com/cubbit/composer-cli/utils"
 	printerutils "github.com/cubbit/composer-cli/utils/printer/utils"
 	"github.com/spf13/cobra"
 )
@@ -16,7 +15,7 @@ type Dependencies struct {
 	TenantAPI api.TenantAPIInterface
 }
 
-func Describe(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2, args []string) error {
+func Describe(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2, args []string) error {
 	tenantID, err := resolveTenantID(args)
 	if err != nil {
 		return err
@@ -27,17 +26,7 @@ func Describe(deps Dependencies, cmd *cobra.Command, profile configuration_model
 		return fmt.Errorf("failed to describe tenant: %w", err)
 	}
 
-	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
-
-	if output == string(configuration_models.OutputHuman) {
-		return PrintTenantDetails(cmd, *tenant)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), tenant, output)
-	return nil
+	return PrintTenantDetails(cmd, handler, *tenant)
 }
 
 func resolveTenantID(args []string) (string, error) {

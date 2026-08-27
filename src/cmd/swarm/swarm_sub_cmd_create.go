@@ -1,6 +1,8 @@
 package cmd_swarm
 
 import (
+	"fmt"
+
 	"github.com/cubbit/composer-cli/src/service"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
@@ -48,12 +50,19 @@ Examples:
      --nexus <cluster-1>:<node-1>,<node-2> \
      --nexus <cluster-2>:<node-3> \
      --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":1,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-1>","<cluster-2>"]}'`,
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool("interactive")
+			if interactive {
+				outputFlag := cmd.Flag("output")
+				if outputFlag != nil && outputFlag.Changed {
+					return fmt.Errorf("--interactive and --output flags are mutually exclusive")
+				}
+			}
 			if !interactive {
 				cmd.MarkFlagRequired("name")
 				cmd.MarkFlagRequired("nexus")
 			}
+			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			interactive, _ := cmd.Flags().GetBool("interactive")

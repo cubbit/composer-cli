@@ -134,7 +134,7 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 		},
 	}
 
-	err = PrintClusterDetails(cmd, cluster)
+	err = PrintClusterDetails(cmd, nil, cluster)
 
 	if err != nil {
 		t.Errorf("Expected no error in human mode, got: %v", err)
@@ -239,7 +239,7 @@ func TestPrintClusterDetails_Quiet(t *testing.T) {
 		},
 	}
 
-	err = PrintClusterDetails(cmd, cluster)
+	err = PrintClusterDetails(cmd, nil, cluster)
 
 	if err != nil {
 		t.Errorf("Expected no error in quiet mode, got: %v", err)
@@ -276,7 +276,7 @@ func TestPrintClusters_Human(t *testing.T) {
 		},
 	}
 
-	err := PrintClusters(cmd, clusters)
+	err := PrintClusters(cmd, nil, clusters)
 
 	if err != nil {
 		t.Errorf("Expected no error in human mode, got: %v", err)
@@ -314,7 +314,7 @@ func TestPrintClusters_Quiet(t *testing.T) {
 		},
 	}
 
-	err := PrintClusters(cmd, clusters)
+	err := PrintClusters(cmd, nil, clusters)
 
 	if err != nil {
 		t.Errorf("Expected no error in quiet mode, got: %v", err)
@@ -335,7 +335,7 @@ func TestPrintClusters_Empty(t *testing.T) {
 
 	var clusters []api.InfrastructureCluster
 
-	err := PrintClusters(cmd, clusters)
+	err := PrintClusters(cmd, nil, clusters)
 
 	if err != nil {
 		t.Errorf("Expected no error with empty clusters, got: %v", err)

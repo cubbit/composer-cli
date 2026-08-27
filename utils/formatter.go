@@ -19,7 +19,7 @@ func PrintFormattedData(writer io.Writer, data interface{}, format string) {
 	case "json":
 		printJSON(writer, data)
 	case "yaml":
-		printYAML(data)
+		printYAML(writer, data)
 	case "xml":
 		printXML(data)
 	case "csv":
@@ -189,13 +189,13 @@ func structToString(data interface{}) string {
 	return str.String()
 }
 
-func printYAML(data interface{}) {
+func printYAML(writer io.Writer, data interface{}) {
 	yamlData, err := syaml.Marshal(data)
 	if err != nil {
-		fmt.Print("error encoding yaml:", err)
+		fmt.Fprint(writer, "error encoding yaml:", err)
 		return
 	}
-	fmt.Println(string(yamlData))
+	fmt.Fprintln(writer, string(yamlData))
 }
 
 func printXML(data interface{}) {

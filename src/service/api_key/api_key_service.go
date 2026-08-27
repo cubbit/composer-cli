@@ -44,7 +44,7 @@ func (s *APIKeyService) CreateAPIKey(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return apikeycreate.CreateAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeycreate.CreateAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile)
 }
 
 func (s *APIKeyService) ListAPIKeys(cmd *cobra.Command, args []string) error {
@@ -53,7 +53,7 @@ func (s *APIKeyService) ListAPIKeys(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return apikeylist.ListAPIKeys(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeylist.ListAPIKeys(shared.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile)
 }
 
 func (s *APIKeyService) DescribeAPIKey(cmd *cobra.Command, args []string) error {
@@ -62,7 +62,7 @@ func (s *APIKeyService) DescribeAPIKey(cmd *cobra.Command, args []string) error 
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return apikeydescribe.DescribeAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeydescribe.DescribeAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile)
 }
 
 func (s *APIKeyService) EditAPIKey(cmd *cobra.Command, args []string) error {
@@ -71,7 +71,7 @@ func (s *APIKeyService) EditAPIKey(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
 
-	return apikeyedit.EditAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, profile)
+	return apikeyedit.EditAPIKey(shared.Dependencies{UserAPI: s.userAPI}, cmd, s.configuration, profile)
 }
 
 func (s *APIKeyService) RevokeAPIKey(cmd *cobra.Command, args []string) error {

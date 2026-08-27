@@ -35,7 +35,7 @@ func TestPrintGatewayDetails_Human(t *testing.T) {
 		},
 	}
 
-	err := PrintGatewayDetails(cmd, gateway)
+	err := PrintGatewayDetails(cmd, nil, gateway)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -74,7 +74,7 @@ func TestPrintGatewayDetails_Human_WithoutRedundancyClasses(t *testing.T) {
 		Status: "not-ready",
 	}
 
-	err := PrintGatewayDetails(cmd, gateway)
+	err := PrintGatewayDetails(cmd, nil, gateway)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

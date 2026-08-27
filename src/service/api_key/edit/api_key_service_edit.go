@@ -6,13 +6,14 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service/api_key/shared"
 	"github.com/cubbit/composer-cli/utils"
 	"github.com/spf13/cobra"
 )
 
-func EditAPIKey(deps shared.Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func EditAPIKey(deps shared.Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2) error {
 	apiKeyID, err := cmd.Flags().GetString("id")
 	if err != nil {
 		return fmt.Errorf("%s id: %w", constants.ErrorRetrievingField, err)
@@ -57,7 +58,7 @@ func EditAPIKey(deps shared.Dependencies, cmd *cobra.Command, profile configurat
 		return nil
 	}
 
-	return shared.PrintAPIKeyDetails(cmd, *apiKey)
+	return shared.PrintAPIKeyDetails(cmd, handler, *apiKey)
 }
 
 func buildEditAPIKeyRequest(cmd *cobra.Command) (*api.UpdateIAMAPIKeyRequestBody, error) {

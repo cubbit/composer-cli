@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
@@ -17,10 +18,11 @@ type profileRow struct {
 	Active         string
 }
 
-func PrintProfiles(cmd *cobra.Command, profiles map[string]configuration_models.ProfileV2, activeProfile string) error {
+func PrintProfiles(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profiles map[string]configuration_models.ProfileV2, activeProfile string) error {
 	if len(profiles) == 0 {
 		return printer.PrintText(
 			cmd,
+			handler,
 			"No profiles found\n",
 		)
 	}
@@ -64,7 +66,7 @@ func PrintProfiles(cmd *cobra.Command, profiles map[string]configuration_models.
 		})
 	}
 
-	return printer.CreateTable(cmd, rows,
+	return printer.PrintTable(cmd, handler, rows,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),
 		table.WithShowHeader[profileRow](!noHeaders),

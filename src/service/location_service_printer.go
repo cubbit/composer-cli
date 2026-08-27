@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
 	"github.com/cubbit/composer-cli/utils/printer/tree"
@@ -12,17 +13,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func PrintClusterDetails(cmd *cobra.Command, cluster api.InfraAggregateCluster) error {
+func PrintClusterDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, cluster api.InfraAggregateCluster) error {
 	printFuncs := []func() error{
-		func() error { return printClusterInfo(cmd, cluster) },
-		func() error { return printPhysicalNodes(cmd, cluster.Details.Nodes) },
-		func() error { return PrintVirtualNodes(cmd, cluster.Details.VirtualNodes) },
+		func() error { return printClusterInfo(cmd, handler, cluster) },
+		func() error { return printPhysicalNodes(cmd, handler, cluster.Details.Nodes) },
+		func() error { return PrintVirtualNodes(cmd, handler, cluster.Details.VirtualNodes) },
 	}
 
-	return printer.Compose(cmd, printFuncs...)
+	return printer.ComposeStructured(cmd, handler, cluster, printFuncs...)
 }
 
-func printClusterInfo(cmd *cobra.Command, cluster api.InfraAggregateCluster) error {
+func printClusterInfo(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, cluster api.InfraAggregateCluster) error {
 	rowMapper := func(c api.InfraAggregateCluster) []string {
 		return []string{
 			c.ClusterID,
@@ -46,7 +47,7 @@ func printClusterInfo(cmd *cobra.Command, cluster api.InfraAggregateCluster) err
 
 	infoText := "Cluster Information\n" + utils.Separator + "\n"
 
-	return printer.CreateTable(cmd, tableData,
+	return printer.PrintTable(cmd, handler, tableData,
 		table.WithColumns[api.InfraAggregateCluster](tableColumns),
 		table.WithRowMapper[api.InfraAggregateCluster](rowMapper),
 		table.WithShowHeader[api.InfraAggregateCluster](true),
@@ -55,19 +56,20 @@ func printClusterInfo(cmd *cobra.Command, cluster api.InfraAggregateCluster) err
 	)
 }
 
-func printPhysicalNodes(cmd *cobra.Command, nodes []api.InfraAggregateNodeDetail) error {
+func printPhysicalNodes(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, nodes []api.InfraAggregateNodeDetail) error {
 	if len(nodes) == 0 {
 		return nil
 	}
 
 	nodesTitle := "\nPhysical Nodes\n" + utils.Separator + "\n"
 
-	nodeNodes := make([]tree.TreeNode, len(nodes))
-	for i, node := range nodes {
-		nodeNodes[i] = buildPhysicalNodeTree(node)
-	}
-
-	return printer.PrintTree(cmd, nodeNodes,
+	return printer.PrintTree(cmd, handler, nodes, func(nodes []api.InfraAggregateNodeDetail) []tree.TreeNode {
+		nodeNodes := make([]tree.TreeNode, len(nodes))
+		for i, node := range nodes {
+			nodeNodes[i] = buildPhysicalNodeTree(node)
+		}
+		return nodeNodes
+	},
 		tree.WithPrefix(nodesTitle),
 		tree.WithSuffix("\n"),
 	)
@@ -220,19 +222,20 @@ func buildDiskTree(disk api.InfraAggregateDiskDetail) tree.TreeNode {
 	}
 }
 
-func PrintVirtualNodes(cmd *cobra.Command, virtualNodes []api.InfraAggregateVirtualNodeDetail) error {
+func PrintVirtualNodes(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, virtualNodes []api.InfraAggregateVirtualNodeDetail) error {
 	if len(virtualNodes) == 0 {
 		return nil
 	}
 
 	virtualNodesTitle := "\nVirtual Nodes\n" + utils.Separator + "\n"
 
-	nodeNodes := make([]tree.TreeNode, len(virtualNodes))
-	for i, node := range virtualNodes {
-		nodeNodes[i] = buildVirtualNodeTree(node)
-	}
-
-	return printer.PrintTree(cmd, nodeNodes,
+	return printer.PrintTree(cmd, handler, virtualNodes, func(virtualNodes []api.InfraAggregateVirtualNodeDetail) []tree.TreeNode {
+		nodeNodes := make([]tree.TreeNode, len(virtualNodes))
+		for i, node := range virtualNodes {
+			nodeNodes[i] = buildVirtualNodeTree(node)
+		}
+		return nodeNodes
+	},
 		tree.WithPrefix(virtualNodesTitle),
 		tree.WithSuffix("\n"),
 	)
@@ -298,7 +301,7 @@ func defaultFormatter(v any) string {
 	return fmt.Sprintf("%v", v)
 }
 
-func PrintClusters(cmd *cobra.Command, clusters []api.InfrastructureCluster) error {
+func PrintClusters(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, clusters []api.InfrastructureCluster) error {
 	tableColumns := []table.Column[api.InfrastructureCluster]{
 		{Title: "Cluster ID"},
 		{Title: "Name"},
@@ -313,8 +316,9 @@ func PrintClusters(cmd *cobra.Command, clusters []api.InfrastructureCluster) err
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		clusters,
 		table.WithColumns[api.InfrastructureCluster](tableColumns),
 		table.WithRowMapper[api.InfrastructureCluster](rowMapper),

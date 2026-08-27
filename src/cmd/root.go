@@ -56,7 +56,7 @@ func NewRootCommand(
 	// Persistent flags (available to all subcommands)
 	rootCommand.PersistentFlags().String("config-path", "", "Path to configuration file (default is $HOME/.config/cubbit/config.toml)")
 	rootCommand.PersistentFlags().String("profile", "", "Profile Configuration")
-	rootCommand.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml, xml")
+	rootCommand.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml")
 	rootCommand.PersistentFlags().Bool("no-headers", false, "Suppress table headers in human output (for easier scripting)")
 	rootCommand.PersistentFlags().Bool("quiet", false, "Minimize stdout for CI/CD workflows (no table output, just essentials)")
 	rootCommand.PersistentFlags().Bool("silent", false, "Redirect all output to /dev/null")

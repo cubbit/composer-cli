@@ -41,7 +41,7 @@ func TestPrintDomainList_Human(t *testing.T) {
 		},
 	}
 
-	err = PrintDomainList(cmd, domains)
+	err = PrintDomainList(cmd, nil, domains)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -70,7 +70,7 @@ func TestPrintDomainList_Human_Empty(t *testing.T) {
 	var out bytes.Buffer
 	cmd.SetOut(&out)
 
-	err := PrintDomainList(cmd, []api.DomainDTO{})
+	err := PrintDomainList(cmd, nil, []api.DomainDTO{})
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -105,7 +105,7 @@ func TestPrintDomainList_NoHeaders(t *testing.T) {
 		},
 	}
 
-	err = PrintDomainList(cmd, domains)
+	err = PrintDomainList(cmd, nil, domains)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -146,7 +146,7 @@ func TestPrintDomainDetails_Human_Verified(t *testing.T) {
 		IsShared:       true,
 	}
 
-	err = PrintDomainDetails(cmd, domain)
+	err = PrintDomainDetails(cmd, nil, domain)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -190,7 +190,7 @@ func TestPrintDomainDetails_Human_NotVerified(t *testing.T) {
 		IsShared:       false,
 	}
 
-	err = PrintDomainDetails(cmd, domain)
+	err = PrintDomainDetails(cmd, nil, domain)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -239,7 +239,7 @@ func TestPrintDomainDetails_Human_Deleted(t *testing.T) {
 		IsShared:       false,
 	}
 
-	err = PrintDomainDetails(cmd, domain)
+	err = PrintDomainDetails(cmd, nil, domain)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

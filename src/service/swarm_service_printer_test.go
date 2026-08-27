@@ -61,7 +61,7 @@ func TestPrintSwarmList_Human(t *testing.T) {
 		},
 	}
 
-	err = PrintSwarmList(cmd, swarms)
+	err = PrintSwarmList(cmd, nil, swarms)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -90,7 +90,7 @@ func TestPrintSwarmList_Human_Empty(t *testing.T) {
 	var out bytes.Buffer
 	cmd.SetOut(&out)
 
-	err := PrintSwarmList(cmd, []api.ListSwarmV5ItemPresentation{})
+	err := PrintSwarmList(cmd, nil, []api.ListSwarmV5ItemPresentation{})
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -148,38 +148,34 @@ func TestPrintSwarmDetails_Human(t *testing.T) {
 		},
 	}
 
-	err = PrintSwarmDetails(cmd, swarm)
+	err = PrintSwarmDetails(cmd, nil, swarm)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
 	expected := strings.TrimSpace(`
-Swarm: test-swarm
-Status: ● Online
-Last Update: 2024-01-15 12:30:00
-Organization: org-123
-Owner: owner-123
-
-Storage Usage:
-  Usage: [█████░░░░░] 50%
-  Total Used: 512.0 GB
-  Total Assigned: 1.0 TB
-  Total Unused: 512.0 GB
-
-Metadata:
-  ID: swarm-123
-  Description: Production swarm
-  Created At: 2024-01-15 10:30:00
-  Creation Status: created
-
-Composition:
-  Nexus Count: 3
-  Redundancy Class Count: 2
-
-Configuration:
-  features: [tiering, compression]
-  foo: bar
-  nested: {enabled: true, mode: strict}`)
+test-swarm
+├── Status: ● Online
+├── Last Update: 2024-01-15 12:30:00
+├── Organization: org-123
+├── Owner: owner-123
+├── Storage Usage
+│   ├── Usage: [█████░░░░░] 50%
+│   ├── Total Used: 512.0 GB
+│   ├── Total Assigned: 1.0 TB
+│   └── Total Unused: 512.0 GB
+├── Metadata
+│   ├── ID: swarm-123
+│   ├── Description: Production swarm
+│   ├── Created At: 2024-01-15 10:30:00
+│   └── Creation Status: created
+├── Composition
+│   ├── Nexus Count: 3
+│   └── Redundancy Class Count: 2
+└── Configuration
+    ├── features: [tiering, compression]
+    ├── foo: bar
+    └── nested: {enabled: true, mode: strict}`)
 
 	if strings.TrimSpace(out.String()) != expected {
 		t.Fatalf("Expected output:\n%s\nactual:\n%s", expected, strings.TrimSpace(out.String()))

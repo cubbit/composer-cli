@@ -4,14 +4,15 @@ import (
 	"fmt"
 
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/cubbit/composer-cli/utils/printer/table"
 	"github.com/spf13/cobra"
 )
 
-func PrintGatewayList(cmd *cobra.Command, gateways []api.GatewayV5ListItemResponse) error {
+func PrintGatewayList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, gateways []api.GatewayV5ListItemResponse) error {
 	if len(gateways) == 0 {
-		return printer.PrintText(cmd, "No gateways found.\n")
+		return printer.PrintText(cmd, handler, "No gateways found.\n")
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -39,8 +40,9 @@ func PrintGatewayList(cmd *cobra.Command, gateways []api.GatewayV5ListItemRespon
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		gateways,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),

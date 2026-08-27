@@ -48,7 +48,7 @@ func TestImportUsers_SampleJSON(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("sample", "json")
 
-	err := ImportUsers(Dependencies{}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -71,7 +71,7 @@ func TestImportUsers_SampleCSV(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("sample", "csv")
 
-	err := ImportUsers(Dependencies{}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -90,7 +90,7 @@ func TestImportUsers_InvalidSampleFormat(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("sample", "yaml")
 
-	err := ImportUsers(Dependencies{}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected invalid sample format error, got nil")
 	}
@@ -102,7 +102,7 @@ func TestImportUsers_InvalidSampleFormat(t *testing.T) {
 func TestImportUsers_MissingFile(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 
-	err := ImportUsers(Dependencies{}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected missing file error, got nil")
 	}
@@ -163,7 +163,7 @@ func TestImportUsers_Quiet(t *testing.T) {
 	cmd.Flags().Set("file", usersFile)
 	cmd.Flags().Set("quiet", "true")
 
-	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -194,7 +194,7 @@ func TestImportUsers_Quiet(t *testing.T) {
 		t.Fatalf("Expected request %+v, got %+v", expectedRequest, actualRequest)
 	}
 
-	expectedOutput := "user1\tuser-id-1\tuser1@example.com\ttrue\tpending\n"
+	expectedOutput := ""
 	output := cmd.OutOrStdout().(*bytes.Buffer).String()
 	if output != expectedOutput {
 		t.Fatalf("Expected quiet output %q, got %q", expectedOutput, output)
@@ -231,7 +231,7 @@ func TestImportUsers_JSONIncludesCount(t *testing.T) {
 	cmd.Flags().Set("file", usersFile)
 	cmd.Flags().Set("output", "json")
 
-	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -283,7 +283,7 @@ user1,test-password,John,Doe,user1@example.com,695ed3dd-e77d-42b9-88ed-70bd3a170
 	cmd.Flags().Set("file", usersFile)
 	cmd.Flags().Set("quiet", "true")
 
-	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -341,7 +341,7 @@ func TestCreateUser(t *testing.T) {
 	cmd.Flags().Set("policy", "695ed3dd-e77d-42b9-88ed-70bd3a1704ee")
 	cmd.Flags().Set("quiet", "true")
 
-	err := CreateUser(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := CreateUser(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -374,7 +374,7 @@ func TestImportUsers_InvalidJSON(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("file", usersFile)
 
-	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected malformed JSON error, got nil")
 	}
@@ -404,7 +404,7 @@ func TestImportUsers_MissingPassword(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("file", usersFile)
 
-	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected missing password error, got nil")
 	}
@@ -437,7 +437,7 @@ func TestImportUsers_InvalidAttachedPolicy(t *testing.T) {
 	cmd := setupUserBulkCreateTestCommand()
 	cmd.Flags().Set("file", usersFile)
 
-	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, userBulkCreateTestProfile(), "test-org")
+	err := ImportUsers(Dependencies{UserAPI: mockUserAPI}, cmd, nil, userBulkCreateTestProfile(), "test-org")
 	if err == nil {
 		t.Fatal("Expected invalid attached policy error, got nil")
 	}

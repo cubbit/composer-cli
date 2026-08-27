@@ -113,7 +113,7 @@ func TestAuthSubCmd_Structure_SignUp_WithMissingFlag(t *testing.T) {
 			t.Fatalf("Expected error due to missing flag %s, got none", missingFlag)
 		}
 
-		if err != nil && err.Error() != fmt.Sprintf("required flag(s) \"%s\" not set", missingFlag) {
+		if err.Error() != fmt.Sprintf("required flag(s) \"%s\" not set", missingFlag) {
 			t.Fatalf("error %s", err)
 		}
 	}
@@ -187,8 +187,7 @@ func TestAuthSubCmd_Structure_SignUp_WithInvalidJSONStringFlags(t *testing.T) {
 		t.Fatalf("Expected error due to invalid JSON string flag, got none")
 	}
 
-	if err != nil &&
-		!strings.Contains(err.Error(), "invalid json map") &&
+	if !strings.Contains(err.Error(), "invalid json map") &&
 		!strings.Contains(err.Error(), "--base-policy") {
 		t.Fatalf("Expected JSON parsing error for --base-policy, got %s", err)
 	}
@@ -210,8 +209,7 @@ func TestAuthSubCmd_Structure_SignUp_WithInvalidJSONStringFlags(t *testing.T) {
 		t.Fatalf("Expected error due to invalid JSON string flag, got none")
 	}
 
-	if err != nil &&
-		!strings.Contains(err.Error(), "invalid json map") &&
+	if !strings.Contains(err.Error(), "invalid json map") &&
 		!strings.Contains(err.Error(), "--settings") {
 		t.Fatalf("Expected JSON parsing error for --settings, got %s", err)
 	}

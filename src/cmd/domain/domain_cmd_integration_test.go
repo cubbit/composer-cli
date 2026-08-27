@@ -26,7 +26,7 @@ func createTestDomainCmd(mockAPI *api.MockDomainAPI) (*cobra.Command, *bytes.Buf
 
 	rootCmd := &cobra.Command{Use: "cubbit"}
 	rootCmd.PersistentFlags().String("profile", "", "Profile Configuration")
-	rootCmd.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml, xml")
+	rootCmd.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml")
 	rootCmd.PersistentFlags().Bool("no-headers", false, "Suppress table headers in human output")
 	rootCmd.PersistentFlags().Bool("quiet", false, "Minimize stdout for CI/CD workflows")
 	rootCmd.PersistentFlags().Bool("silent", false, "Redirect all output to /dev/null")

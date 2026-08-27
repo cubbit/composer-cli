@@ -800,7 +800,7 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create swarm: %w", err)
 	}
 
-	return printer.PrintText(cmd, fmt.Sprintf("Swarm creation started with Process ID: %s\n", response.ID))
+	return printer.PrintText(cmd, s.configuration, fmt.Sprintf("Swarm creation started with Process ID: %s\n", response.ID))
 }
 
 func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
@@ -819,17 +819,7 @@ func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to describe swarm: %w", err)
 	}
 
-	output, err := resolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
-
-	if output == string(configuration_models.OutputHuman) {
-		return PrintSwarmDetails(cmd, *swarm)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), swarm, output)
-	return nil
+	return PrintSwarmDetails(cmd, s.configuration, *swarm)
 }
 
 func (s SwarmService) List(cmd *cobra.Command, args []string) error {
@@ -843,17 +833,7 @@ func (s SwarmService) List(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to list swarms: %w", err)
 	}
 
-	output, err := resolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
-
-	if output == string(configuration_models.OutputHuman) {
-		return PrintSwarmList(cmd, allSwarms)
-	}
-
-	utils.PrintFormattedData(cmd.OutOrStdout(), allSwarms, output)
-	return nil
+	return PrintSwarmList(cmd, s.configuration, allSwarms)
 }
 
 func (s SwarmService) fetchAllSwarms(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string) ([]api.ListSwarmV5ItemPresentation, error) {

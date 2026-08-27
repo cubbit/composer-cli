@@ -76,6 +76,7 @@ func TestDescribeAPIKey_UsesGetByID(t *testing.T) {
 	err := DescribeAPIKey(
 		shared.Dependencies{UserAPI: userAPI},
 		cmd,
+		nil,
 		configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",

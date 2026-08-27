@@ -6,6 +6,7 @@ import (
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
+	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/service/user/shared"
 	"github.com/cubbit/composer-cli/utils"
@@ -19,7 +20,7 @@ type Dependencies struct {
 	UserAPI api.UserAPIInterface
 }
 
-func ListUsers(deps Dependencies, cmd *cobra.Command, profile configuration_models.ProfileV2) error {
+func ListUsers(deps Dependencies, cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, profile configuration_models.ProfileV2) error {
 	enabledStr, err := cmd.Flags().GetString("enabled")
 	if err != nil {
 		return fmt.Errorf("%s enabled: %w", constants.ErrorRetrievingField, err)
@@ -86,17 +87,9 @@ func ListUsers(deps Dependencies, cmd *cobra.Command, profile configuration_mode
 		}
 	}
 
-	output, err := shared.ResolveCommandOutput(cmd, profile.Output)
-	if err != nil {
-		return err
-	}
 	quiet, err := cmd.Flags().GetBool("quiet")
 	if err != nil {
 		return fmt.Errorf("%s quiet: %w", constants.ErrorRetrievingField, err)
-	}
-	if output != "human" && !quiet {
-		utils.PrintFormattedData(cmd.OutOrStdout(), allUsers, output)
-		return nil
 	}
 
 	if quiet {
@@ -123,12 +116,14 @@ func ListUsers(deps Dependencies, cmd *cobra.Command, profile configuration_mode
 		return nil
 	}
 
-	return PrintIAMUserList(cmd, allUsers)
+	return printer.ComposeStructured(cmd, handler, allUsers,
+		func() error { return PrintIAMUserList(cmd, handler, allUsers) },
+	)
 }
 
-func PrintIAMUserList(cmd *cobra.Command, users []api.IAMUserListItem) error {
+func PrintIAMUserList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, users []api.IAMUserListItem) error {
 	if len(users) == 0 {
-		return printer.PrintText(cmd, "No IAM users found.\n")
+		return printer.PrintText(cmd, handler, "No IAM users found.\n")
 	}
 
 	noHeaders, err := cmd.Flags().GetBool("no-headers")
@@ -169,8 +164,9 @@ func PrintIAMUserList(cmd *cobra.Command, users []api.IAMUserListItem) error {
 		}
 	}
 
-	return printer.CreateTable(
+	return printer.PrintTable(
 		cmd,
+		handler,
 		users,
 		table.WithColumns(tableColumns),
 		table.WithRowMapper(rowMapper),

@@ -10,9 +10,9 @@ import (
 )
 
 type ConfigV2 struct {
-	Version ConfigurationV2Version `toml:"version"`
-	Active  ActiveConfigV2         `toml:"active"`
-	Profile map[string]ProfileV2   `toml:"profile"`
+	Version ConfigurationV2Version `toml:"version" json:"version" yaml:"version"`
+	Active  ActiveConfigV2         `toml:"active" json:"active" yaml:"active"`
+	Profile map[string]ProfileV2   `toml:"profile" json:"profile" yaml:"profile"`
 }
 
 func ParseAndValidateConfigV2(path string) (*ConfigV2, error) {
@@ -177,15 +177,15 @@ const (
 )
 
 type ActiveConfigV2 struct {
-	Profile string `toml:"profile"`
+	Profile string `toml:"profile" json:"profile" yaml:"profile"`
 }
 
 type ProfileV2 struct {
-	Output         OutputFormat `toml:"output"`
-	APIKey         string       `toml:"api_key"`
-	UpdatedAt      time.Time    `toml:"updated_at"`
-	OrganizationID string       `toml:"organization_id"`
-	Endpoints      EndpointsV2  `toml:"endpoints"`
+	Output         OutputFormat `toml:"output" json:"output" yaml:"output"`
+	APIKey         string       `toml:"api_key" json:"api_key" yaml:"api_key"`
+	UpdatedAt      time.Time    `toml:"updated_at" json:"updated_at" yaml:"updated_at"`
+	OrganizationID string       `toml:"organization_id" json:"organization_id" yaml:"organization_id"`
+	Endpoints      EndpointsV2  `toml:"endpoints" json:"endpoints" yaml:"endpoints"`
 }
 
 func (p ProfileV2) Validate(profileName string) error {
@@ -211,9 +211,9 @@ const (
 )
 
 type EndpointsV2 struct {
-	IAM  string `toml:"iam"`
-	Dash string `toml:"dash"`
-	CH   string `toml:"ch"`
+	IAM  string `toml:"iam" json:"iam" yaml:"iam"`
+	Dash string `toml:"dash" json:"dash" yaml:"dash"`
+	CH   string `toml:"ch" json:"ch" yaml:"ch"`
 }
 
 func (e EndpointsV2) Validate() error {

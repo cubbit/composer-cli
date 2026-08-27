@@ -17,6 +17,7 @@ import (
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/cubbit/composer-cli/src/tui"
 	"github.com/cubbit/composer-cli/utils"
+	"github.com/cubbit/composer-cli/utils/printer"
 	"github.com/google/uuid"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
@@ -70,16 +71,7 @@ func (as *AuthService) Activate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed during activation request: %w", err)
 	}
 
-	return utils.PrintSmartOutput(
-		cmd,
-		[]string{"Activation completed successfully. You can now log in."},
-		func(s string) []string { return []string{s} },
-		&utils.SmartOutputConfig[string]{
-			SingleResource:              true,
-			SingleResourceCompactOutput: true,
-			DefaultOutput:               configuration_models.OutputHuman,
-		},
-	)
+	return printer.PrintText(cmd, as.configuration, "Activation completed successfully. You can now log in.\n")
 }
 
 func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
@@ -168,16 +160,7 @@ func (as *AuthService) SignUp(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed during sign up request: %w", err)
 	}
 
-	return utils.PrintSmartOutput(
-		cmd,
-		[]string{"Sign up completed successfully. Please check your email to verify your account."},
-		func(s string) []string { return []string{s} },
-		&utils.SmartOutputConfig[string]{
-			SingleResource:              true,
-			SingleResourceCompactOutput: true,
-			DefaultOutput:               configuration_models.OutputHuman,
-		},
-	)
+	return printer.PrintText(cmd, as.configuration, "Sign up completed successfully. Please check your email to verify your account.\n")
 }
 
 func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
@@ -299,9 +282,7 @@ func (as *AuthService) configureAPIKey(cmd *cobra.Command, profile string, apiKe
 		return fmt.Errorf("failed to create profile: %w", err)
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "✅ Authentication successful!\n")
-
-	return nil
+	return printer.PrintText(cmd, as.configuration, "✅ Authentication successful!\n")
 }
 
 func (as *AuthService) performInlineLogin(cmd *cobra.Command, username, orgName, password, tfa, profile string) error {
@@ -367,10 +348,7 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, username, orgName,
 		return fmt.Errorf("failed to create profile: %w", err)
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "Authentication successful!\n")
-	fmt.Fprintf(cmd.OutOrStdout(), "Created API Key: %s\n", apiKeyName)
-
-	return nil
+	return printer.PrintText(cmd, as.configuration, fmt.Sprintf("Authentication successful!\nCreated API Key: %s\n", apiKeyName))
 }
 
 func (as *AuthService) performBrowserLogin(profile string) error {
