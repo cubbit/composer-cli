@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.0
+
+### Minor Changes
+
+- 04a9a4f: Extend printer with support for different output modes
+
 ## 2.7.0
 
 ### Minor Changes
