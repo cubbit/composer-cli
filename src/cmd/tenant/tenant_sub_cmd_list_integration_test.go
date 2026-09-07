@@ -81,6 +81,7 @@ func TestTenantSubCmd_List_Integration_Success(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -162,6 +163,7 @@ func TestTenantSubCmd_List_Integration_WithPagination(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -240,6 +242,7 @@ func TestTenantSubCmd_List_Integration_WithFilter(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -299,6 +302,7 @@ func TestTenantSubCmd_List_Integration_Empty(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -346,6 +350,7 @@ func TestTenantSubCmd_List_Integration_Error(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)

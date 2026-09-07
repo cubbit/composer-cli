@@ -66,6 +66,7 @@ func TestTenantSubCmd_List_Output_JSON(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -200,6 +201,7 @@ func TestTenantSubCmd_List_Output_YAML(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -331,6 +333,7 @@ func TestTenantSubCmd_List_Output_JSON_FromProfile(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -473,6 +476,7 @@ func TestTenantSubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)

@@ -49,12 +49,13 @@ func TestTenantSubCmd_Describe_Output_JSON(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(
+	tenantService := 	servicetenant.NewTenantService(
 		mockCfg,
 		mockTenantAPI,
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -155,12 +156,13 @@ func TestTenantSubCmd_Describe_Output_YAML(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(
+	tenantService := 	servicetenant.NewTenantService(
 		mockCfg,
 		mockTenantAPI,
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -265,12 +267,13 @@ func TestTenantSubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(
+	tenantService := 	servicetenant.NewTenantService(
 		mockCfg,
 		mockTenantAPI,
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -379,12 +382,13 @@ func TestTenantSubCmd_Describe_Output_YAML_FromProfile(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(
+	tenantService := 	servicetenant.NewTenantService(
 		mockCfg,
 		mockTenantAPI,
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)

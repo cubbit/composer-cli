@@ -86,7 +86,8 @@ func TestTenantSubCmd_Create_Interactive_Success(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -224,7 +225,8 @@ func TestTenantSubCmd_Create_Interactive_WithDescription(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -321,7 +323,8 @@ func TestTenantSubCmd_Create_Interactive_Subdomain(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -379,8 +382,9 @@ func TestTenantSubCmd_Create_Interactive_DomainAPIError(t *testing.T) {
 	}
 	mockGatewayAPI := &api.MockGatewayAPI{}
 	mockProcessAPI := &api.MockProcessAPI{}
+	mockConnectionAPI := &api.MockConnectionAPI{}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -425,8 +429,9 @@ func TestTenantSubCmd_Create_Interactive_NoVerifiedDomains(t *testing.T) {
 	}
 	mockGatewayAPI := &api.MockGatewayAPI{}
 	mockProcessAPI := &api.MockProcessAPI{}
+	mockConnectionAPI := &api.MockConnectionAPI{}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -477,8 +482,9 @@ func TestTenantSubCmd_Create_Interactive_GatewayAPIError(t *testing.T) {
 		},
 	}
 	mockProcessAPI := &api.MockProcessAPI{}
+	mockConnectionAPI := &api.MockConnectionAPI{}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -537,8 +543,9 @@ func TestTenantSubCmd_Create_Interactive_NoGateways(t *testing.T) {
 		},
 	}
 	mockProcessAPI := &api.MockProcessAPI{}
+	mockConnectionAPI := &api.MockConnectionAPI{}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -606,8 +613,9 @@ func TestTenantSubCmd_Create_Interactive_TenantAPIFailure(t *testing.T) {
 		},
 	}
 	mockProcessAPI := &api.MockProcessAPI{}
+	mockConnectionAPI := &api.MockConnectionAPI{}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {
@@ -707,7 +715,8 @@ func TestTenantSubCmd_Create_Interactive_DeploymentFailed(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd := NewTenantCmd(tenantService)
 	h, err := interactive_tester.New(tenantCmd, []string{"create", "--interactive"})
 	if err != nil {

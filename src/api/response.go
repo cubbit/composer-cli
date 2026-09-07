@@ -1204,3 +1204,64 @@ type UsageDTO struct {
 }
 
 // #endregion
+
+// #region tenant connections v5
+
+type ConnectionV5DTO struct {
+	ID                                string                            `json:"id"`
+	Domain                            DomainDTO                         `json:"domain"`
+	Subdomain                         *string                           `json:"subdomain,omitempty"`
+	Gateways                          []GatewayConnectionV5DTO          `json:"gateways"`
+	DomainVerificationState           *[]DomainVerificationStateV5DTO   `json:"domain_verification_state,omitempty"`
+	AggregatedVerificationState       *AggregatedVerificationStateV5DTO `json:"aggregated_verification_state,omitempty"`
+	DomainAggregatedVerificationState     *AggregatedVerificationStateV5DTO `json:"domain_aggregated_verification_state,omitempty"`
+	GatewaysAggregatedVerificationState   *AggregatedVerificationStateV5DTO `json:"gateways_aggregated_verification_state,omitempty"`
+}
+
+type AggregatedVerificationStateV5DTO struct {
+	Status string `json:"status"`
+}
+
+type GatewayConnectionV5DTO struct {
+	ID                string               `json:"id"`
+	GatewayID         string               `json:"gateway_id"`
+	Name              string               `json:"name"`
+	Slug              string               `json:"slug"`
+	Type              string               `json:"type"`
+	VerificationState *VerificationStateV5DTO `json:"verification_state"`
+	ClusterID         string               `json:"cluster_id"`
+}
+
+type DomainVerificationStateV5DTO struct {
+	GatewayID         string                 `json:"gateway_id"`
+	VerificationState *VerificationStateV5DTO `json:"verification_state"`
+}
+
+type VerificationStateV5DTO struct {
+	RecordType                    string                          `json:"record_type"`
+	S3                            RecordInfoV5DTO                 `json:"s3"`
+	Console                       RecordInfoV5DTO                 `json:"console"`
+	WildcardS3                    RecordInfoV5DTO                 `json:"wildcard_s3"`
+	AggregatedVerificationState   *AggregatedVerificationStateV5DTO `json:"aggregated_verification_state,omitempty"`
+	LowerBoundVerificationCheckAt *string                         `json:"lower_bound_verification_check_at,omitempty"`
+}
+
+type RecordInfoV5DTO struct {
+	FQDN         string             `json:"fqdn"`
+	Status       string             `json:"status"`
+	Details      *string            `json:"details,omitempty"`
+	Certificates *CertificatesV5DTO `json:"certificates,omitempty"`
+}
+
+type CertificatesV5DTO struct {
+	Hostname          string   `json:"hostname"`
+	Issuer            string   `json:"issuer"`
+	Subject           string   `json:"subject"`
+	ValidFrom         string   `json:"valid_from"`
+	ValidTo           string   `json:"valid_to"`
+	DaysRemaining     int      `json:"days_remaining"`
+	FingerprintSHA256 string   `json:"fingerprint_sha256"`
+	San               []string `json:"san"`
+}
+
+// #endregion

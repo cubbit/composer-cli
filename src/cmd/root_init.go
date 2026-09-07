@@ -67,7 +67,9 @@ func Execute(packageJSON []byte) {
 	redundancyClassValidator := service.NewRedundancyClassValidator()
 	swarmService := service.NewSwarmService(configurationHandler, swarmAPI, locationAPI, processAPI, redundancyClassValidator)
 	domainService := service.NewDomainService(configurationHandler, domainAPI, userAPI)
-	tenantService := service_tenant.NewTenantService(configurationHandler, tenantAPI, domainAPI, gatewayAPI, processAPI)
+	connectionAPI := api.NewConnectionAPI()
+
+	tenantService := service_tenant.NewTenantService(configurationHandler, tenantAPI, domainAPI, gatewayAPI, processAPI, connectionAPI)
 	gatewayService := service_gateway.NewGatewayService(configurationHandler, gatewayAPI, swarmAPI, redundancyClassAPI, processAPI, locationAPI)
 
 	rootCmd := NewRootCommand(

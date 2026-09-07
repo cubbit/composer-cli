@@ -103,7 +103,9 @@ func TestTenantSubCmd_Create_Integration_Inline_Success(t *testing.T) {
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd, commandOutput := setupTenantCreateInlineCommand(tenantService)
 	tenantCmd.SetArgs([]string{
 		"create",
@@ -164,7 +166,9 @@ func TestTenantSubCmd_Create_Integration_Inline_WithMultipleConnections(t *testi
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd, commandOutput := setupTenantCreateInlineCommand(tenantService)
 	tenantCmd.SetArgs([]string{
 		"create",
@@ -216,7 +220,9 @@ func TestTenantSubCmd_Create_Integration_Inline_WithOptionalDescription(t *testi
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd, commandOutput := setupTenantCreateInlineCommand(tenantService)
 	tenantCmd.SetArgs([]string{
 		"create",
@@ -268,7 +274,9 @@ func TestTenantSubCmd_Create_Integration_Inline_WithoutDescription(t *testing.T)
 		},
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	mockConnectionAPI := &api.MockConnectionAPI{}
+
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd, commandOutput := setupTenantCreateInlineCommand(tenantService)
 	tenantCmd.SetArgs([]string{
 		"create",
@@ -306,8 +314,9 @@ func TestTenantSubCmd_Create_Integration_Inline_APIError(t *testing.T) {
 	mockDomainAPI := &api.MockDomainAPI{}
 	mockGatewayAPI := &api.MockGatewayAPI{}
 	mockProcessAPI := &api.MockProcessAPI{}
+	mockConnectionAPI := &api.MockConnectionAPI{}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI)
+	tenantService := servicetenant.NewTenantService(mockCfg, mockTenantAPI, mockDomainAPI, mockGatewayAPI, mockProcessAPI, mockConnectionAPI)
 	tenantCmd, commandOutput := setupTenantCreateInlineCommand(tenantService)
 	tenantCmd.SetArgs([]string{
 		"create",
@@ -336,7 +345,7 @@ func TestTenantSubCmd_Create_Integration_Inline_ConfigError(t *testing.T) {
 		return configuration_models.ProfileV2{}, fmt.Errorf("error while loading file path configuration")
 	}
 
-	tenantService := servicetenant.NewTenantService(mockCfg, &api.MockTenantAPI{}, &api.MockDomainAPI{}, &api.MockGatewayAPI{}, &api.MockProcessAPI{})
+	tenantService := servicetenant.NewTenantService(mockCfg, &api.MockTenantAPI{}, &api.MockDomainAPI{}, &api.MockGatewayAPI{}, &api.MockProcessAPI{}, &api.MockConnectionAPI{})
 	tenantCmd, commandOutput := setupTenantCreateInlineCommand(tenantService)
 	tenantCmd.SetArgs([]string{
 		"create",

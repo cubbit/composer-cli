@@ -65,6 +65,7 @@ func TestTenantSubCmd_Describe_Integration_Success(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -176,6 +177,7 @@ func TestTenantSubCmd_Describe_Integration_Minimal(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -302,6 +304,7 @@ func TestTenantSubCmd_Describe_Integration_ShowSecrets(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	t.Run("default hides secrets", func(t *testing.T) {
@@ -485,6 +488,7 @@ func TestTenantSubCmd_Describe_Integration_Error(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)
@@ -525,6 +529,7 @@ func TestTenantSubCmd_Describe_Integration_NoArgs(t *testing.T) {
 		&api.MockDomainAPI{},
 		&api.MockGatewayAPI{},
 		&api.MockProcessAPI{},
+		&api.MockConnectionAPI{},
 	)
 
 	tenantCmd := NewTenantCmd(tenantService)

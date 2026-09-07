@@ -16,7 +16,9 @@ func NewTenantCmd(
 	tenantCreateCmd := NewTenantSubCmdCreate(tenantService)
 	tenantListCmd := NewTenantSubCmdList(tenantService)
 	tenantDescribeCmd := NewTenantSubCmdDescribe(tenantService)
-	tenantCmd.AddCommand(tenantCreateCmd, tenantListCmd, tenantDescribeCmd)
+	tenantListConnectionsCmd := NewTenantSubCmdListConnections(tenantService)
+	tenantVerifyConnCmd := NewTenantSubCmdVerifyConnection(tenantService)
+	tenantCmd.AddCommand(tenantCreateCmd, tenantListCmd, tenantDescribeCmd, tenantListConnectionsCmd, tenantVerifyConnCmd)
 
 	return tenantCmd
 }

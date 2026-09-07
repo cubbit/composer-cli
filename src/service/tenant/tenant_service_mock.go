@@ -3,9 +3,11 @@ package tenant
 import "github.com/spf13/cobra"
 
 type TenantServiceMock struct {
-	CreateFunc   func(cmd *cobra.Command, args []string) error
-	ListFunc     func(cmd *cobra.Command, args []string) error
-	DescribeFunc func(cmd *cobra.Command, args []string) error
+	CreateFunc          func(cmd *cobra.Command, args []string) error
+	ListFunc            func(cmd *cobra.Command, args []string) error
+	DescribeFunc        func(cmd *cobra.Command, args []string) error
+	ListConnectionsFunc func(cmd *cobra.Command, args []string) error
+	VerifyConnectionFunc func(cmd *cobra.Command, args []string) error
 }
 
 func NewTenantServiceMock() *TenantServiceMock {
@@ -17,6 +19,12 @@ func NewTenantServiceMock() *TenantServiceMock {
 			return nil
 		},
 		DescribeFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		ListConnectionsFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		VerifyConnectionFunc: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
@@ -39,6 +47,20 @@ func (m *TenantServiceMock) List(cmd *cobra.Command, args []string) error {
 func (m *TenantServiceMock) Describe(cmd *cobra.Command, args []string) error {
 	if m.DescribeFunc != nil {
 		return m.DescribeFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *TenantServiceMock) ListConnections(cmd *cobra.Command, args []string) error {
+	if m.ListConnectionsFunc != nil {
+		return m.ListConnectionsFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *TenantServiceMock) VerifyConnection(cmd *cobra.Command, args []string) error {
+	if m.VerifyConnectionFunc != nil {
+		return m.VerifyConnectionFunc(cmd, args)
 	}
 	return nil
 }

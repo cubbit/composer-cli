@@ -47,7 +47,9 @@ func main() {
 	gatewayService := servicegateway.NewGatewayService(mockCfg, gatewayAPI, swarmAPI, redundancyClassAPI, processAPI, locationAPI)
 	swarmService := service.NewSwarmService(mockCfg, swarmAPI, locationAPI, processAPI, service.NewRedundancyClassValidator())
 
-	tenantService := servicetenant.NewTenantService(mockCfg, tenantAPI, domainAPI, gatewayAPI, processAPI)
+	connectionAPI := &api.MockConnectionAPI{}
+
+	tenantService := servicetenant.NewTenantService(mockCfg, tenantAPI, domainAPI, gatewayAPI, processAPI, connectionAPI)
 
 	// Trivial stubs for services not under test (avoids needing MockAuthAPI etc.)
 	rootCmd := cmd.NewRootCommand(
