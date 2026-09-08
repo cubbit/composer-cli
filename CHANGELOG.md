@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.9.0
+
+### Minor Changes
+
+- 7c414a2: Add `verify-connection` command to trigger live DNS and TLS verification for a tenant connection
+
+  Enhance `list-connections` to live-verify each connection before refreshing the list; add `--skip-verify` flag to return cached data
+
 ## 2.8.0
 
 ### Minor Changes
