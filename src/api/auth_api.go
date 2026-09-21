@@ -262,14 +262,22 @@ func (api *AuthAPI) ForgeToken(
 
 	var response TokenAndExpirationResponseModel
 
-	if err := request_utils.DoRequest(
-		url,
+	requestModifiers := []request_utils.RequestModifier{
 		request_utils.WithRequestMethod(http.MethodPost),
 		request_utils.WithRequestBody(requestBody),
 		request_utils.WithExpectedStatusCode(http.StatusOK),
-		request_utils.WithAccessToken(token),
-		request_utils.WithRefreshToken(refreshToken),
 		ExtractGenericModel(&response),
+	}
+	if token != "" {
+		requestModifiers = append(requestModifiers, request_utils.WithAccessToken(token))
+	}
+	if refreshToken != "" {
+		requestModifiers = append(requestModifiers, request_utils.WithRefreshToken(refreshToken))
+	}
+
+	if err := request_utils.DoRequest(
+		url,
+		requestModifiers...,
 	); err != nil {
 		return "", fmt.Errorf("failed to forge custom token key: %w", err)
 	}
@@ -293,7 +301,7 @@ func (api *AuthAPI) CreateApiKey(
 		"name": name,
 	}
 
-	var response OperatorAPIKey
+	var response OperatorAPIKeyCreated
 
 	if err := request_utils.DoRequest(
 		url,

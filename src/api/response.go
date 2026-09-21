@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -53,6 +54,27 @@ type ChallengeResponseModel struct {
 }
 
 type OperatorAPIKey struct {
+	ID          string     `json:"id" yaml:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
+	Name        string     `json:"name" yaml:"name" example:"API Key for Mario Rossi"`
+	RedactedKey string     `json:"api_key" yaml:"api_key" example:"4f2a1b3c****************************"`
+	OperatorID  string     `json:"operator_id" yaml:"operator_id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
+	CreatedAt   time.Time  `json:"created_at" yaml:"created_at" example:"2023-01-18T12:42:59.089247Z"`
+	ExpiresAt   *time.Time `json:"expires_at" yaml:"expires_at" example:"2023-01-18T12:42:59.089247Z"`
+	DeletedAt   *time.Time `json:"deleted_at" yaml:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
+	BannedAt    *time.Time `json:"banned_at" yaml:"banned_at" example:"2023-01-18T12:42:59.089247Z"`
+	Enabled     bool       `json:"enabled" yaml:"enabled" example:"true"`
+}
+
+const visibleApiKeyChars = 8
+
+func redactKey(key string) string {
+	if len(key) <= visibleApiKeyChars {
+		return strings.Repeat("*", len(key))
+	}
+	return key[:visibleApiKeyChars] + strings.Repeat("*", len(key)-visibleApiKeyChars)
+}
+
+type OperatorAPIKeyCreated struct {
 	ID         string     `json:"id" yaml:"id" example:"695ed3dd-e77d-42b9-88ed-70bd3a1704ee"`
 	Name       string     `json:"name" yaml:"name" example:"API Key for Mario Rossi"`
 	Key        string     `json:"key" yaml:"key" example:"4f2a1b3c5d6e7f8a9b0c1d2e3f4a5b6c"`
@@ -62,6 +84,20 @@ type OperatorAPIKey struct {
 	DeletedAt  *time.Time `json:"deleted_at" yaml:"deleted_at" example:"2023-01-18T12:42:59.089247Z"`
 	BannedAt   *time.Time `json:"banned_at" yaml:"banned_at" example:"2023-01-18T12:42:59.089247Z"`
 	Enabled    bool       `json:"enabled" yaml:"enabled" example:"true"`
+}
+
+func (r OperatorAPIKeyCreated) Presentation() OperatorAPIKey {
+	return OperatorAPIKey{
+		ID:          r.ID,
+		Name:        r.Name,
+		RedactedKey: redactKey(r.Key),
+		OperatorID:  r.OperatorID,
+		CreatedAt:   r.CreatedAt,
+		ExpiresAt:   r.ExpiresAt,
+		DeletedAt:   r.DeletedAt,
+		BannedAt:    r.BannedAt,
+		Enabled:     r.Enabled,
+	}
 }
 
 type TokenAndExpirationResponseModel struct {
@@ -649,7 +685,7 @@ type RedundancyClassRecovery struct {
 }
 
 type SummaryDetailsWithStatusNullable struct {
-	Details *SummaryDetails `json:"details" yaml:"details"`
+	Details               *SummaryDetails `json:"details" yaml:"details"`
 	SummaryStatusNullable `yaml:",inline"`
 }
 
@@ -891,22 +927,22 @@ type ListSwarmV5Item struct {
 }
 
 type ListSwarmV5ItemPresentation struct {
-	ListSwarmV5Item        `yaml:",inline"`
-	SummaryStatusNullable  `yaml:",inline"`
+	ListSwarmV5Item       `yaml:",inline"`
+	SummaryStatusNullable `yaml:",inline"`
 }
 
 type SwarmV5 struct {
-	ListSwarmV5Item        `yaml:",inline"`
-	OrganizationID string                 `json:"organization_id" yaml:"organization_id"`
-	OwnerID        string                 `json:"owner_id" yaml:"owner_id"`
-	Description    *string                `json:"description,omitempty" yaml:"description"`
-	Configuration  map[string]interface{} `json:"configuration" yaml:"configuration"`
-	CreationStatus string                 `json:"creation_status,omitempty" yaml:"creation_status"`
+	ListSwarmV5Item `yaml:",inline"`
+	OrganizationID  string                 `json:"organization_id" yaml:"organization_id"`
+	OwnerID         string                 `json:"owner_id" yaml:"owner_id"`
+	Description     *string                `json:"description,omitempty" yaml:"description"`
+	Configuration   map[string]interface{} `json:"configuration" yaml:"configuration"`
+	CreationStatus  string                 `json:"creation_status,omitempty" yaml:"creation_status"`
 }
 
 type SwarmV5Presentation struct {
-	SwarmV5                `yaml:",inline"`
-	SummaryStatusNullable  `yaml:",inline"`
+	SwarmV5               `yaml:",inline"`
+	SummaryStatusNullable `yaml:",inline"`
 }
 
 // #endregion
@@ -1165,20 +1201,20 @@ type BulkGenerateSaltsResponse struct {
 }
 
 type IAMUserListItem struct {
-	ID               string        `json:"id" yaml:"id"`
-	Username         string        `json:"username" yaml:"username"`
-	FirstName        *string       `json:"first_name" yaml:"first_name"`
-	LastName         *string       `json:"last_name" yaml:"last_name"`
-	Enabled          bool          `json:"enabled" yaml:"enabled"`
-	CreatedAt        time.Time     `json:"created_at" yaml:"created_at"`
-	DeletedAt        *time.Time    `json:"deleted_at" yaml:"deleted_at"`
+	ID               string         `json:"id" yaml:"id"`
+	Username         string         `json:"username" yaml:"username"`
+	FirstName        *string        `json:"first_name" yaml:"first_name"`
+	LastName         *string        `json:"last_name" yaml:"last_name"`
+	Enabled          bool           `json:"enabled" yaml:"enabled"`
+	CreatedAt        time.Time      `json:"created_at" yaml:"created_at"`
+	DeletedAt        *time.Time     `json:"deleted_at" yaml:"deleted_at"`
 	Emails           []IAMUserEmail `json:"emails" yaml:"emails"`
-	PoliciesCount    int           `json:"policies_count" yaml:"policies_count"`
-	Status           string        `json:"status" yaml:"status"`
-	IsRoot           bool          `json:"is_root" yaml:"is_root"`
-	TwoFactorEnabled bool          `json:"two_factor_enabled" yaml:"two_factor_enabled"`
-	OrganizationID   string        `json:"organization_id" yaml:"organization_id"`
-	LastActivityAt   *time.Time    `json:"last_activity_at" yaml:"last_activity_at"`
+	PoliciesCount    int            `json:"policies_count" yaml:"policies_count"`
+	Status           string         `json:"status" yaml:"status"`
+	IsRoot           bool           `json:"is_root" yaml:"is_root"`
+	TwoFactorEnabled bool           `json:"two_factor_enabled" yaml:"two_factor_enabled"`
+	OrganizationID   string         `json:"organization_id" yaml:"organization_id"`
+	LastActivityAt   *time.Time     `json:"last_activity_at" yaml:"last_activity_at"`
 }
 
 // #endregion
@@ -1208,14 +1244,14 @@ type UsageDTO struct {
 // #region tenant connections v5
 
 type ConnectionV5DTO struct {
-	ID                                string                            `json:"id"`
-	Domain                            DomainDTO                         `json:"domain"`
-	Subdomain                         *string                           `json:"subdomain,omitempty"`
-	Gateways                          []GatewayConnectionV5DTO          `json:"gateways"`
-	DomainVerificationState           *[]DomainVerificationStateV5DTO   `json:"domain_verification_state,omitempty"`
-	AggregatedVerificationState       *AggregatedVerificationStateV5DTO `json:"aggregated_verification_state,omitempty"`
-	DomainAggregatedVerificationState     *AggregatedVerificationStateV5DTO `json:"domain_aggregated_verification_state,omitempty"`
-	GatewaysAggregatedVerificationState   *AggregatedVerificationStateV5DTO `json:"gateways_aggregated_verification_state,omitempty"`
+	ID                                  string                            `json:"id"`
+	Domain                              DomainDTO                         `json:"domain"`
+	Subdomain                           *string                           `json:"subdomain,omitempty"`
+	Gateways                            []GatewayConnectionV5DTO          `json:"gateways"`
+	DomainVerificationState             *[]DomainVerificationStateV5DTO   `json:"domain_verification_state,omitempty"`
+	AggregatedVerificationState         *AggregatedVerificationStateV5DTO `json:"aggregated_verification_state,omitempty"`
+	DomainAggregatedVerificationState   *AggregatedVerificationStateV5DTO `json:"domain_aggregated_verification_state,omitempty"`
+	GatewaysAggregatedVerificationState *AggregatedVerificationStateV5DTO `json:"gateways_aggregated_verification_state,omitempty"`
 }
 
 type AggregatedVerificationStateV5DTO struct {
@@ -1223,27 +1259,27 @@ type AggregatedVerificationStateV5DTO struct {
 }
 
 type GatewayConnectionV5DTO struct {
-	ID                string               `json:"id"`
-	GatewayID         string               `json:"gateway_id"`
-	Name              string               `json:"name"`
-	Slug              string               `json:"slug"`
-	Type              string               `json:"type"`
+	ID                string                  `json:"id"`
+	GatewayID         string                  `json:"gateway_id"`
+	Name              string                  `json:"name"`
+	Slug              string                  `json:"slug"`
+	Type              string                  `json:"type"`
 	VerificationState *VerificationStateV5DTO `json:"verification_state"`
-	ClusterID         string               `json:"cluster_id"`
+	ClusterID         string                  `json:"cluster_id"`
 }
 
 type DomainVerificationStateV5DTO struct {
-	GatewayID         string                 `json:"gateway_id"`
+	GatewayID         string                  `json:"gateway_id"`
 	VerificationState *VerificationStateV5DTO `json:"verification_state"`
 }
 
 type VerificationStateV5DTO struct {
-	RecordType                    string                          `json:"record_type"`
-	S3                            RecordInfoV5DTO                 `json:"s3"`
-	Console                       RecordInfoV5DTO                 `json:"console"`
-	WildcardS3                    RecordInfoV5DTO                 `json:"wildcard_s3"`
+	RecordType                    string                            `json:"record_type"`
+	S3                            RecordInfoV5DTO                   `json:"s3"`
+	Console                       RecordInfoV5DTO                   `json:"console"`
+	WildcardS3                    RecordInfoV5DTO                   `json:"wildcard_s3"`
 	AggregatedVerificationState   *AggregatedVerificationStateV5DTO `json:"aggregated_verification_state,omitempty"`
-	LowerBoundVerificationCheckAt *string                         `json:"lower_bound_verification_check_at,omitempty"`
+	LowerBoundVerificationCheckAt *string                           `json:"lower_bound_verification_check_at,omitempty"`
 }
 
 type RecordInfoV5DTO struct {

@@ -14,7 +14,9 @@ type MockUserAPI struct {
 	DeleteIAMUserFunc        func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, deleteToken string) error
 	UpdateIAMUserFunc        func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *UpdateIAMUserRequestBody) (*IAMUser, error)
 	ResetIAMUserPasswordFunc func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, userID string, request *ResetIAMUserPasswordRequestBody) error
-	CreateIAMAPIKeyFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKey, error)
+	CreateIAMAPIKeyFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKeyCreated, error)
+	EnableIAMUserTFAFunc     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, enableTFAToken string, request *UpdateIAMUserTFARequestBody) error
+	DisableIAMUserTFAFunc    func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, deleteTFAToken string) error
 	ListIAMAPIKeysFunc       func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[OperatorAPIKey], error)
 	GetIAMAPIKeyByIDFunc     func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string) (*OperatorAPIKey, error)
 	UpdateIAMAPIKeyFunc      func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, apiKeyID string, request *UpdateIAMAPIKeyRequestBody) (*OperatorAPIKey, error)
@@ -109,12 +111,28 @@ func (m *MockUserAPI) ResetIAMUserPassword(endpoints configuration_models.Endpoi
 	return nil
 }
 
-func (m *MockUserAPI) CreateIAMAPIKey(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKey, error) {
+func (m *MockUserAPI) EnableIAMUserTFA(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, enableTFAToken string, request *UpdateIAMUserTFARequestBody) error {
+	if m.EnableIAMUserTFAFunc != nil {
+		return m.EnableIAMUserTFAFunc(endpoints, apiKey, organizationID, operatorID, enableTFAToken, request)
+	}
+
+	return nil
+}
+
+func (m *MockUserAPI) DisableIAMUserTFA(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, deleteTFAToken string) error {
+	if m.DisableIAMUserTFAFunc != nil {
+		return m.DisableIAMUserTFAFunc(endpoints, apiKey, organizationID, operatorID, deleteTFAToken)
+	}
+
+	return nil
+}
+
+func (m *MockUserAPI) CreateIAMAPIKey(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, request *CreateIAMAPIKeyRequestBody) (*OperatorAPIKeyCreated, error) {
 	if m.CreateIAMAPIKeyFunc != nil {
 		return m.CreateIAMAPIKeyFunc(endpoints, apiKey, organizationID, operatorID, request)
 	}
 
-	return &OperatorAPIKey{}, nil
+	return &OperatorAPIKeyCreated{}, nil
 }
 
 func (m *MockUserAPI) ListIAMAPIKeys(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, operatorID string, page int, items int, sortKey string, sortOrder string) (*GenericPaginatedResponse[OperatorAPIKey], error) {

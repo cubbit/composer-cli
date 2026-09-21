@@ -25,11 +25,11 @@ func TestIAMAPIKeySubCmd_Create_Integration_UsesAPIKeyAuthentication(t *testing.
 			organizationID string,
 			operatorID string,
 			request *api.CreateIAMAPIKeyRequestBody,
-		) (*api.OperatorAPIKey, error) {
+		) (*api.OperatorAPIKeyCreated, error) {
 			if request.Name != "automation" {
 				t.Fatalf("Expected API key name %q, got %q", "automation", request.Name)
 			}
-			return &api.OperatorAPIKey{
+			return &api.OperatorAPIKeyCreated{
 				ID:         "key-001",
 				Name:       "automation",
 				Key:        "secret-key",
@@ -53,6 +53,7 @@ Enabled: true
 
 Metadata:
   ID: key-001
+  Redacted API Key: secret-k**
   Operator ID: operator-001
   Created At: 2024-01-15 10:30:00
   Expires At: N/A
@@ -91,7 +92,7 @@ func TestIAMAPIKeySubCmd_Create_Integration_WithUserID(t *testing.T) {
 			organizationID string,
 			operatorID string,
 			request *api.CreateIAMAPIKeyRequestBody,
-		) (*api.OperatorAPIKey, error) {
+		) (*api.OperatorAPIKeyCreated, error) {
 			if operatorID != "operator-002" {
 				t.Fatalf("Expected target operator ID %q, got %q", "operator-002", operatorID)
 			}
@@ -99,7 +100,7 @@ func TestIAMAPIKeySubCmd_Create_Integration_WithUserID(t *testing.T) {
 				t.Fatalf("Expected API key name %q, got %q", "automation", request.Name)
 			}
 
-			return &api.OperatorAPIKey{
+			return &api.OperatorAPIKeyCreated{
 				ID:         "key-002",
 				Name:       "automation",
 				Key:        "secret-key",

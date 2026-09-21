@@ -31,6 +31,7 @@ func NewAuthSubCmdLogin(
 	authLoginSubCmd.Flags().StringP("username", "u", "", "Username of the operator")
 	authLoginSubCmd.Flags().StringP("organization", "o", "", "Organization name of the operator")
 	authLoginSubCmd.Flags().StringP("password", "p", "", "Password of the operator (WARNING: providing passwords via CLI flags may expose them in shell history, process lists, and logs; prefer PASSWORD environment variables, or interactive prompts)")
+	authLoginSubCmd.Flags().String("tfa-code", "", "Two-factor authentication code of the operator")
 	authLoginSubCmd.Flags().StringP("api-key", "k", "", "API Key to use for login (WARNING: providing API keys via CLI flags may expose them in shell history, process lists, and logs; prefer API_KEY environment variables, or interactive prompts)")
 
 	return authLoginSubCmd

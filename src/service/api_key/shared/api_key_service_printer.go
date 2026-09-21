@@ -13,12 +13,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func PrintAPIKeyCreated(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKey api.OperatorAPIKey) error {
-	return printer.PrintText(cmd, handler, buildAPIKeyDetailsOutput(apiKey, true))
+func PrintAPIKeyCreated(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKey api.OperatorAPIKeyCreated) error {
+	return printer.PrintText(cmd, handler, buildAPIKeyDetailsOutput(apiKey.Presentation(), apiKey.Key, true))
 }
 
 func PrintAPIKeyDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKey api.OperatorAPIKey) error {
-	return printer.PrintText(cmd, handler, buildAPIKeyDetailsOutput(apiKey, false))
+	return printer.PrintText(cmd, handler, buildAPIKeyDetailsOutput(apiKey, "", false))
 }
 
 func PrintAPIKeyList(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, apiKeys []api.OperatorAPIKey) error {
@@ -60,13 +60,14 @@ func PrintAPIKeyList(cmd *cobra.Command, handler configuration_handler.Configura
 	)
 }
 
-func buildAPIKeyDetailsOutput(apiKey api.OperatorAPIKey, includeSecret bool) string {
+func buildAPIKeyDetailsOutput(apiKey api.OperatorAPIKey, key string, includeSecret bool) string {
 	lines := []string{
 		fmt.Sprintf("API Key: %s", apiKey.Name),
 		fmt.Sprintf("Enabled: %t", apiKey.Enabled),
 		"",
 		"Metadata:",
 		fmt.Sprintf("  ID: %s", apiKey.ID),
+		formatRedactedAPIKey(apiKey.RedactedKey),
 		fmt.Sprintf("  Operator ID: %s", apiKey.OperatorID),
 		fmt.Sprintf("  Created At: %s", printerutils.FormatTime(apiKey.CreatedAt)),
 		fmt.Sprintf("  Expires At: %s", formatOptionalTime(apiKey.ExpiresAt)),
@@ -75,10 +76,18 @@ func buildAPIKeyDetailsOutput(apiKey api.OperatorAPIKey, includeSecret bool) str
 	}
 
 	if includeSecret {
-		lines = append(lines, "", "Secret:", fmt.Sprintf("  Key: %s", apiKey.Key))
+		lines = append(lines, "", "Secret:", fmt.Sprintf("  Key: %s", key))
 	}
 
 	return strings.Join(lines, "\n") + "\n"
+}
+
+func formatRedactedAPIKey(apiKey string) string {
+	if apiKey == "" {
+		return "  Redacted API Key:"
+	}
+
+	return fmt.Sprintf("  Redacted API Key: %s", apiKey)
 }
 
 func formatOptionalTime(value *time.Time) string {

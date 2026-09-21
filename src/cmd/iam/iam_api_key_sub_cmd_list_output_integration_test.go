@@ -53,21 +53,23 @@ func TestIAMAPIKeySubCmd_List_Output_JSON(t *testing.T) {
 			return &api.GenericPaginatedResponse[api.OperatorAPIKey]{
 				Data: []api.OperatorAPIKey{
 					{
-						ID:         "key-001",
-						Name:       "automation",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    true,
-				},
+						ID:          "key-001",
+						Name:        "automation",
+						RedactedKey: "4f2a1b3c****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     true,
+					},
 					{
-						ID:         "key-002",
-						Name:       "ci-cd-key",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    false,
-				},
+						ID:          "key-002",
+						Name:        "ci-cd-key",
+						RedactedKey: "9a8b7c6d****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     false,
+					},
 				},
 				NextPage: nil,
 				Count:    2,
@@ -90,7 +92,7 @@ func TestIAMAPIKeySubCmd_List_Output_JSON(t *testing.T) {
   {
     "id": "key-001",
     "name": "automation",
-    "key": "",
+    "api_key": "4f2a1b3c****************************",
     "operator_id": "operator-001",
     "created_at": "2026-06-24T20:24:13Z",
     "expires_at": null,
@@ -101,7 +103,7 @@ func TestIAMAPIKeySubCmd_List_Output_JSON(t *testing.T) {
   {
     "id": "key-002",
     "name": "ci-cd-key",
-    "key": "",
+    "api_key": "9a8b7c6d****************************",
     "operator_id": "operator-001",
     "created_at": "2026-06-24T20:24:13Z",
     "expires_at": null,
@@ -153,21 +155,23 @@ func TestIAMAPIKeySubCmd_List_Output_YAML(t *testing.T) {
 			return &api.GenericPaginatedResponse[api.OperatorAPIKey]{
 				Data: []api.OperatorAPIKey{
 					{
-						ID:         "key-001",
-						Name:       "automation",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    true,
-				},
+						ID:          "key-001",
+						Name:        "automation",
+						RedactedKey: "4f2a1b3c****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     true,
+					},
 					{
-						ID:         "key-002",
-						Name:       "ci-cd-key",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    false,
-				},
+						ID:          "key-002",
+						Name:        "ci-cd-key",
+						RedactedKey: "9a8b7c6d****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     false,
+					},
 				},
 				NextPage: nil,
 				Count:    2,
@@ -188,7 +192,7 @@ func TestIAMAPIKeySubCmd_List_Output_YAML(t *testing.T) {
 
 	expected := `- id: key-001
   name: automation
-  key: ""
+  api_key: 4f2a1b3c****************************
   operator_id: operator-001
   created_at: 2026-06-24T20:24:13Z
   expires_at: null
@@ -197,7 +201,7 @@ func TestIAMAPIKeySubCmd_List_Output_YAML(t *testing.T) {
   enabled: true
 - id: key-002
   name: ci-cd-key
-  key: ""
+  api_key: 9a8b7c6d****************************
   operator_id: operator-001
   created_at: 2026-06-24T20:24:13Z
   expires_at: null
@@ -248,21 +252,23 @@ func TestIAMAPIKeySubCmd_List_Output_JSON_FromProfile(t *testing.T) {
 			return &api.GenericPaginatedResponse[api.OperatorAPIKey]{
 				Data: []api.OperatorAPIKey{
 					{
-						ID:         "key-001",
-						Name:       "automation",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    true,
-				},
+						ID:          "key-001",
+						Name:        "automation",
+						RedactedKey: "4f2a1b3c****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     true,
+					},
 					{
-						ID:         "key-002",
-						Name:       "ci-cd-key",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    false,
-				},
+						ID:          "key-002",
+						Name:        "ci-cd-key",
+						RedactedKey: "9a8b7c6d****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     false,
+					},
 				},
 				NextPage: nil,
 				Count:    2,
@@ -305,7 +311,7 @@ func TestIAMAPIKeySubCmd_List_Output_JSON_FromProfile(t *testing.T) {
   {
     "id": "key-001",
     "name": "automation",
-    "key": "",
+    "api_key": "4f2a1b3c****************************",
     "operator_id": "operator-001",
     "created_at": "2026-06-24T20:24:13Z",
     "expires_at": null,
@@ -316,7 +322,7 @@ func TestIAMAPIKeySubCmd_List_Output_JSON_FromProfile(t *testing.T) {
   {
     "id": "key-002",
     "name": "ci-cd-key",
-    "key": "",
+    "api_key": "9a8b7c6d****************************",
     "operator_id": "operator-001",
     "created_at": "2026-06-24T20:24:13Z",
     "expires_at": null,
@@ -368,21 +374,23 @@ func TestIAMAPIKeySubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 			return &api.GenericPaginatedResponse[api.OperatorAPIKey]{
 				Data: []api.OperatorAPIKey{
 					{
-						ID:         "key-001",
-						Name:       "automation",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    true,
-				},
+						ID:          "key-001",
+						Name:        "automation",
+						RedactedKey: "4f2a1b3c****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     true,
+					},
 					{
-						ID:         "key-002",
-						Name:       "ci-cd-key",
-						OperatorID: "operator-001",
-						CreatedAt:  frozen,
-						ExpiresAt:  nil,
-						Enabled:    false,
-				},
+						ID:          "key-002",
+						Name:        "ci-cd-key",
+						RedactedKey: "9a8b7c6d****************************",
+						OperatorID:  "operator-001",
+						CreatedAt:   frozen,
+						ExpiresAt:   nil,
+						Enabled:     false,
+					},
 				},
 				NextPage: nil,
 				Count:    2,
@@ -423,7 +431,7 @@ func TestIAMAPIKeySubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 
 	expected := `- id: key-001
   name: automation
-  key: ""
+  api_key: 4f2a1b3c****************************
   operator_id: operator-001
   created_at: 2026-06-24T20:24:13Z
   expires_at: null
@@ -432,7 +440,7 @@ func TestIAMAPIKeySubCmd_List_Output_YAML_FromProfile(t *testing.T) {
   enabled: true
 - id: key-002
   name: ci-cd-key
-  key: ""
+  api_key: 9a8b7c6d****************************
   operator_id: operator-001
   created_at: 2026-06-24T20:24:13Z
   expires_at: null

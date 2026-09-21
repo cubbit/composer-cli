@@ -33,7 +33,7 @@ Examples:
 	userPasswordResetCmd.Flags().String("username", "", "Username of the IAM user whose password should be reset")
 	userPasswordResetCmd.Flags().String("password", "", "Current password of the authenticated IAM user")
 	userPasswordResetCmd.Flags().String("new-password", "", "New password for the IAM user (required)")
-	userPasswordResetCmd.Flags().String("tfa-code", "", "Two-factor authentication code for the admin operator")
+	userPasswordResetCmd.Flags().String("tfa-code", "", "Two-factor authentication code for the authenticated IAM user")
 	_ = userPasswordResetCmd.MarkFlagRequired("new-password")
 
 	return userPasswordResetCmd

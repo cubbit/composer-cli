@@ -245,6 +245,12 @@ type ResetIAMUserPasswordRequestBody struct {
 	AuthenticationPublicKey string `json:"authentication_public_key"`
 }
 
+type UpdateIAMUserTFARequestBody struct {
+	Secret         string   `json:"secret"`
+	ValidationCode string   `json:"validation_code"`
+	Codes          []string `json:"codes"`
+}
+
 type CreateIAMAPIKeyRequestBody struct {
 	Name      string     `json:"name"`
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`

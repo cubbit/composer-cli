@@ -127,3 +127,37 @@ func TestAuthSubCmd_LoginEndpoints_FlagDefaultEmpty(t *testing.T) {
 		t.Fatalf("Expected empty string default for endpoints flag, got %q", capturedValue)
 	}
 }
+
+func TestAuthSubCmd_LoginTFACode_FlagValueCaptured(t *testing.T) {
+	mockAuthService := service.NewAuthServiceMock()
+
+	var capturedValue string
+	mockAuthService.LoginFunc = func(cmd *cobra.Command, args []string) error {
+		val, err := cmd.Flags().GetString("tfa-code")
+		if err != nil {
+			return err
+		}
+		capturedValue = val
+		return nil
+	}
+
+	authCmd := NewAuthCmd(mockAuthService)
+
+	commandOutput := new(bytes.Buffer)
+	authCmd.SetOut(commandOutput)
+	authCmd.SetErr(commandOutput)
+	authCmd.SetArgs([]string{
+		"login",
+		"--profile", "test",
+		"--tfa-code", "123456",
+	})
+
+	err := authCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if capturedValue != "123456" {
+		t.Fatalf("Expected captured tfa-code value '123456', got %q", capturedValue)
+	}
+}

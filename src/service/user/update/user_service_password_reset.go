@@ -3,6 +3,7 @@ package update
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/api"
@@ -52,6 +53,7 @@ func ResetUserPassword(
 	if err != nil {
 		return fmt.Errorf("%s tfa-code: %w", constants.ErrorRetrievingField, err)
 	}
+	tfaCode = strings.TrimSpace(tfaCode)
 
 	currentUser, err := deps.UserAPI.GetIAMUserSelf(profile.Endpoints, "", profile.APIKey)
 	if err != nil {
@@ -66,6 +68,12 @@ func ResetUserPassword(
 	if currentUser.OrganizationName == nil || *currentUser.OrganizationName == "" {
 		return fmt.Errorf("current IAM user does not expose an organization name")
 	}
+	if currentUser.TwoFactorEnabled && tfaCode == "" {
+		tfaCode, err = readTFAInput("Please provide your TFA code", "TFA code")
+		if err != nil {
+			return err
+		}
+	}
 
 	targetUser, err := deps.UserAPI.GetIAMUserByID(profile.Endpoints, profile.APIKey, profile.OrganizationID, userID)
 	if err != nil {
@@ -73,11 +81,6 @@ func ResetUserPassword(
 	}
 	if targetUser.Username == "" {
 		return fmt.Errorf("target IAM user does not expose a username")
-	}
-
-	tokens, err := deps.AuthAPI.SignIn(profile.Endpoints, currentUser.Username, *currentUser.OrganizationName, operatorPassword, tfaCode)
-	if err != nil {
-		return fmt.Errorf("failed to authenticate current IAM user: %w", err)
 	}
 
 	iamPasswordChangeToken, err := deps.AuthAPI.ForgeToken(
@@ -88,8 +91,8 @@ func ResetUserPassword(
 		operatorPassword,
 		tfaCode,
 		iamPasswordChangeTokenType,
-		tokens.AccessToken,
-		tokens.RefreshToken,
+		"",
+		"",
 	)
 	if err != nil {
 		return fmt.Errorf("failed to forge reset password token: %w", err)
@@ -139,4 +142,22 @@ func ResetUserPassword(
 	}
 
 	return nil
+}
+
+func readTFAInput(title string, placeholder string) (string, error) {
+	var tfaCode string
+	if _, err := tui.TextInputs(
+		title,
+		false,
+		tui.Input{Placeholder: placeholder, Value: &tfaCode},
+	); err != nil {
+		return "", fmt.Errorf("failed to read TFA code: %w", err)
+	}
+
+	tfaCode = strings.TrimSpace(tfaCode)
+	if tfaCode == "" {
+		return "", fmt.Errorf("TFA code is required")
+	}
+
+	return tfaCode, nil
 }

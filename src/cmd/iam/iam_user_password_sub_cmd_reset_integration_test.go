@@ -19,28 +19,6 @@ func TestIAMUserPasswordSubCmd_Reset_Integration_HumanOutput(t *testing.T) {
 	var capturedResetRequest *api.ResetIAMUserPasswordRequestBody
 
 	mockAuthAPI := iamUserCommandChallengeAPI{
-		SignInFunc: func(
-			endpoints configuration_models.EndpointsV2,
-			username string,
-			organization string,
-			password string,
-			tfaCode string,
-		) (*api.SignInToken, error) {
-			if username != "admin" {
-				t.Fatalf("Expected admin username, got %q", username)
-			}
-			if organization != organizationName {
-				t.Fatalf("Expected organization name %q, got %q", organizationName, organization)
-			}
-			if password != "admin-password" {
-				t.Fatalf("Expected admin password to be propagated, got %q", password)
-			}
-			if tfaCode != "123456" {
-				t.Fatalf("Expected TFA code to be propagated, got %q", tfaCode)
-			}
-
-			return &api.SignInToken{AccessToken: "access-token", RefreshToken: "refresh-token"}, nil
-		},
 		ForgeTokenFunc: func(
 			endpoints configuration_models.EndpointsV2,
 			operatorID string,
@@ -66,11 +44,11 @@ func TestIAMUserPasswordSubCmd_Reset_Integration_HumanOutput(t *testing.T) {
 			if tfaCode != "123456" {
 				t.Fatalf("Expected TFA code to be propagated, got %q", tfaCode)
 			}
-			if token != "access-token" {
-				t.Fatalf("Expected access token to be propagated, got %q", token)
+			if token != "" {
+				t.Fatalf("Expected empty access token, got %q", token)
 			}
-			if refreshToken != "refresh-token" {
-				t.Fatalf("Expected refresh token to be propagated, got %q", refreshToken)
+			if refreshToken != "" {
+				t.Fatalf("Expected empty refresh token, got %q", refreshToken)
 			}
 
 			return "reset-token", nil
@@ -228,20 +206,9 @@ func TestIAMUserPasswordSubCmd_Reset_Integration_PasswordFlagOverridesEnv(t *tes
 	t.Setenv("PASSWORD", "env-password")
 
 	organizationName := "test-org"
-	var capturedSignInPassword string
 	var capturedForgePassword string
 
 	mockAuthAPI := iamUserCommandChallengeAPI{
-		SignInFunc: func(
-			endpoints configuration_models.EndpointsV2,
-			username string,
-			organization string,
-			password string,
-			tfaCode string,
-		) (*api.SignInToken, error) {
-			capturedSignInPassword = password
-			return &api.SignInToken{AccessToken: "access-token", RefreshToken: "refresh-token"}, nil
-		},
 		ForgeTokenFunc: func(
 			endpoints configuration_models.EndpointsV2,
 			operatorID string,
@@ -348,9 +315,6 @@ func TestIAMUserPasswordSubCmd_Reset_Integration_PasswordFlagOverridesEnv(t *tes
 	actualResult := commandOutput.String()
 	if actualResult != expectedResult {
 		t.Fatalf("Expected output %q, got %q", expectedResult, actualResult)
-	}
-	if capturedSignInPassword != "flag-password" {
-		t.Fatalf("Expected sign in password from flag, got %q", capturedSignInPassword)
 	}
 	if capturedForgePassword != "flag-password" {
 		t.Fatalf("Expected forge password from flag, got %q", capturedForgePassword)

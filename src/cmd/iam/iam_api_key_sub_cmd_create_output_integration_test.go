@@ -32,7 +32,7 @@ func TestIAMAPIKeySubCmd_Create_Output_JSON(t *testing.T) {
 			organizationID string,
 			operatorID string,
 			request *api.CreateIAMAPIKeyRequestBody,
-		) (*api.OperatorAPIKey, error) {
+		) (*api.OperatorAPIKeyCreated, error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -46,7 +46,7 @@ func TestIAMAPIKeySubCmd_Create_Output_JSON(t *testing.T) {
 				t.Fatalf("Expected API key name %q, got %q", "automation", request.Name)
 			}
 
-			return &api.OperatorAPIKey{
+			return &api.OperatorAPIKeyCreated{
 				ID:         "key-001",
 				Name:       "automation",
 				Key:        "sk-1234567890abcdef",
@@ -106,7 +106,7 @@ func TestIAMAPIKeySubCmd_Create_Output_YAML(t *testing.T) {
 			organizationID string,
 			operatorID string,
 			request *api.CreateIAMAPIKeyRequestBody,
-		) (*api.OperatorAPIKey, error) {
+		) (*api.OperatorAPIKeyCreated, error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -120,7 +120,7 @@ func TestIAMAPIKeySubCmd_Create_Output_YAML(t *testing.T) {
 				t.Fatalf("Expected API key name %q, got %q", "automation", request.Name)
 			}
 
-			return &api.OperatorAPIKey{
+			return &api.OperatorAPIKeyCreated{
 				ID:         "key-002",
 				Name:       "automation",
 				Key:        "sk-1234567890abcdef",
@@ -179,7 +179,7 @@ func TestIAMAPIKeySubCmd_Create_Output_JSON_FromProfile(t *testing.T) {
 			organizationID string,
 			operatorID string,
 			request *api.CreateIAMAPIKeyRequestBody,
-		) (*api.OperatorAPIKey, error) {
+		) (*api.OperatorAPIKeyCreated, error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -193,7 +193,7 @@ func TestIAMAPIKeySubCmd_Create_Output_JSON_FromProfile(t *testing.T) {
 				t.Fatalf("Expected API key name %q, got %q", "automation", request.Name)
 			}
 
-			return &api.OperatorAPIKey{
+			return &api.OperatorAPIKeyCreated{
 				ID:         "key-001",
 				Name:       "automation",
 				Key:        "sk-1234567890abcdef",
@@ -274,7 +274,7 @@ func TestIAMAPIKeySubCmd_Create_Output_YAML_FromProfile(t *testing.T) {
 			organizationID string,
 			operatorID string,
 			request *api.CreateIAMAPIKeyRequestBody,
-		) (*api.OperatorAPIKey, error) {
+		) (*api.OperatorAPIKeyCreated, error) {
 			if apiKey != "test-api-key" {
 				t.Fatalf("Expected api key to be propagated, got %q", apiKey)
 			}
@@ -288,7 +288,7 @@ func TestIAMAPIKeySubCmd_Create_Output_YAML_FromProfile(t *testing.T) {
 				t.Fatalf("Expected API key name %q, got %q", "automation", request.Name)
 			}
 
-			return &api.OperatorAPIKey{
+			return &api.OperatorAPIKeyCreated{
 				ID:         "key-002",
 				Name:       "automation",
 				Key:        "sk-1234567890abcdef",

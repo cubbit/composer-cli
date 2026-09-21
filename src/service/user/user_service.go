@@ -11,6 +11,7 @@ import (
 	userdelete "github.com/cubbit/composer-cli/src/service/user/delete"
 	userdescribe "github.com/cubbit/composer-cli/src/service/user/describe"
 	userlist "github.com/cubbit/composer-cli/src/service/user/list"
+	usertfa "github.com/cubbit/composer-cli/src/service/user/tfa"
 	userupdate "github.com/cubbit/composer-cli/src/service/user/update"
 	"github.com/spf13/cobra"
 )
@@ -25,6 +26,8 @@ type UserServiceInterface interface {
 	DisableUser(cmd *cobra.Command, args []string) error
 	DeleteUser(cmd *cobra.Command, args []string) error
 	ResetUserPassword(cmd *cobra.Command, args []string) error
+	EnableUserTFA(cmd *cobra.Command, args []string) error
+	DisableUserTFA(cmd *cobra.Command, args []string) error
 }
 
 type UserService struct {
@@ -175,6 +178,24 @@ func (s *UserService) ResetUserPassword(cmd *cobra.Command, args []string) error
 		profile,
 		args,
 	)
+}
+
+func (s *UserService) EnableUserTFA(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	return usertfa.EnableUserTFA(usertfa.Dependencies{AuthAPI: s.authAPI, UserAPI: s.userAPI}, cmd, s.configuration, profile)
+}
+
+func (s *UserService) DisableUserTFA(cmd *cobra.Command, args []string) error {
+	profile, err := s.configuration.GetActiveProfile()
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+	}
+
+	return usertfa.DisableUserTFA(usertfa.Dependencies{AuthAPI: s.authAPI, UserAPI: s.userAPI}, cmd, s.configuration, profile)
 }
 
 func (s *UserService) getProfileOrganizationName(profile configuration_models.ProfileV2) (string, error) {

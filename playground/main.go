@@ -103,6 +103,8 @@ func (s *trivialUserService) EnableUser(c *cobra.Command, a []string) error     
 func (s *trivialUserService) DisableUser(c *cobra.Command, a []string) error       { return nil }
 func (s *trivialUserService) DeleteUser(c *cobra.Command, a []string) error        { return nil }
 func (s *trivialUserService) ResetUserPassword(c *cobra.Command, a []string) error { return nil }
+func (s *trivialUserService) EnableUserTFA(c *cobra.Command, a []string) error     { return nil }
+func (s *trivialUserService) DisableUserTFA(c *cobra.Command, a []string) error    { return nil }
 
 type trivialAPIKeyService struct{}
 

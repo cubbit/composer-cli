@@ -44,11 +44,12 @@ func TestDescribeAPIKey_UsesGetByID(t *testing.T) {
 			}
 
 			return &api.OperatorAPIKey{
-				ID:         "key-001",
-				Name:       "automation",
-				OperatorID: "operator-001",
-				CreatedAt:  createdAt,
-				Enabled:    true,
+				ID:          "key-001",
+				Name:        "automation",
+				RedactedKey: "4f2a1b3c****************************",
+				OperatorID:  "operator-001",
+				CreatedAt:   createdAt,
+				Enabled:     true,
 			}, nil
 		},
 		ListIAMAPIKeysFunc: func(
@@ -93,6 +94,7 @@ Enabled: true
 
 Metadata:
   ID: key-001
+  Redacted API Key: 4f2a1b3c****************************
   Operator ID: operator-001
   Created At: 2024-01-15 10:30:00
   Expires At: N/A

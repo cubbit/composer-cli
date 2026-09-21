@@ -91,13 +91,30 @@ type UserAPIInterface interface {
 		request *ResetIAMUserPasswordRequestBody,
 	) error
 
+	EnableIAMUserTFA(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		enableTFAToken string,
+		request *UpdateIAMUserTFARequestBody,
+	) error
+
+	DisableIAMUserTFA(
+		endpoints configuration_models.EndpointsV2,
+		apiKey string,
+		organizationID string,
+		operatorID string,
+		deleteTFAToken string,
+	) error
+
 	CreateIAMAPIKey(
 		endpoints configuration_models.EndpointsV2,
 		apiKey string,
 		organizationID string,
 		operatorID string,
 		request *CreateIAMAPIKeyRequestBody,
-	) (*OperatorAPIKey, error)
+	) (*OperatorAPIKeyCreated, error)
 
 	ListIAMAPIKeys(
 		endpoints configuration_models.EndpointsV2,
@@ -402,18 +419,68 @@ func (a *UserAPI) ResetIAMUserPassword(
 	return nil
 }
 
+func (a *UserAPI) EnableIAMUserTFA(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	enableTFAToken string,
+	request *UpdateIAMUserTFARequestBody,
+) error {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "tfa").
+		QueryParam("token", enableTFAToken).
+		Build()
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodPatch),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+		request_utils.WithApiKey(apiKey),
+		request_utils.WithRequestBodyObject(request),
+	); err != nil {
+		return fmt.Errorf("failed to enable IAM user TFA: %w", err)
+	}
+
+	return nil
+}
+
+func (a *UserAPI) DisableIAMUserTFA(
+	endpoints configuration_models.EndpointsV2,
+	apiKey string,
+	organizationID string,
+	operatorID string,
+	deleteTFAToken string,
+) error {
+	url := NewURLBuilder(endpoints.IAM).
+		Path("v3", "organizations", organizationID, "operators", operatorID, "tfa").
+		QueryParam("token", deleteTFAToken).
+		Build()
+
+	if err := request_utils.DoRequest(
+		url,
+		request_utils.WithRequestMethod(http.MethodDelete),
+		request_utils.WithExpectedStatusCode(http.StatusNoContent),
+		request_utils.WithApiKey(apiKey),
+	); err != nil {
+		return fmt.Errorf("failed to disable IAM user TFA: %w", err)
+	}
+
+	return nil
+}
+
 func (a *UserAPI) CreateIAMAPIKey(
 	endpoints configuration_models.EndpointsV2,
 	apiKey string,
 	organizationID string,
 	operatorID string,
 	request *CreateIAMAPIKeyRequestBody,
-) (*OperatorAPIKey, error) {
+) (*OperatorAPIKeyCreated, error) {
 	url := NewURLBuilder(endpoints.IAM).
 		Path("v3", "organizations", organizationID, "operators", operatorID, "api-keys").
 		Build()
 
-	var response OperatorAPIKey
+	var response OperatorAPIKeyCreated
 	if err := request_utils.DoRequest(
 		url,
 		request_utils.WithRequestMethod(http.MethodPost),

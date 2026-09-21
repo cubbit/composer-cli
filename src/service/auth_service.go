@@ -207,12 +207,17 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	tfaCode, err := cmd.Flags().GetString("tfa-code")
+	if err != nil {
+		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
+	}
+
 	if password != "" && (username == "" || orgName == "") {
 		return fmt.Errorf("when using the --password flag, both --username and --organization must also be provided; alternatively, omit --password to be prompted interactively")
 	}
 
 	if password != "" {
-		return as.performInlineLogin(cmd, username, orgName, password, "", profile)
+		return as.performInlineLogin(cmd, username, orgName, password, tfaCode, profile)
 	}
 
 	var choice string
@@ -320,17 +325,18 @@ func (as *AuthService) performInlineLogin(cmd *cobra.Command, username, orgName,
 		return fmt.Errorf("user does not belong to an organization, please contact your administrator to resolve this issue")
 	}
 
-	if tfa != "" {
+	forgeTFACode := ""
+	if operator.TwoFactorEnabled {
 		if _, err = tui.TextInputs(
 			"Please provide another two-factor code to forge an API key",
 			false,
-			tui.Input{Placeholder: "two-factor code", IsPassword: false, Value: &tfa},
+			tui.Input{Placeholder: "two-factor code", IsPassword: false, Value: &forgeTFACode},
 		); err != nil {
 			return fmt.Errorf("%s: %w", constants.ErrorSignIn, err)
 		}
 	}
 
-	operatorApiKeyToken, err := as.authAPI.ForgeToken(endpoints, operator.ID, username, orgName, password, tfa, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
+	operatorApiKeyToken, err := as.authAPI.ForgeToken(endpoints, operator.ID, username, orgName, password, forgeTFACode, "create_operator_api_key", tokens.AccessToken, tokens.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to forge token: %w", err)
 	}

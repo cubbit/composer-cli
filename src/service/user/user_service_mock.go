@@ -12,6 +12,8 @@ type UserServiceMock struct {
 	DisableUserFunc       func(cmd *cobra.Command, args []string) error
 	DeleteUserFunc        func(cmd *cobra.Command, args []string) error
 	ResetUserPasswordFunc func(cmd *cobra.Command, args []string) error
+	EnableUserTFAFunc     func(cmd *cobra.Command, args []string) error
+	DisableUserTFAFunc    func(cmd *cobra.Command, args []string) error
 }
 
 func NewUserServiceMock() *UserServiceMock {
@@ -41,6 +43,12 @@ func NewUserServiceMock() *UserServiceMock {
 			return nil
 		},
 		ResetUserPasswordFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		EnableUserTFAFunc: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		DisableUserTFAFunc: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
@@ -105,6 +113,20 @@ func (m *UserServiceMock) DeleteUser(cmd *cobra.Command, args []string) error {
 func (m *UserServiceMock) ResetUserPassword(cmd *cobra.Command, args []string) error {
 	if m.ResetUserPasswordFunc != nil {
 		return m.ResetUserPasswordFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *UserServiceMock) EnableUserTFA(cmd *cobra.Command, args []string) error {
+	if m.EnableUserTFAFunc != nil {
+		return m.EnableUserTFAFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *UserServiceMock) DisableUserTFA(cmd *cobra.Command, args []string) error {
+	if m.DisableUserTFAFunc != nil {
+		return m.DisableUserTFAFunc(cmd, args)
 	}
 	return nil
 }

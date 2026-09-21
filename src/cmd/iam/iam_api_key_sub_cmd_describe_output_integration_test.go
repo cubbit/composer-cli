@@ -51,11 +51,12 @@ func TestIAMAPIKeySubCmd_Describe_Output_JSON(t *testing.T) {
 			}
 
 			return &api.OperatorAPIKey{
-				ID:         "key-001",
-				Name:       "automation",
-				OperatorID: "operator-001",
-				CreatedAt:  frozen,
-				Enabled:    true,
+				ID:          "key-001",
+				Name:        "automation",
+				RedactedKey: "4f2a1b3c****************************",
+				OperatorID:  "operator-001",
+				CreatedAt:   frozen,
+				Enabled:     true,
 			}, nil
 		},
 	}
@@ -75,7 +76,7 @@ func TestIAMAPIKeySubCmd_Describe_Output_JSON(t *testing.T) {
 	expected := `{
   "id": "key-001",
   "name": "automation",
-  "key": "",
+  "api_key": "4f2a1b3c****************************",
   "operator_id": "operator-001",
   "created_at": "2026-06-24T20:24:13Z",
   "expires_at": null,
@@ -124,11 +125,12 @@ func TestIAMAPIKeySubCmd_Describe_Output_YAML(t *testing.T) {
 			}
 
 			return &api.OperatorAPIKey{
-				ID:         "key-002",
-				Name:       "automation",
-				OperatorID: "operator-001",
-				CreatedAt:  frozen,
-				Enabled:    true,
+				ID:          "key-002",
+				Name:        "automation",
+				RedactedKey: "4f2a1b3c****************************",
+				OperatorID:  "operator-001",
+				CreatedAt:   frozen,
+				Enabled:     true,
 			}, nil
 		},
 	}
@@ -147,7 +149,7 @@ func TestIAMAPIKeySubCmd_Describe_Output_YAML(t *testing.T) {
 
 	expected := `id: key-002
 name: automation
-key: ""
+api_key: 4f2a1b3c****************************
 operator_id: operator-001
 created_at: 2026-06-24T20:24:13Z
 expires_at: null
@@ -195,11 +197,12 @@ func TestIAMAPIKeySubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
 			}
 
 			return &api.OperatorAPIKey{
-				ID:         "key-001",
-				Name:       "automation",
-				OperatorID: "operator-001",
-				CreatedAt:  frozen,
-				Enabled:    true,
+				ID:          "key-001",
+				Name:        "automation",
+				RedactedKey: "4f2a1b3c****************************",
+				OperatorID:  "operator-001",
+				CreatedAt:   frozen,
+				Enabled:     true,
 			}, nil
 		},
 	}
@@ -239,7 +242,7 @@ func TestIAMAPIKeySubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
 	expected := `{
   "id": "key-001",
   "name": "automation",
-  "key": "",
+  "api_key": "4f2a1b3c****************************",
   "operator_id": "operator-001",
   "created_at": "2026-06-24T20:24:13Z",
   "expires_at": null,
@@ -288,11 +291,12 @@ func TestIAMAPIKeySubCmd_Describe_Output_YAML_FromProfile(t *testing.T) {
 			}
 
 			return &api.OperatorAPIKey{
-				ID:         "key-002",
-				Name:       "automation",
-				OperatorID: "operator-001",
-				CreatedAt:  frozen,
-				Enabled:    true,
+				ID:          "key-002",
+				Name:        "automation",
+				RedactedKey: "4f2a1b3c****************************",
+				OperatorID:  "operator-001",
+				CreatedAt:   frozen,
+				Enabled:     true,
 			}, nil
 		},
 	}
@@ -331,7 +335,7 @@ func TestIAMAPIKeySubCmd_Describe_Output_YAML_FromProfile(t *testing.T) {
 
 	expected := `id: key-002
 name: automation
-key: ""
+api_key: 4f2a1b3c****************************
 operator_id: operator-001
 created_at: 2026-06-24T20:24:13Z
 expires_at: null
