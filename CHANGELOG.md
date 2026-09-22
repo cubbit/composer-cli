@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.0
+
+### Minor Changes
+
+- c66abae: Two-factor authentication can now be managed from the CLI with `cubbit iam user tfa enable` and `cubbit iam user tfa disable`. Enabling takes the account password and either generates a setup key and a set of one-time recovery codes or uses the one supplied with `--setup-key`; disabling takes the account password together with a valid verification or recovery code.
+- c66abae: The `iam api-key describe` and `iam api-key edit` commands now show a redacted form of the key instead of hiding it, so a key can be recognized from its detail view. The full secret is still shown only once, when the key is created.
+- c66abae: `cubbit auth login` accepts a new `--tfa-code` flag, so operators with two-factor authentication enabled can sign in non-interactively instead of being prompted for a verification code. This allows scripted and automated logins to work with two-factor authentication enabled.
+
 ## 2.9.0
 
 ### Minor Changes
