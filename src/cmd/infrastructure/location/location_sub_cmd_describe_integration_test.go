@@ -30,34 +30,49 @@ func setupDescribeMockConfig() *configuration_handler.MockConfigurationHandler {
 	return mockConfig
 }
 
+// mockDescribeAPI returns a MockLocationAPI whose aggregated list and single-location GET both
+// expose the given clusters, so the describe tests exercise the migrated single-endpoint path.
+func mockDescribeAPI(clusters ...api.InfraAggregateCluster) *api.MockLocationAPI {
+	return &api.MockLocationAPI{
+		ListAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
+			return clusters, nil
+		},
+		GetAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _, clusterID string) (*api.InfraAggregateCluster, error) {
+			for i := range clusters {
+				if clusters[i].ClusterID == clusterID {
+					return &clusters[i], nil
+				}
+			}
+			return nil, &api.InfraClusterNotFoundError{ClusterID: clusterID}
+		},
+	}
+}
+
 func TestLocationSubCmd_Describe_Integration_WithClusterName_Found(t *testing.T) {
 	baseTime, err := time.Parse("2006-01-02 15:04:05", "2024-01-15 10:30:00")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "test-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -82,6 +97,13 @@ Cluster Information
 ├──────────────────────────────────────┼──────────────┼──────────┼────────────────┼───────────────┼─────────────────────┤
 │ 550e8400-e29b-41d4-a716-446655440000 │ test-cluster │ physical │ 0              │ 0             │ 2024-01-15 10:30:00 │
 ╰──────────────────────────────────────┴──────────────┴──────────┴────────────────┴───────────────┴─────────────────────╯
+
+Metadata
+─────────────────────────────────────────────────
+Description: none
+Position: none
+Contact name: none
+Contact id: none
 `)
 
 	actualResult := strings.TrimSpace(commandOutput.String())
@@ -96,28 +118,25 @@ func TestLocationSubCmd_Describe_Integration_WithClusterID_Found(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440001",
-					Name:      "another-cluster",
-					Type:      api.ClusterTypeVirtual,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440001",
+			Name:      "another-cluster",
+			Type:      api.ClusterTypeVirtual,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -142,6 +161,13 @@ Cluster Information
 ├──────────────────────────────────────┼─────────────────┼─────────┼────────────────┼───────────────┼─────────────────────┤
 │ 550e8400-e29b-41d4-a716-446655440001 │ another-cluster │ virtual │ 0              │ 0             │ 2024-01-15 10:30:00 │
 ╰──────────────────────────────────────┴─────────────────┴─────────┴────────────────┴───────────────┴─────────────────────╯
+
+Metadata
+─────────────────────────────────────────────────
+Description: none
+Position: none
+Contact name: none
+Contact id: none
 `)
 
 	actualResult := strings.TrimSpace(commandOutput.String())
@@ -160,71 +186,70 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_FullOutput(t *testi
 	externalIP := "203.0.113.10"
 	internalIP := "10.0.0.10"
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate: baseTime,
-						NextUpdate: baseTime.Add(time.Hour),
-						IsUpdateOk: true,
-						Nodes: []api.InfraAggregateNodeDetail{
-							{
-								NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-								NodeName: "node-1-host",
-								Status: api.InfraAggregateStatus{
-									Code:    string(api.StatusCodeOk),
-									Details: "All systems operational",
-								},
-								OSName:     &osImage,
-								CPU:        &api.InfraNodeCPUInfo{Cores: 16},
-								RAM:        &api.InfraNodeRAMInfo{Available: 64.0},
-								ExternalIP: &externalIP,
-								InternalIP: &internalIP,
-								Disks: []api.InfraAggregateDiskDetail{
-									{
-										DiskUUID:              "8e7d7a2e-3c5e-4f9a-9b8c-1d2e3f4a5b6c",
-										Path:                  "/dev/sda",
-										Used:                  true,
-										PVRef:                 "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-										TotalStorageSizeBytes: 1099511627776,
-										UsedStorageBytes:      549755813888,
-										Status: api.InfraAggregateStatus{
-											Code: string(api.StatusCodeOk),
-										},
-									},
-								},
-							},
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID:          "550e8400-e29b-41d4-a716-446655440000",
+			Name:               "test-cluster",
+			Type:               api.ClusterTypePhysical,
+			ContactIAMUserID:   stringPointer("695ed3dd-e77d-42b9-88ed-70bd3a1704ee"),
+			ContactIAMUserName: stringPointer("Mario Rossi"),
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate: baseTime,
+				NextUpdate: baseTime.Add(time.Hour),
+				IsUpdateOk: true,
+				Nodes: []api.InfraAggregateNodeDetail{
+					{
+						NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+						NodeName: "node-1-host",
+						Status: api.InfraAggregateStatus{
+							Code:    string(api.StatusCodeOk),
+							Details: "All systems operational",
 						},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{
+						OSName:     &osImage,
+						CPU:        &api.InfraNodeCPUInfo{Cores: 16},
+						RAM:        &api.InfraNodeRAMInfo{Available: 64.0},
+						ExternalIP: &externalIP,
+						InternalIP: &internalIP,
+						Disks: []api.InfraAggregateDiskDetail{
 							{
-								NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
-								NodeName: "vnode-1-host",
+								DiskUUID:              "8e7d7a2e-3c5e-4f9a-9b8c-1d2e3f4a5b6c",
+								Path:                  "/dev/sda",
+								Used:                  true,
+								PVRef:                 "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+								TotalStorageSizeBytes: 1099511627776,
+								UsedStorageBytes:      549755813888,
 								Status: api.InfraAggregateStatus{
-									Code:    string(api.StatusCodeOk),
-									Details: "S3 service running",
-								},
-								StorageType: api.VirtualStorageTypeS3,
-								StorageConfiguration: map[string]any{
-									"endpoint":      "https://s3.example.com",
-									"bucket_name":   "cubbit-virtual",
-									"region":        "us-east-1",
-									"access_key_id": "AKIAIOSFODNN7EXAMPLE",
+									Code: string(api.StatusCodeOk),
 								},
 							},
 						},
 					},
 				},
-			}, nil
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{
+					{
+						NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
+						NodeName: "vnode-1-host",
+						Status: api.InfraAggregateStatus{
+							Code:    string(api.StatusCodeOk),
+							Details: "S3 service running",
+						},
+						StorageType: api.VirtualStorageTypeS3,
+						StorageConfiguration: map[string]any{
+							"endpoint":      "https://s3.example.com",
+							"bucket_name":   "cubbit-virtual",
+							"region":        "us-east-1",
+							"access_key_id": "AKIAIOSFODNN7EXAMPLE",
+						},
+					},
+				},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -249,6 +274,13 @@ Cluster Information
 ├──────────────────────────────────────┼──────────────┼──────────┼────────────────┼───────────────┼─────────────────────┤
 │ 550e8400-e29b-41d4-a716-446655440000 │ test-cluster │ physical │ 1              │ 1             │ 2024-01-15 10:30:00 │
 ╰──────────────────────────────────────┴──────────────┴──────────┴────────────────┴───────────────┴─────────────────────╯
+
+Metadata
+─────────────────────────────────────────────────
+Description: none
+Position: none
+Contact name: Mario Rossi
+Contact id: 695ed3dd-e77d-42b9-88ed-70bd3a1704ee
 
 Physical Nodes
 ─────────────────────────────────────────────────
@@ -292,52 +324,49 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterName_WithMultipleClu
 		t.Fatal(err)
 	}
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "production-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440001",
-					Name:      "staging-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440002",
-					Name:      "development-cluster",
-					Type:      api.ClusterTypeVirtual,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "production-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
+		},
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440001",
+			Name:      "staging-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
+		},
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440002",
+			Name:      "development-cluster",
+			Type:      api.ClusterTypeVirtual,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -362,6 +391,13 @@ Cluster Information
 ├──────────────────────────────────────┼─────────────────┼──────────┼────────────────┼───────────────┼─────────────────────┤
 │ 550e8400-e29b-41d4-a716-446655440001 │ staging-cluster │ physical │ 0              │ 0             │ 2024-01-15 10:30:00 │
 ╰──────────────────────────────────────┴─────────────────┴──────────┴────────────────┴───────────────┴─────────────────────╯
+
+Metadata
+─────────────────────────────────────────────────
+Description: none
+Position: none
+Contact name: none
+Contact id: none
 `)
 
 	actualResult := strings.TrimSpace(commandOutput.String())
@@ -376,52 +412,49 @@ func TestLocationSubCmd_Describe_Integration_FilterByClusterID_WithMultipleClust
 		t.Fatal(err)
 	}
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "production-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440001",
-					Name:      "staging-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440002",
-					Name:      "development-cluster",
-					Type:      api.ClusterTypeVirtual,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-					},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "production-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
+		},
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440001",
+			Name:      "staging-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
+		},
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440002",
+			Name:      "development-cluster",
+			Type:      api.ClusterTypeVirtual,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -446,6 +479,13 @@ Cluster Information
 ├──────────────────────────────────────┼─────────────────────┼─────────┼────────────────┼───────────────┼─────────────────────┤
 │ 550e8400-e29b-41d4-a716-446655440002 │ development-cluster │ virtual │ 0              │ 0             │ 2024-01-15 10:30:00 │
 ╰──────────────────────────────────────┴─────────────────────┴─────────┴────────────────┴───────────────┴─────────────────────╯
+
+Metadata
+─────────────────────────────────────────────────
+Description: none
+Position: none
+Contact name: none
+Contact id: none
 `)
 
 	actualResult := strings.TrimSpace(commandOutput.String())
@@ -455,15 +495,12 @@ Cluster Information
 }
 
 func TestLocationSubCmd_Describe_Integration_WithClusterName_NotFound(t *testing.T) {
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{}, nil
-		},
-	}
+	clusters := []api.InfraAggregateCluster{}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -488,15 +525,12 @@ func TestLocationSubCmd_Describe_Integration_WithClusterName_NotFound(t *testing
 }
 
 func TestLocationSubCmd_Describe_Integration_WithClusterID_NotFound(t *testing.T) {
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(endpoints configuration_models.EndpointsV2, apiKey string, organizationID string, opts ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{}, nil
-		},
-	}
+	clusters := []api.InfraAggregateCluster{}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -529,7 +563,7 @@ func TestLocationSubCmd_Describe_API_ReturnsError(t *testing.T) {
 
 	mockConfig := setupDescribeMockConfig()
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")

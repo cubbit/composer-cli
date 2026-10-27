@@ -15,9 +15,13 @@ func TestLocationSubCmd_List_Output_JSON(t *testing.T) {
 		ListFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "production-cluster",
-					Type:      "physical",
+					ClusterID:          "550e8400-e29b-41d4-a716-446655440000",
+					Name:               "production-cluster",
+					Type:               "physical",
+					Description:        stringPointer("Primary datacenter"),
+					Position:           stringPointer("Milan, Italy"),
+					ContactIAMUserID:   stringPointer("695ed3dd-e77d-42b9-88ed-70bd3a1704ee"),
+					ContactIAMUserName: stringPointer("Mario Rossi"),
 				},
 				{
 					ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -42,7 +46,7 @@ func TestLocationSubCmd_List_Output_JSON(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -66,7 +70,11 @@ func TestLocationSubCmd_List_Output_JSON(t *testing.T) {
   {
     "cluster_id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "production-cluster",
-    "type": "physical"
+    "type": "physical",
+    "description": "Primary datacenter",
+    "position": "Milan, Italy",
+    "contact_iam_user_id": "695ed3dd-e77d-42b9-88ed-70bd3a1704ee",
+    "contact_iam_user_name": "Mario Rossi"
   },
   {
     "cluster_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -85,9 +93,13 @@ func TestLocationSubCmd_List_Output_YAML(t *testing.T) {
 		ListFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "production-cluster",
-					Type:      "physical",
+					ClusterID:          "550e8400-e29b-41d4-a716-446655440000",
+					Name:               "production-cluster",
+					Type:               "physical",
+					Description:        stringPointer("Primary datacenter"),
+					Position:           stringPointer("Milan, Italy"),
+					ContactIAMUserID:   stringPointer("695ed3dd-e77d-42b9-88ed-70bd3a1704ee"),
+					ContactIAMUserName: stringPointer("Mario Rossi"),
 				},
 				{
 					ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -112,7 +124,7 @@ func TestLocationSubCmd_List_Output_YAML(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -135,6 +147,10 @@ func TestLocationSubCmd_List_Output_YAML(t *testing.T) {
 	expected := `- cluster_id: 550e8400-e29b-41d4-a716-446655440000
   name: production-cluster
   type: physical
+  description: Primary datacenter
+  position: Milan, Italy
+  contact_iam_user_id: 695ed3dd-e77d-42b9-88ed-70bd3a1704ee
+  contact_iam_user_name: Mario Rossi
 - cluster_id: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
   name: staging-cluster
   type: virtual
@@ -149,9 +165,13 @@ func TestLocationSubCmd_List_Output_JSON_FromProfile(t *testing.T) {
 		ListFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "production-cluster",
-					Type:      "physical",
+					ClusterID:          "550e8400-e29b-41d4-a716-446655440000",
+					Name:               "production-cluster",
+					Type:               "physical",
+					Description:        stringPointer("Primary datacenter"),
+					Position:           stringPointer("Milan, Italy"),
+					ContactIAMUserID:   stringPointer("695ed3dd-e77d-42b9-88ed-70bd3a1704ee"),
+					ContactIAMUserName: stringPointer("Mario Rossi"),
 				},
 				{
 					ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -176,7 +196,7 @@ func TestLocationSubCmd_List_Output_JSON_FromProfile(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -199,7 +219,11 @@ func TestLocationSubCmd_List_Output_JSON_FromProfile(t *testing.T) {
   {
     "cluster_id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "production-cluster",
-    "type": "physical"
+    "type": "physical",
+    "description": "Primary datacenter",
+    "position": "Milan, Italy",
+    "contact_iam_user_id": "695ed3dd-e77d-42b9-88ed-70bd3a1704ee",
+    "contact_iam_user_name": "Mario Rossi"
   },
   {
     "cluster_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -218,9 +242,13 @@ func TestLocationSubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 		ListFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfrastructureCluster, error) {
 			return []api.InfrastructureCluster{
 				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "production-cluster",
-					Type:      "physical",
+					ClusterID:          "550e8400-e29b-41d4-a716-446655440000",
+					Name:               "production-cluster",
+					Type:               "physical",
+					Description:        stringPointer("Primary datacenter"),
+					Position:           stringPointer("Milan, Italy"),
+					ContactIAMUserID:   stringPointer("695ed3dd-e77d-42b9-88ed-70bd3a1704ee"),
+					ContactIAMUserName: stringPointer("Mario Rossi"),
 				},
 				{
 					ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -245,7 +273,7 @@ func TestLocationSubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -267,6 +295,10 @@ func TestLocationSubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 	expected := `- cluster_id: 550e8400-e29b-41d4-a716-446655440000
   name: production-cluster
   type: physical
+  description: Primary datacenter
+  position: Milan, Italy
+  contact_iam_user_id: 695ed3dd-e77d-42b9-88ed-70bd3a1704ee
+  contact_iam_user_name: Mario Rossi
 - cluster_id: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
   name: staging-cluster
   type: virtual
@@ -275,4 +307,3 @@ func TestLocationSubCmd_List_Output_YAML_FromProfile(t *testing.T) {
 		t.Errorf("YAML snapshot mismatch\nexpected:\n%s\nactual:\n%s", expected, buf.String())
 	}
 }
-

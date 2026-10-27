@@ -29,7 +29,7 @@ func TestLocationService_NewLocationService(t *testing.T) {
 	mockLocationAPI := &api.MockLocationAPI{}
 	mockUserAPI := &api.UserAPI{}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, mockUserAPI)
+	service := NewLocationService(mockCfg, mockLocationAPI, mockUserAPI, nil)
 
 	if service.configuration != mockCfg {
 		t.Error("Expected configuration to be set")
@@ -72,7 +72,7 @@ func TestLocationService_List_Success(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().Set("profile", "test")
@@ -105,7 +105,7 @@ func TestLocationService_List_APIError(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().Set("profile", "test")
@@ -126,7 +126,7 @@ func TestLocationService_List_ConfigError(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().Set("profile", "nonexistent")
@@ -169,7 +169,7 @@ func TestLocationService_CreateVirtual_Success(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -208,7 +208,7 @@ func TestLocationService_CreateVirtual_WithNilDescription(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -243,7 +243,7 @@ func TestLocationService_CreateVirtual_APIError(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -266,7 +266,7 @@ func TestLocationService_CreateVirtual_ConfigError(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -297,7 +297,7 @@ func TestLocationService_CreateVirtual_FlagGetError(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	// Don't add the name flag at all - this will cause GetString to fail
@@ -330,7 +330,7 @@ func TestLocationService_CreateVirtual_MissingNameFlag(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -361,7 +361,7 @@ func TestLocationService_CreateVirtualNode_FlagGetError(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	// Don't add the name flag - this will cause GetString to fail
@@ -398,7 +398,7 @@ func TestLocationService_CreateVirtualNode_ClusterIDFlagGetError(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -435,7 +435,7 @@ func TestLocationService_CreateVirtualNode_StorageTypeFlagGetError(t *testing.T)
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -472,7 +472,7 @@ func TestLocationService_CreateVirtualNode_ConfigurationFlagGetError(t *testing.
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -509,7 +509,7 @@ func TestLocationService_CreateVirtualNode_MissingRequiredFlags(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -551,7 +551,7 @@ func TestLocationService_CreateVirtualNode_MissingStorageType(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -577,7 +577,7 @@ func TestLocationService_CreateVirtualNode_ConfigError(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -629,7 +629,7 @@ func TestLocationService_CreateVirtualNode_Success(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -691,7 +691,7 @@ func TestLocationService_CreateVirtualNode_WithComplexConfiguration(t *testing.T
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -726,7 +726,7 @@ func TestLocationService_CreateVirtualNode_InvalidJSON(t *testing.T) {
 	}
 
 	mockLocationAPI := &api.MockLocationAPI{}
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")
@@ -779,7 +779,7 @@ func TestLocationService_CreateVirtualNode_APIError(t *testing.T) {
 		},
 	}
 
-	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{})
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
 
 	cmd := setupTestCommand()
 	cmd.Flags().String("name", "", "Name")

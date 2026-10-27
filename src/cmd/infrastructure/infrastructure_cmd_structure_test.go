@@ -41,7 +41,7 @@ func TestInfrastructureSubCmd_Structure_LocationList(t *testing.T) {
 func TestInfrastructureSubCmd_Structure_LocationDescribe(t *testing.T) {
 	mockLocationService := service.NewLocationServiceMock()
 
-	mockLocationService.ListAggregatedFunc = func(cmd *cobra.Command, args []string) error {
+	mockLocationService.DescribeFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: Aggregated locations retrieved successfully")
 		return nil
 	}

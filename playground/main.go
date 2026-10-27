@@ -84,7 +84,9 @@ func (s *trivialAuthService) Logout(c *cobra.Command, a []string) error   { retu
 type trivialLocationService struct{}
 
 func (s *trivialLocationService) List(c *cobra.Command, a []string) error              { return nil }
-func (s *trivialLocationService) ListAggregated(c *cobra.Command, a []string) error    { return nil }
+func (s *trivialLocationService) Describe(c *cobra.Command, a []string) error          { return nil }
+func (s *trivialLocationService) Update(c *cobra.Command, a []string) error            { return nil }
+func (s *trivialLocationService) Delete(c *cobra.Command, a []string) error            { return nil }
 func (s *trivialLocationService) CreateVirtual(c *cobra.Command, a []string) error     { return nil }
 func (s *trivialLocationService) CreateVirtualNode(c *cobra.Command, a []string) error { return nil }
 

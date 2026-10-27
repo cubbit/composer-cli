@@ -161,6 +161,13 @@ func PrintText(cmd *cobra.Command, handler configuration_handler.ConfigurationHa
 	}
 }
 
+// IsHumanOutput reports whether the command output resolves to the human-readable format.
+// It is false for the json, yaml and quiet formats.
+func IsHumanOutput(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface) bool {
+	f, err := resolveFormat(cmd, handler)
+	return err == nil && f == OutputHuman
+}
+
 // ComposeStructured runs printFuncs when output is human. When output
 // is json or yaml it serialises data instead, skipping the printFuncs
 // entirely.

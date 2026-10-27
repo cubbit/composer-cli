@@ -13,6 +13,10 @@ import (
 
 type RequestBody = map[string]interface{}
 
+// AnyStatusCode can be passed to WithExpectedStatusCode to disable the automatic status check,
+// so the caller can inspect the status code and the response body itself.
+const AnyStatusCode = -1
+
 type RequestOptions struct {
 	method    string
 	headers   map[string]string

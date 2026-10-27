@@ -26,7 +26,7 @@ func TestLocationSubCmd_CreateVirtualNode_Integration_Success(t *testing.T) {
 	}
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -63,7 +63,7 @@ test-virtual-node (new-node-id)
 func TestLocationSubCmd_CreateVirtualNode_Integration_InvalidJSON(t *testing.T) {
 	mockAPI := &api.MockLocationAPI{}
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -99,7 +99,7 @@ func TestLocationSubCmd_CreateVirtualNode_Integration_APIError(t *testing.T) {
 	}
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")

@@ -17,6 +17,12 @@ func NewLocationCmd(
 	locationDescribeSubCmd := NewLocationSubCmdDescribe(locationServiceFn)
 	locationCmd.AddCommand(locationListSubCmd, locationDescribeSubCmd)
 
+	locationUpdateSubCmd := NewLocationSubCmdUpdate(locationServiceFn)
+	locationCmd.AddCommand(locationUpdateSubCmd)
+
+	locationDeleteSubCmd := NewLocationSubCmdDelete(locationServiceFn)
+	locationCmd.AddCommand(locationDeleteSubCmd)
+
 	createVirtualCMD := NewLocationSubCmdCreateVirtual(locationServiceFn)
 	locationCmd.AddCommand(createVirtualCMD)
 

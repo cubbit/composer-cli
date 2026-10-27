@@ -130,6 +130,9 @@ cubbit tenant [command]
 
 # Manage swarms
 cubbit swarm [command]
+
+# Manage infrastructure locations
+cubbit infrastructure location [command]
 ```
 
 ## Configuration
