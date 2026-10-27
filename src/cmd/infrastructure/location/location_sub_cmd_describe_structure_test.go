@@ -33,7 +33,7 @@ func TestLocationSubCmd_Structure_DescribeWithNoFlags(t *testing.T) {
 func TestLocationSubCmd_Structure_DescribeWithClusterName(t *testing.T) {
 	mockService := service.NewLocationServiceMock()
 
-	mockService.ListAggregatedFunc = func(cmd *cobra.Command, args []string) error {
+	mockService.DescribeFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: Aggregated locations retrieved successfully")
 		return nil
 	}
@@ -63,7 +63,7 @@ func TestLocationSubCmd_Structure_DescribeWithClusterName(t *testing.T) {
 func TestLocationSubCmd_Structure_DescribeWithClusterID(t *testing.T) {
 	mockService := service.NewLocationServiceMock()
 
-	mockService.ListAggregatedFunc = func(cmd *cobra.Command, args []string) error {
+	mockService.DescribeFunc = func(cmd *cobra.Command, args []string) error {
 		cmd.Println("Mock: Aggregated locations retrieved successfully")
 		return nil
 	}

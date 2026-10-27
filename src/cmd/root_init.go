@@ -60,7 +60,7 @@ func Execute(packageJSON []byte) {
 
 	authService := service.NewAuthService(configurationHandler, authAPI, userAPI)
 	configService := service.NewConfigService(configurationHandler)
-	locationService := service.NewLocationService(configurationHandler, locationAPI, userAPI)
+	locationService := service.NewLocationService(configurationHandler, locationAPI, userAPI, processAPI)
 	operatorService := service.NewOperatorService(configurationHandler, operatorAPI, userAPI)
 	userService := service_user.NewUserService(configurationHandler, authAPI, userAPI)
 	apiKeyService := service_api_key.NewAPIKeyService(configurationHandler, userAPI)

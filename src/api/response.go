@@ -828,8 +828,39 @@ type InfraClusterConnectCmdResponse struct {
 
 type InfrastructureCluster struct {
 	ClusterID string `json:"cluster_id" yaml:"cluster_id"`
-	Name      string `json:"name" yaml:"name"`
-	Type      string `json:"type" yaml:"type"`
+	// Name is the user-facing name of the location: the display name when set, the Kubernetes cluster
+	// name otherwise.
+	Name string `json:"name" yaml:"name"`
+	Type string `json:"type" yaml:"type"`
+	// Description is the free-form description of the location, when set.
+	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
+	// Position is the physical location of the cluster as a plain string, when set.
+	Position *string `json:"position,omitempty" yaml:"position,omitempty"`
+	// ContactIAMUserID is the id of the IAM user acting as contact, when set.
+	ContactIAMUserID *string `json:"contact_iam_user_id,omitempty" yaml:"contact_iam_user_id,omitempty"`
+	// ContactIAMUserName is the display name of the contact IAM user, when set.
+	ContactIAMUserName *string `json:"contact_iam_user_name,omitempty" yaml:"contact_iam_user_name,omitempty"`
+}
+
+// UnmarshalJSON applies the display name over the cluster name: the display name is an implicit
+// override and is never exposed as a separate field.
+func (c *InfrastructureCluster) UnmarshalJSON(data []byte) error {
+	type clusterAlias InfrastructureCluster
+
+	aux := struct {
+		*clusterAlias
+		DisplayName *string `json:"display_name"`
+	}{clusterAlias: (*clusterAlias)(c)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.DisplayName != nil && *aux.DisplayName != "" {
+		c.Name = *aux.DisplayName
+	}
+
+	return nil
 }
 
 type InfraAggregateStatusCode string
@@ -906,10 +937,95 @@ type InfraAggregateClusterDetail struct {
 }
 
 type InfraAggregateCluster struct {
-	ClusterID string                      `json:"cluster_id" yaml:"cluster_id"`
-	Name      string                      `json:"name" yaml:"name"`
-	Details   InfraAggregateClusterDetail `json:"details" yaml:"details"`
-	Type      InfraClusterType            `json:"type" yaml:"type"`
+	ClusterID string `json:"cluster_id" yaml:"cluster_id"`
+	// Name is the user-facing name of the location: the display name when set, the Kubernetes cluster
+	// name otherwise.
+	Name    string                      `json:"name" yaml:"name"`
+	Details InfraAggregateClusterDetail `json:"details" yaml:"details"`
+	Type    InfraClusterType            `json:"type" yaml:"type"`
+	// Description is the free-form description of the location, when set.
+	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
+	// Position is the physical location of the cluster as a plain string, when set.
+	Position *string `json:"position,omitempty" yaml:"position,omitempty"`
+	// ContactIAMUserID is the id of the IAM user acting as contact, when set.
+	ContactIAMUserID *string `json:"contact_iam_user_id,omitempty" yaml:"contact_iam_user_id,omitempty"`
+	// ContactIAMUserName is the display name of the contact IAM user, when set.
+	ContactIAMUserName *string `json:"contact_iam_user_name,omitempty" yaml:"contact_iam_user_name,omitempty"`
+}
+
+// UnmarshalJSON applies the display name over the cluster name: the display name is an implicit
+// override and is never exposed as a separate field.
+func (c *InfraAggregateCluster) UnmarshalJSON(data []byte) error {
+	type clusterAlias InfraAggregateCluster
+
+	aux := struct {
+		*clusterAlias
+		DisplayName *string `json:"display_name"`
+	}{clusterAlias: (*clusterAlias)(c)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.DisplayName != nil && *aux.DisplayName != "" {
+		c.Name = *aux.DisplayName
+	}
+
+	return nil
+}
+
+// UpdateInfraClusterRequest is the body of the partial update (PATCH) of a location.
+// Only the fields that are set are sent; absent fields are left unchanged.
+// An empty string clears the field.
+type UpdateInfraClusterRequest struct {
+	DisplayName      *string `json:"display_name,omitempty" yaml:"display_name,omitempty"`
+	Description      *string `json:"description,omitempty" yaml:"description,omitempty"`
+	Position         *string `json:"position,omitempty" yaml:"position,omitempty"`
+	ContactIAMUserID *string `json:"contact_iam_user_id,omitempty" yaml:"contact_iam_user_id,omitempty"`
+}
+
+// IsEmpty reports whether the request has no field to update.
+func (r UpdateInfraClusterRequest) IsEmpty() bool {
+	return r.DisplayName == nil && r.Description == nil && r.Position == nil && r.ContactIAMUserID == nil
+}
+
+// InfraClusterDeleteResponse is the 202 response of the asynchronous cluster deletion.
+type InfraClusterDeleteResponse struct {
+	// ID is the id of the started cluster deletion process.
+	ID string `json:"id" yaml:"id"`
+}
+
+// InfraClusterConflictError is returned by Composer Hub when a cluster operation
+// conflicts with the cluster state (HTTP 409).
+type InfraClusterConflictError struct {
+	// Reason is the machine-readable conflict reason: "profile_installed" or "deletion_in_progress".
+	Reason string
+	// ConflictsWith is the resource causing the conflict, when reported.
+	ConflictsWith string
+	// Message is the human-readable message returned by Composer Hub.
+	Message string
+}
+
+// Machine-readable conflict reasons returned by Composer Hub with a 409 on cluster operations.
+const (
+	InfraClusterConflictReasonProfileInstalled   = "profile_installed"
+	InfraClusterConflictReasonDeletionInProgress = "deletion_in_progress"
+)
+
+func (e *InfraClusterConflictError) Error() string {
+	if e.ConflictsWith != "" {
+		return fmt.Sprintf("%s (conflicts with %s)", e.Reason, e.ConflictsWith)
+	}
+	return e.Reason
+}
+
+// InfraClusterNotFoundError is returned when the requested cluster does not exist (HTTP 404).
+type InfraClusterNotFoundError struct {
+	ClusterID string
+}
+
+func (e *InfraClusterNotFoundError) Error() string {
+	return fmt.Sprintf("cluster with ID '%s' not found", e.ClusterID)
 }
 
 // #endregion
@@ -1051,6 +1167,7 @@ const (
 	ProcessTypeSwarmCreation   ProcessType = "swarm_creation"
 	ProcessTypeGatewayCreation ProcessType = "gateway_creation"
 	ProcessTypeTenantCreation  ProcessType = "tenant_creation"
+	ProcessTypeClusterDeletion ProcessType = "cluster_deletion"
 
 	ProcessStatusRunning ProcessStatus = "running"
 	ProcessStatusSuccess ProcessStatus = "success"
@@ -1068,6 +1185,9 @@ const (
 
 	ProcessStepCreatingTenantGateway            ProcessStep = "creating_tenant_gateway"
 	ProcessStepWaitingForTenantGatewayToBeReady ProcessStep = "waiting_for_tenant_gateway_to_be_ready"
+
+	ProcessStepRequestingClusterDeletion ProcessStep = "requesting_cluster_deletion"
+	ProcessStepWaitingForClusterDeletion ProcessStep = "waiting_for_cluster_deletion"
 )
 
 type Process struct {
@@ -1107,6 +1227,38 @@ func (p *Process) CastToGatewayCreationProcess() (*GatewayCreationProcess, bool)
 	}
 
 	return &GatewayCreationProcess{
+		ID:        p.ID,
+		Type:      p.Type,
+		CreatedAt: p.CreatedAt,
+		OwnerID:   p.OwnerID,
+		Step:      p.Step,
+		Status:    p.Status,
+		Data:      data,
+	}, true
+}
+
+type ClusterDeletionProcessData struct {
+	ClusterID string        `json:"cluster_id" yaml:"cluster_id"`
+	Error     *ProcessError `json:"error,omitempty" yaml:"error"`
+}
+
+type ClusterDeletionProcess struct {
+	ID        string                     `json:"id" yaml:"id"`
+	Type      ProcessType                `json:"type" yaml:"type"`
+	CreatedAt time.Time                  `json:"created_at" yaml:"created_at"`
+	OwnerID   string                     `json:"owner_id" yaml:"owner_id"`
+	Step      ProcessStep                `json:"step" yaml:"step"`
+	Status    ProcessStatus              `json:"status" yaml:"status"`
+	Data      ClusterDeletionProcessData `json:"data" yaml:"data"`
+}
+
+func (p *Process) CastToClusterDeletionProcess() (*ClusterDeletionProcess, bool) {
+	var data ClusterDeletionProcessData
+	if err := json.Unmarshal(p.Data, &data); err != nil {
+		return nil, false
+	}
+
+	return &ClusterDeletionProcess{
 		ID:        p.ID,
 		Type:      p.Type,
 		CreatedAt: p.CreatedAt,

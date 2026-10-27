@@ -10,7 +10,9 @@ import (
 
 type LocationServiceMock struct {
 	ListFunc              func(cmd *cobra.Command, args []string) error
-	ListAggregatedFunc    func(cmd *cobra.Command, args []string) error
+	DescribeFunc          func(cmd *cobra.Command, args []string) error
+	UpdateFunc            func(cmd *cobra.Command, args []string) error
+	DeleteFunc            func(cmd *cobra.Command, args []string) error
 	CreateVirtualFunc     func(cmd *cobra.Command, args []string) error
 	CreateVirtualNodeFunc func(cmd *cobra.Command, args []string) error
 }
@@ -21,7 +23,7 @@ func NewLocationServiceMock() *LocationServiceMock {
 			cmd.Println("Mock: Locations list: [location1, location2, location3]")
 			return nil
 		},
-		ListAggregatedFunc: func(cmd *cobra.Command, args []string) error {
+		DescribeFunc: func(cmd *cobra.Command, args []string) error {
 			mockClusters := []api.InfraAggregateCluster{
 				{
 					ClusterID: "cluster-001",
@@ -52,6 +54,14 @@ func NewLocationServiceMock() *LocationServiceMock {
 			cmd.Println("Mock: Virtual node created")
 			return nil
 		},
+		UpdateFunc: func(cmd *cobra.Command, args []string) error {
+			cmd.Println("Mock: Location updated")
+			return nil
+		},
+		DeleteFunc: func(cmd *cobra.Command, args []string) error {
+			cmd.Println("Mock: Location deleted")
+			return nil
+		},
 	}
 }
 
@@ -62,9 +72,23 @@ func (m *LocationServiceMock) List(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (m *LocationServiceMock) ListAggregated(cmd *cobra.Command, args []string) error {
-	if m.ListAggregatedFunc != nil {
-		return m.ListAggregatedFunc(cmd, args)
+func (m *LocationServiceMock) Describe(cmd *cobra.Command, args []string) error {
+	if m.DescribeFunc != nil {
+		return m.DescribeFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *LocationServiceMock) Update(cmd *cobra.Command, args []string) error {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(cmd, args)
+	}
+	return nil
+}
+
+func (m *LocationServiceMock) Delete(cmd *cobra.Command, args []string) error {
+	if m.DeleteFunc != nil {
+		return m.DeleteFunc(cmd, args)
 	}
 	return nil
 }

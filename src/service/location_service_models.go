@@ -15,6 +15,13 @@ type AggregateClusterView struct {
 	LastUpdate    string
 }
 
+// createdLocationOutput is the printed representation of a newly created virtual location.
+type createdLocationOutput struct {
+	ClusterID string `json:"cluster_id" yaml:"cluster_id"`
+	Name      string `json:"name" yaml:"name"`
+	Type      string `json:"type" yaml:"type"`
+}
+
 func NewAggregateClusterView(cluster api.InfraAggregateCluster) AggregateClusterView {
 	return AggregateClusterView{
 		ClusterID:     cluster.ClusterID,

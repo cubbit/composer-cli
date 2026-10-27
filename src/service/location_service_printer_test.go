@@ -24,9 +24,13 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 	}
 
 	cluster := api.InfraAggregateCluster{
-		ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-		Name:      "Test Cluster",
-		Type:      api.ClusterTypePhysical,
+		ClusterID:          "550e8400-e29b-41d4-a716-446655440000",
+		Name:               "Milan DC",
+		Type:               api.ClusterTypePhysical,
+		Description:        strPtr("Primary datacenter"),
+		Position:           strPtr("Milan, Italy"),
+		ContactIAMUserID:   strPtr("695ed3dd-e77d-42b9-88ed-70bd3a1704ee"),
+		ContactIAMUserName: strPtr("Mario Rossi"),
 		Details: api.InfraAggregateClusterDetail{
 			LastUpdate: baseTime,
 			NextUpdate: baseTime.Add(time.Hour),
@@ -143,11 +147,18 @@ func TestPrintClusterDetails_Human(t *testing.T) {
 	expectedResult := strings.TrimSpace(`
 Cluster Information
 ─────────────────────────────────────────────────
-╭──────────────────────────────────────┬──────────────┬──────────┬────────────────┬───────────────┬─────────────────────╮
-│ Cluster ID                           │ Name         │ Type     │ Physical Nodes │ Virtual Nodes │ Last Update         │
-├──────────────────────────────────────┼──────────────┼──────────┼────────────────┼───────────────┼─────────────────────┤
-│ 550e8400-e29b-41d4-a716-446655440000 │ Test Cluster │ physical │ 2              │ 2             │ 2024-01-15 10:30:00 │
-╰──────────────────────────────────────┴──────────────┴──────────┴────────────────┴───────────────┴─────────────────────╯
+╭──────────────────────────────────────┬──────────┬──────────┬────────────────┬───────────────┬─────────────────────╮
+│ Cluster ID                           │ Name     │ Type     │ Physical Nodes │ Virtual Nodes │ Last Update         │
+├──────────────────────────────────────┼──────────┼──────────┼────────────────┼───────────────┼─────────────────────┤
+│ 550e8400-e29b-41d4-a716-446655440000 │ Milan DC │ physical │ 2              │ 2             │ 2024-01-15 10:30:00 │
+╰──────────────────────────────────────┴──────────┴──────────┴────────────────┴───────────────┴─────────────────────╯
+
+Metadata
+─────────────────────────────────────────────────
+Description: Primary datacenter
+Position: Milan, Italy
+Contact name: Mario Rossi
+Contact id: 695ed3dd-e77d-42b9-88ed-70bd3a1704ee
 
 Physical Nodes
 ─────────────────────────────────────────────────
@@ -261,18 +272,20 @@ func TestPrintClusters_Human(t *testing.T) {
 	clusters := []api.InfrastructureCluster{
 		{
 			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-			Name:      "Test Cluster 1",
+			Name:      "Milan DC",
 			Type:      "physical",
+			Position:  strPtr("Milan, Italy"),
 		},
 		{
 			ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-			Name:      "Test Cluster 2",
+			Name:      "test-cluster-2",
 			Type:      "virtual",
 		},
 		{
 			ClusterID: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-			Name:      "Test Cluster 3",
+			Name:      "Rome DC",
 			Type:      "physical",
+			Position:  strPtr("Rome, Italy"),
 		},
 	}
 
@@ -283,13 +296,13 @@ func TestPrintClusters_Human(t *testing.T) {
 	}
 
 	expectedResult := strings.TrimSpace(`
-╭──────────────────────────────────────┬────────────────┬──────────╮
-│ Cluster ID                           │ Name           │ Type     │
-├──────────────────────────────────────┼────────────────┼──────────┤
-│ 550e8400-e29b-41d4-a716-446655440000 │ Test Cluster 1 │ physical │
-│ 6ba7b810-9dad-11d1-80b4-00c04fd430c8 │ Test Cluster 2 │ virtual  │
-│ f47ac10b-58cc-4372-a567-0e02b2c3d479 │ Test Cluster 3 │ physical │
-╰──────────────────────────────────────┴────────────────┴──────────╯
+╭──────────────────────────────────────┬────────────────┬──────────┬──────────────╮
+│ Cluster ID                           │ Name           │ Type     │ Position     │
+├──────────────────────────────────────┼────────────────┼──────────┼──────────────┤
+│ 550e8400-e29b-41d4-a716-446655440000 │ Milan DC       │ physical │ Milan, Italy │
+│ 6ba7b810-9dad-11d1-80b4-00c04fd430c8 │ test-cluster-2 │ virtual  │              │
+│ f47ac10b-58cc-4372-a567-0e02b2c3d479 │ Rome DC        │ physical │ Rome, Italy  │
+╰──────────────────────────────────────┴────────────────┴──────────┴──────────────╯
 `)
 
 	actualResult := strings.TrimSpace(out.String())
@@ -342,10 +355,10 @@ func TestPrintClusters_Empty(t *testing.T) {
 	}
 
 	expectedResult := strings.TrimSpace(`
-╭────────────┬──────┬──────╮
-│ Cluster ID │ Name │ Type │
-├────────────┼──────┼──────┤
-╰────────────┴──────┴──────╯
+╭────────────┬──────┬──────┬──────────╮
+│ Cluster ID │ Name │ Type │ Position │
+├────────────┼──────┼──────┼──────────┤
+╰────────────┴──────┴──────┴──────────╯
 `)
 
 	actualResult := strings.TrimSpace(out.String())

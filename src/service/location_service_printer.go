@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/cubbit/composer-cli/src/api"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_handler"
@@ -16,11 +17,35 @@ import (
 func PrintClusterDetails(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, cluster api.InfraAggregateCluster) error {
 	printFuncs := []func() error{
 		func() error { return printClusterInfo(cmd, handler, cluster) },
+		func() error { return printClusterMetadata(cmd, handler, cluster) },
 		func() error { return printPhysicalNodes(cmd, handler, cluster.Details.Nodes) },
 		func() error { return PrintVirtualNodes(cmd, handler, cluster.Details.VirtualNodes) },
 	}
 
 	return printer.ComposeStructured(cmd, handler, cluster, printFuncs...)
+}
+
+// optionalString renders a nullable metadata value, leaving it empty when unset.
+func optionalString(value *string) string {
+	if value == nil {
+		return ""
+	}
+
+	return *value
+}
+
+// printClusterMetadata renders the operator-managed metadata of a location. The values are shown even
+// when unset, so the absence of a field is explicit.
+func printClusterMetadata(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, cluster api.InfraAggregateCluster) error {
+	lines := []string{
+		"\nMetadata\n" + utils.Separator,
+		fmt.Sprintf("Description: %s", utils.FormatPtrString(cluster.Description)),
+		fmt.Sprintf("Position: %s", utils.FormatPtrString(cluster.Position)),
+		fmt.Sprintf("Contact name: %s", utils.FormatPtrString(cluster.ContactIAMUserName)),
+		fmt.Sprintf("Contact id: %s", utils.FormatPtrString(cluster.ContactIAMUserID)),
+	}
+
+	return printer.PrintText(cmd, handler, strings.Join(lines, "\n")+"\n")
 }
 
 func printClusterInfo(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface, cluster api.InfraAggregateCluster) error {
@@ -306,6 +331,7 @@ func PrintClusters(cmd *cobra.Command, handler configuration_handler.Configurati
 		{Title: "Cluster ID"},
 		{Title: "Name"},
 		{Title: "Type"},
+		{Title: "Position"},
 	}
 
 	rowMapper := func(v api.InfrastructureCluster) []string {
@@ -313,6 +339,7 @@ func PrintClusters(cmd *cobra.Command, handler configuration_handler.Configurati
 			v.ClusterID,
 			v.Name,
 			v.Type,
+			optionalString(v.Position),
 		}
 	}
 

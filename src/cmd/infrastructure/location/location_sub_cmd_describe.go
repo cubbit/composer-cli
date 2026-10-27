@@ -16,7 +16,7 @@ func NewLocationSubCmdDescribe(
 
 	var locationDescribeCmd = &cobra.Command{
 		Use:   "describe",
-		Short: "Describe aggregated locations",
+		Short: "Describe a location",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if clusterName != "" && clusterID != "" {
 				return fmt.Errorf("--cluster-name and --cluster-id are mutually exclusive")
@@ -29,7 +29,7 @@ func NewLocationSubCmdDescribe(
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := locationServiceFn.ListAggregated(cmd, args); err != nil {
+			if err := locationServiceFn.Describe(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
 			}
 		},

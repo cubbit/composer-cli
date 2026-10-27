@@ -13,27 +13,24 @@ import (
 func TestLocationSubCmd_Describe_Output_JSON(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-				},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "test-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -75,27 +72,24 @@ func TestLocationSubCmd_Describe_Output_JSON(t *testing.T) {
 func TestLocationSubCmd_Describe_Output_YAML(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-				},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "test-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -137,70 +131,67 @@ func TestLocationSubCmd_Describe_Output_Full_JSON(t *testing.T) {
 	externalIP := "203.0.113.10"
 	internalIP := "10.0.0.10"
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate: baseTime,
-						NextUpdate: baseTime.Add(time.Hour),
-						IsUpdateOk: true,
-						Nodes: []api.InfraAggregateNodeDetail{
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "test-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate: baseTime,
+				NextUpdate: baseTime.Add(time.Hour),
+				IsUpdateOk: true,
+				Nodes: []api.InfraAggregateNodeDetail{
+					{
+						NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+						NodeName: "node-1-host",
+						Status: api.InfraAggregateStatus{
+							Code:    string(api.StatusCodeOk),
+							Details: "All systems operational",
+						},
+						OSName:     &osImage,
+						CPU:        &api.InfraNodeCPUInfo{Cores: 16},
+						RAM:        &api.InfraNodeRAMInfo{Available: 64.0},
+						ExternalIP: &externalIP,
+						InternalIP: &internalIP,
+						Disks: []api.InfraAggregateDiskDetail{
 							{
-								NodeID:   "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-								NodeName: "node-1-host",
+								DiskUUID:              "8e7d7a2e-3c5e-4f9a-9b8c-1d2e3f4a5b6c",
+								Path:                  "/dev/sda",
+								Used:                  true,
+								PVRef:                 "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+								TotalStorageSizeBytes: 1099511627776,
+								UsedStorageBytes:      549755813888,
 								Status: api.InfraAggregateStatus{
-									Code:    string(api.StatusCodeOk),
-									Details: "All systems operational",
-							},
-								OSName:     &osImage,
-								CPU:        &api.InfraNodeCPUInfo{Cores: 16},
-								RAM:        &api.InfraNodeRAMInfo{Available: 64.0},
-								ExternalIP: &externalIP,
-								InternalIP: &internalIP,
-								Disks: []api.InfraAggregateDiskDetail{
-									{
-										DiskUUID:              "8e7d7a2e-3c5e-4f9a-9b8c-1d2e3f4a5b6c",
-										Path:                  "/dev/sda",
-										Used:                  true,
-										PVRef:                 "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-										TotalStorageSizeBytes: 1099511627776,
-										UsedStorageBytes:      549755813888,
-										Status: api.InfraAggregateStatus{
-											Code: string(api.StatusCodeOk),
-									},
+									Code: string(api.StatusCodeOk),
 								},
 							},
 						},
 					},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{
-							{
-								NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
-								NodeName: "vnode-1-host",
-								Status: api.InfraAggregateStatus{
-									Code:    string(api.StatusCodeOk),
-									Details: "S3 service running",
-							},
-								StorageType: api.VirtualStorageTypeS3,
-								StorageConfiguration: map[string]any{
-									"endpoint":      "https://s3.example.com",
-									"bucket_name":   "cubbit-virtual",
-									"region":        "us-east-1",
-									"access_key_id": "AKIAIOSFODNN7EXAMPLE",
-							},
+				},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{
+					{
+						NodeID:   "4b6e8c2f-9a1d-4f3e-8b5c-7d4a6e5b3c2f",
+						NodeName: "vnode-1-host",
+						Status: api.InfraAggregateStatus{
+							Code:    string(api.StatusCodeOk),
+							Details: "S3 service running",
+						},
+						StorageType: api.VirtualStorageTypeS3,
+						StorageConfiguration: map[string]any{
+							"endpoint":      "https://s3.example.com",
+							"bucket_name":   "cubbit-virtual",
+							"region":        "us-east-1",
+							"access_key_id": "AKIAIOSFODNN7EXAMPLE",
 						},
 					},
 				},
-				},
-			}, nil
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -289,28 +280,25 @@ func TestLocationSubCmd_Describe_Output_Full_JSON(t *testing.T) {
 func TestLocationSubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-				},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "test-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-		mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
 		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
@@ -320,9 +308,9 @@ func TestLocationSubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
 				Dash: "https://dash.example.com",
 				CH:   "https://ch.example.com",
 			},
-			}, nil
+		}, nil
 	}
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -363,28 +351,25 @@ func TestLocationSubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
 func TestLocationSubCmd_Describe_Output_YAML_FromProfile(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
 
-	mockAPI := &api.MockLocationAPI{
-		ListAggregatedFunc: func(_ configuration_models.EndpointsV2, _, _ string, _ ...api.LocationListOption) ([]api.InfraAggregateCluster, error) {
-			return []api.InfraAggregateCluster{
-				{
-					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
-					Name:      "test-cluster",
-					Type:      api.ClusterTypePhysical,
-					Details: api.InfraAggregateClusterDetail{
-						LastUpdate:   baseTime,
-						NextUpdate:   baseTime.Add(time.Hour),
-						IsUpdateOk:   true,
-						Nodes:        []api.InfraAggregateNodeDetail{},
-						VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
-				},
-				},
-			}, nil
+	clusters := []api.InfraAggregateCluster{
+		{
+			ClusterID: "550e8400-e29b-41d4-a716-446655440000",
+			Name:      "test-cluster",
+			Type:      api.ClusterTypePhysical,
+			Details: api.InfraAggregateClusterDetail{
+				LastUpdate:   baseTime,
+				NextUpdate:   baseTime.Add(time.Hour),
+				IsUpdateOk:   true,
+				Nodes:        []api.InfraAggregateNodeDetail{},
+				VirtualNodes: []api.InfraAggregateVirtualNodeDetail{},
+			},
 		},
 	}
+	mockAPI := mockDescribeAPI(clusters...)
 
 	mockConfig := setupDescribeMockConfig()
 
-		mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
 		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
@@ -394,9 +379,9 @@ func TestLocationSubCmd_Describe_Output_YAML_FromProfile(t *testing.T) {
 				Dash: "https://dash.example.com",
 				CH:   "https://ch.example.com",
 			},
-			}, nil
+		}, nil
 	}
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")

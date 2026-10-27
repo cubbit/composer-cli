@@ -20,6 +20,7 @@ func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 					ClusterID: "550e8400-e29b-41d4-a716-446655440000",
 					Name:      "production-cluster",
 					Type:      "physical",
+					Position:  stringPointer("Milan, Italy"),
 				},
 				{
 					ClusterID: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -44,7 +45,7 @@ func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -61,12 +62,12 @@ func TestLocationSubCmd_List_Integration_Success(t *testing.T) {
 	}
 
 	expectedResult := strings.TrimSpace(`
-╭──────────────────────────────────────┬────────────────────┬──────────╮
-│ Cluster ID                           │ Name               │ Type     │
-├──────────────────────────────────────┼────────────────────┼──────────┤
-│ 550e8400-e29b-41d4-a716-446655440000 │ production-cluster │ physical │
-│ 6ba7b810-9dad-11d1-80b4-00c04fd430c8 │ staging-cluster    │ virtual  │
-╰──────────────────────────────────────┴────────────────────┴──────────╯
+╭──────────────────────────────────────┬────────────────────┬──────────┬──────────────╮
+│ Cluster ID                           │ Name               │ Type     │ Position     │
+├──────────────────────────────────────┼────────────────────┼──────────┼──────────────┤
+│ 550e8400-e29b-41d4-a716-446655440000 │ production-cluster │ physical │ Milan, Italy │
+│ 6ba7b810-9dad-11d1-80b4-00c04fd430c8 │ staging-cluster    │ virtual  │              │
+╰──────────────────────────────────────┴────────────────────┴──────────┴──────────────╯
 `)
 
 	actualResult := strings.TrimSpace(commandOutput.String())
@@ -96,7 +97,7 @@ func TestLocationSubCmd_List_Integration_Empty(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -113,10 +114,10 @@ func TestLocationSubCmd_List_Integration_Empty(t *testing.T) {
 	}
 
 	expectedResult := strings.TrimSpace(`
-╭────────────┬──────┬──────╮
-│ Cluster ID │ Name │ Type │
-├────────────┼──────┼──────┤
-╰────────────┴──────┴──────╯
+╭────────────┬──────┬──────┬──────────╮
+│ Cluster ID │ Name │ Type │ Position │
+├────────────┼──────┼──────┼──────────┤
+╰────────────┴──────┴──────┴──────────╯
 `)
 
 	actualResult := strings.TrimSpace(commandOutput.String())
@@ -146,7 +147,7 @@ func TestLocationSubCmd_List_Integration_Error(t *testing.T) {
 		}, nil
 	}
 
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().Bool("quiet", false, "quiet mode")
@@ -167,4 +168,8 @@ func TestLocationSubCmd_List_Integration_Error(t *testing.T) {
 	if !strings.Contains(output, expectedError) {
 		t.Errorf("Expected output to contain error message %q, got %q", expectedError, output)
 	}
+}
+
+func stringPointer(value string) *string {
+	return &value
 }

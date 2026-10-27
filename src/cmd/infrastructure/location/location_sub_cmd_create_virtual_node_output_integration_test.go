@@ -25,7 +25,7 @@ func TestLocationSubCmd_CreateVirtualNode_Output_JSON(t *testing.T) {
 	}
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -85,7 +85,7 @@ func TestLocationSubCmd_CreateVirtualNode_Output_YAML(t *testing.T) {
 	}
 
 	mockConfig := setupDescribeMockConfig()
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -140,7 +140,7 @@ func TestLocationSubCmd_CreateVirtualNode_Output_JSON_FromProfile(t *testing.T) 
 
 	mockConfig := setupDescribeMockConfig()
 
-		mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
 		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
@@ -150,9 +150,9 @@ func TestLocationSubCmd_CreateVirtualNode_Output_JSON_FromProfile(t *testing.T) 
 				Dash: "https://dash.example.com",
 				CH:   "https://ch.example.com",
 			},
-	}, nil
+		}, nil
 	}
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
@@ -212,7 +212,7 @@ func TestLocationSubCmd_CreateVirtualNode_Output_YAML_FromProfile(t *testing.T) 
 
 	mockConfig := setupDescribeMockConfig()
 
-		mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+	mockConfig.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
 		return configuration_models.ProfileV2{
 			APIKey:         "test-api-key",
 			OrganizationID: "test-org-id",
@@ -222,9 +222,9 @@ func TestLocationSubCmd_CreateVirtualNode_Output_YAML_FromProfile(t *testing.T) 
 				Dash: "https://dash.example.com",
 				CH:   "https://ch.example.com",
 			},
-	}, nil
+		}, nil
 	}
-	locationService := service.NewLocationService(mockConfig, mockAPI, nil)
+	locationService := service.NewLocationService(mockConfig, mockAPI, nil, nil)
 
 	locationCmd := NewLocationCmd(&locationService)
 	locationCmd.PersistentFlags().String("output", "human", "Output format")
