@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.0
+
+### Minor Changes
+
+- 1948266: Add the infrastructure location update and delete commands and expose location metadata in the location list, describe and update commands.
+
 ## 2.10.0
 
 ### Minor Changes
