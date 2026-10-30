@@ -13,11 +13,11 @@ func NewIAMAPIKeySubCmdList(apiKeyService iamAPIKeyService) *cobra.Command {
 		Long: `List API keys for the current user or for a specified IAM user.
 
 Examples:
-  cubbit iam api-key list
-  cubbit iam api-key list --sort-key created_at --sort-order desc
-  cubbit iam api-key list --page 2 --items 50
-  cubbit iam api-key list --user-id <uuid>
-  cubbit iam api-key list --username jdoe`,
+  ds3-composer iam api-key list
+  ds3-composer iam api-key list --sort-key created_at --sort-order desc
+  ds3-composer iam api-key list --page 2 --items 50
+  ds3-composer iam api-key list --user-id <uuid>
+  ds3-composer iam api-key list --username jdoe`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := apiKeyService.ListAPIKeys(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

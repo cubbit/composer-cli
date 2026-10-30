@@ -17,9 +17,9 @@ func NewIAMUserSubCmdDelete(
 		Long: `Delete an IAM user from the current profile organization.
 
 Examples:
-  cubbit iam user delete <uuid>
-  cubbit iam user delete --user-id <uuid>
-  cubbit iam user delete --username jdoe`,
+  ds3-composer iam user delete <uuid>
+  ds3-composer iam user delete --user-id <uuid>
+  ds3-composer iam user delete --username jdoe`,
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.DeleteUser(cmd, args); err != nil {

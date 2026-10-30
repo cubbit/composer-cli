@@ -19,7 +19,7 @@ func NewTenantSubCmdDescribe(
 Shows detailed information about a tenant including metadata, resource usage, and settings.
 
 Examples:
-  cubbit tenant describe <tenant-id>`,
+  ds3-composer tenant describe <tenant-id>`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return fmt.Errorf("accepts 1 arg(s), received %d", len(args))

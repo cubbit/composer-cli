@@ -40,7 +40,7 @@ Install directly using Go's package manager:
 go install github.com/cubbit/composer-cli@latest
 ```
 
-This will download, compile, and install the `composer-cli` binary to your `$GOPATH/bin` directory. Make sure `$GOPATH/bin` is in your system's PATH.
+This will download, compile, and install the `ds3-composer` binary to your `$GOPATH/bin` directory. Make sure `$GOPATH/bin` is in your system's PATH.
 
 ### Option 3: Build from Source
 
@@ -53,24 +53,24 @@ This will download, compile, and install the `composer-cli` binary to your `$GOP
 2. **Build the CLI:**
    ```bash
    # Build for current platform
-   go build -o build/cubbit .
+   go build -o build/ds3-composer .
 
    # Cross-compile for specific platform (example for macOS)
-   env GOOS=darwin GOARCH=amd64 go build -o build/cubbit .
+   env GOOS=darwin GOARCH=amd64 go build -o build/ds3-composer .
    ```
 
 3. **Install to your PATH:**
    ```bash
    # Linux/macOS
-   sudo cp build/cubbit /usr/local/bin/
+   sudo cp build/ds3-composer /usr/local/bin/
 
-   # Windows: Copy build/cubbit.exe to a directory in your PATH
+   # Windows: Copy build/ds3-composer.exe to a directory in your PATH
    ```
 
 ### Verify Installation
 
 ```bash
-cubbit --version
+ds3-composer version
 ```
 
 ## Quick Start
@@ -79,12 +79,12 @@ cubbit --version
 
 1. **Initialize configuration** (optional - creates config file at `$HOME/.config/cubbit/config.toml`):
    ```bash
-   cubbit config init
+   ds3-composer config init
    ```
 
 2. **Authenticate with your composer account:**
    ```bash
-   cubbit auth login --profile <profile_name>
+   ds3-composer auth login --profile <profile_name>
    ```
 
    This will open your browser for secure authentication and automatically configure your API key.
@@ -94,7 +94,7 @@ cubbit --version
    You can provide custom API endpoints via a TOML file:
 
    ```bash
-   cubbit auth login --profile <profile_name> --endpoints <path/to/endpoints.toml>
+   ds3-composer auth login --profile <profile_name> --endpoints <path/to/endpoints.toml>
    ```
 
    Example `endpoints.toml`:
@@ -110,29 +110,29 @@ cubbit --version
 
 3. **Verify your setup:**
    ```bash
-   cubbit config view
+   ds3-composer config view
    ```
 
 ### Basic Commands
 
 ```bash
 # Display help and available commands
-cubbit --help
+ds3-composer --help
 
 # View command structure
-cubbit docs tree
+ds3-composer docs tree
 
 # Manage configuration profiles
-cubbit config [command]
+ds3-composer config [command]
 
 # Manage tenants
-cubbit tenant [command]
+ds3-composer tenant [command]
 
 # Manage swarms
-cubbit swarm [command]
+ds3-composer swarm [command]
 
 # Manage infrastructure locations
-cubbit infrastructure location [command]
+ds3-composer infrastructure location [command]
 ```
 
 ## Configuration
@@ -201,19 +201,19 @@ All keys are optional. When `base` is set without individual endpoints, the CLI 
 
 ```bash
 # Switch between profiles
-cubbit config switch-profile <profile_name>
+ds3-composer config switch-profile <profile_name>
 
 # List available profiles
-cubbit config profiles
+ds3-composer config profiles
 
 # View current configuration
-cubbit config view
+ds3-composer config view
 
 # Edit configuration in $EDITOR
-cubbit config edit
+ds3-composer config edit
 
 # Validate configuration
-cubbit config validate
+ds3-composer config validate
 ```
 
 ## Authentication
@@ -224,7 +224,7 @@ Authentication is handled through API keys generated via secure browser-based lo
 
 1. Run the login command:
    ```bash
-   cubbit auth login --profile <profile_name>
+   ds3-composer auth login --profile <profile_name>
    ```
 
 2. Choose an authentication method when prompted:
@@ -242,13 +242,13 @@ For scripting and automation, you can provide credentials via flags:
 
 ```bash
 # Using username/password
-cubbit auth login --profile <profile_name> --username <user> --organization <org> --password <pass>
+ds3-composer auth login --profile <profile_name> --username <user> --organization <org> --password <pass>
 
 # Using an API key
-cubbit auth login --profile <profile_name> --api-key <key>
+ds3-composer auth login --profile <profile_name> --api-key <key>
 
 # Using environment variables
-API_KEY=<key> cubbit auth login --profile <profile_name>
+API_KEY=<key> ds3-composer auth login --profile <profile_name>
 ```
 
 **Warning**: Providing credentials via CLI flags may expose them in shell history and process lists. Prefer environment variables or interactive prompts.
@@ -257,10 +257,10 @@ API_KEY=<key> cubbit auth login --profile <profile_name>
 
 ```bash
 # Logout from specific profile
-cubbit auth logout --profile <profile_name>
+ds3-composer auth logout --profile <profile_name>
 
 # Logout from all profiles
-cubbit auth logout --all
+ds3-composer auth logout --all
 ```
 
 ## Interactive Mode
@@ -268,7 +268,7 @@ cubbit auth logout --all
 For complex operations and guided workflows, use interactive mode:
 
 ```bash
-cubbit --interactive
+ds3-composer --interactive
 ```
 
 Interactive mode provides step-by-step assistance for gateway configuration and installation processes.
@@ -284,10 +284,10 @@ The CLI provides multiple modes for automation and scripting:
 
 ```bash
 # Quiet mode example
-cubbit tenant list --quiet
+ds3-composer tenant list --quiet
 
 # Silent mode example
-cubbit swarm deploy --silent
+ds3-composer swarm deploy --silent
 ```
 
 ## Features
@@ -302,7 +302,7 @@ cubbit swarm deploy --silent
 ## Documentation
 
 - **Cubbit Official Documentation**: [docs.cubbit.io](https://docs.cubbit.io)
-- **Command Reference**: Run `cubbit docs` for detailed command documentation
+- **Command Reference**: Run `ds3-composer docs` for detailed command documentation
 
 ## Support
 
@@ -315,7 +315,7 @@ cubbit swarm deploy --silent
 ### Reporting Bugs
 
 Please include the following information when reporting issues:
-- CLI version (`cubbit --version`)
+- CLI version (`ds3-composer version`)
 - Operating system and version
 - Complete error messages
 - Steps to reproduce

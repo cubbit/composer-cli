@@ -16,8 +16,8 @@ func NewIAMUserTFASubCmdEnable(
 If --setup-key is omitted, a setup key is generated automatically.
 
 Examples:
-  cubbit iam user tfa enable --password current-secret
-  cubbit iam user tfa enable --password current-secret --setup-key JBSWY3DPEHPK3PXP`,
+  ds3-composer iam user tfa enable --password current-secret
+  ds3-composer iam user tfa enable --password current-secret --setup-key JBSWY3DPEHPK3PXP`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.EnableUserTFA(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

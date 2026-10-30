@@ -24,7 +24,7 @@ func createTestDomainCmd(mockAPI *api.MockDomainAPI) (*cobra.Command, *bytes.Buf
 	}
 	svc := service.NewDomainService(mockCfg, mockAPI, &api.UserAPI{})
 
-	rootCmd := &cobra.Command{Use: "cubbit"}
+	rootCmd := &cobra.Command{Use: "ds3-composer"}
 	rootCmd.PersistentFlags().String("profile", "", "Profile Configuration")
 	rootCmd.PersistentFlags().String("output", "human", "Output format: human (default), json, yaml")
 	rootCmd.PersistentFlags().Bool("no-headers", false, "Suppress table headers in human output")

@@ -21,4 +21,4 @@ jobs:
 
       - name: Build
         run: |
-          go build -o composer-cli main.go
+          go build -o ds3-composer main.go

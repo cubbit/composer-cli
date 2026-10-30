@@ -27,7 +27,7 @@ func NewDocsSubCmdMan() *cobra.Command {
 			}
 
 			header := &doc.GenManHeader{
-				Title:   "cubbit",
+				Title:   "ds3-composer",
 				Section: "1",
 			}
 

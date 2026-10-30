@@ -15,10 +15,10 @@ func NewIAMUserSubCmdList(
 		Long: `List IAM users in the current profile organization.
 
 Examples:
-  cubbit iam user list
-  cubbit iam user list --search alice
-  cubbit iam user list --enabled true --sort-key username --sort-order asc
-  cubbit iam user list --page 2 --items 50`,
+  ds3-composer iam user list
+  ds3-composer iam user list --search alice
+  ds3-composer iam user list --enabled true --sort-key username --sort-order asc
+  ds3-composer iam user list --page 2 --items 50`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.ListUsers(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

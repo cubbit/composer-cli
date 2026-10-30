@@ -26,8 +26,8 @@ The connection is identified by --connection-id (required). Use --tenant-id
 or --tenant-name to specify the tenant.
 
 Examples:
-  cubbit tenant verify-connection --tenant-id <tenant-id> --connection-id <connection-id>
-  cubbit tenant verify-connection --tenant-name <tenant-name> --connection-id <connection-id>`,
+  ds3-composer tenant verify-connection --tenant-id <tenant-id> --connection-id <connection-id>
+  ds3-composer tenant verify-connection --tenant-name <tenant-name> --connection-id <connection-id>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := tenantService.VerifyConnection(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

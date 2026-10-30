@@ -34,10 +34,10 @@ CSV files must contain username and password columns. Optional columns are first
 Use semicolons to separate multiple attached_policies values in CSV files.
 
 Examples:
-  cubbit iam user import --sample json > users.json
-  cubbit iam user import --sample csv > users.csv
-  cubbit iam user import --file users.json
-  cubbit iam user import --file users.csv`,
+  ds3-composer iam user import --sample json > users.json
+  ds3-composer iam user import --sample csv > users.csv
+  ds3-composer iam user import --file users.json
+  ds3-composer iam user import --file users.csv`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.ImportUsers(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

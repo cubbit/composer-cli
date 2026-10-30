@@ -13,11 +13,11 @@ func NewIAMAPIKeySubCmdEdit(apiKeyService iamAPIKeyService) *cobra.Command {
 		Long: `Edit an API key for the current user or for a specified IAM user.
 
 Examples:
-  cubbit iam api-key edit --id <uuid> --name automation
-  cubbit iam api-key edit --id <uuid> --expires-at 2026-12-31T23:59:59Z
-  cubbit iam api-key edit --id <uuid> --enabled=false
-  cubbit iam api-key edit --id <uuid> --user-id <user-uuid> --name automation
-  cubbit iam api-key edit --id <uuid> --username jdoe --enabled=false`,
+  ds3-composer iam api-key edit --id <uuid> --name automation
+  ds3-composer iam api-key edit --id <uuid> --expires-at 2026-12-31T23:59:59Z
+  ds3-composer iam api-key edit --id <uuid> --enabled=false
+  ds3-composer iam api-key edit --id <uuid> --user-id <user-uuid> --name automation
+  ds3-composer iam api-key edit --id <uuid> --username jdoe --enabled=false`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := apiKeyService.EditAPIKey(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

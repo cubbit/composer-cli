@@ -19,9 +19,9 @@ Supports optional filtering with the syntax: field:operator(value).
 Use --query multiple times for multiple filters, or a single comma-separated string.
 
 Examples:
-  cubbit tenant list
-  cubbit tenant list --query "name:eq(my-tenant)"
-  cubbit tenant list --page 1 --items 50`,
+  ds3-composer tenant list
+  ds3-composer tenant list --query "name:eq(my-tenant)"
+  ds3-composer tenant list --page 1 --items 50`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := tenantService.List(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

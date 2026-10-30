@@ -21,10 +21,10 @@ By default each connection is live-verified before the list is refreshed.
 Use --skip-verify to skip this process and return cached data.
 
 Examples:
-  cubbit tenant list-connections --tenant-id <tenant-id>
-  cubbit tenant list-connections --tenant-name <tenant-name>
-  cubbit tenant list-connections --tenant-id <tenant-id> --page 1 --items 50
-  cubbit tenant list-connections --tenant-id <tenant-id> --skip-verify`,
+  ds3-composer tenant list-connections --tenant-id <tenant-id>
+  ds3-composer tenant list-connections --tenant-name <tenant-name>
+  ds3-composer tenant list-connections --tenant-id <tenant-id> --page 1 --items 50
+  ds3-composer tenant list-connections --tenant-id <tenant-id> --skip-verify`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := tenantService.ListConnections(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

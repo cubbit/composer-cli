@@ -54,11 +54,11 @@ This document outlines the contribution guidelines for the Cubbit CLI project. B
 
 ```bash
 # Build locally
-go build -o build/cubbit .
+go build -o build/ds3-composer .
 
 # Verify installation
-./build/cubbit --version
-./build/cubbit --help
+./build/ds3-composer version
+./build/ds3-composer --help
 ```
 
 ## Git Workflow
@@ -148,7 +148,7 @@ Include the following information:
 1. **Environment**
    - OS and version
    - Go version
-   - CLI version (`cubbit --version`)
+   - CLI version (`ds3-composer version`)
 
 2. **Reproduction Steps**
    - Exact command sequence
@@ -193,16 +193,16 @@ Due to infrastructure requirements, testing relies on:
 
 ```bash
 # Basic functionality
-./build/cubbit --help
-./build/cubbit --version
+./build/ds3-composer --help
+./build/ds3-composer version
 
 # Output formats
-./build/cubbit tenant list --output json
-./build/cubbit tenant list --output yaml
-./build/cubbit tenant list --output xml
+./build/ds3-composer tenant list --output json
+./build/ds3-composer tenant list --output yaml
+./build/ds3-composer tenant list --output xml
 
 # Error conditions
-./build/cubbit tenant describe --id nonexistent
+./build/ds3-composer tenant describe --id nonexistent
 ```
 
 ## Support

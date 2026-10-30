@@ -24,7 +24,7 @@ func (h *ConfigurationHandler) Load(cmd *cobra.Command, args []string) error {
 	_, internalPath, found := strings.Cut(cmd.CommandPath(), " ")
 
 	if !found {
-		// Root command (cubbit with no subcommand — shows help): no config needed
+		// Root command (ds3-composer with no subcommand — shows help): no config needed
 		return h.loadForConfigNotRequired()
 	}
 

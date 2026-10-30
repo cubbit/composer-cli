@@ -15,7 +15,7 @@ func NewIAMUserTFASubCmdDisable(
 		Long: `Disable TFA for the IAM user in the active profile.
 
 Example:
-  cubbit iam user tfa disable --password current-secret --tfa-code 123456`,
+  ds3-composer iam user tfa disable --password current-secret --tfa-code 123456`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.DisableUserTFA(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

@@ -7,12 +7,12 @@
 ### Context and Root Cause
 <!--What broke and why?-->
 <!--On which OS/shell did it reproduce? (e.g., Linux, macOS, Windows; bash/zsh)-->
-<!--CLI version (output of `cubbit --version`) and commit/branch if applicable-->
+<!--CLI version (output of `ds3-composer version`) and commit/branch if applicable-->
 <!--Screenshots when relevant-->
 
 ### Reproduction Steps
 <!--Provide minimal CLI steps to reproduce the bug.-->
-<!--Example: ```bash cubbit <command> <subcommand> --flag value ... ```-->
+<!--Example: ```bash ds3-composer <command> <subcommand> --flag value ... ```-->
 
 1.
 2.

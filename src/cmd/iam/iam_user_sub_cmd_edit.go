@@ -17,9 +17,9 @@ func NewIAMUserSubCmdEdit(
 		Long: `Edit an IAM user in the current profile organization.
 
 Examples:
-  cubbit iam user edit <uuid> --first-name Alice --last-name Doe
-  cubbit iam user edit --user-id <uuid> --email alice@example.com
-  cubbit iam user edit --username jdoe --first-name John`,
+  ds3-composer iam user edit <uuid> --first-name Alice --last-name Doe
+  ds3-composer iam user edit --user-id <uuid> --email alice@example.com
+  ds3-composer iam user edit --username jdoe --first-name John`,
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.EditUser(cmd, args); err != nil {

@@ -99,7 +99,7 @@ func TestGetConfigurationPath_Default(t *testing.T) {
 // --- Load helpers ---
 
 func newRootCmd() *cobra.Command {
-	root := &cobra.Command{Use: "cubbit"}
+	root := &cobra.Command{Use: "ds3-composer"}
 	root.Flags().String("config-path", "", "")
 	root.Flags().String("profile", "", "")
 	root.Flags().String("endpoints", "", "")

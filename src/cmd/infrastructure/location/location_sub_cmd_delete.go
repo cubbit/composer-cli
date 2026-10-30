@@ -19,7 +19,7 @@ The deletion is asynchronous: the command starts it and waits for the process to
 A location can only be deleted when no gateway or swarm is deployed on it.
 
 Examples:
-  cubbit infrastructure location delete --cluster-id <id>`,
+  ds3-composer infrastructure location delete --cluster-id <id>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := locationServiceFn.Delete(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

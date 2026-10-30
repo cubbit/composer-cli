@@ -18,7 +18,7 @@ A domain represents a fully qualified domain name (FQDN) that the organization w
 
 Examples:
   # Create a domain
-  cubbit domain create --domain-name "example.com"`,
+  ds3-composer domain create --domain-name "example.com"`,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			cmd.MarkFlagRequired("domain-name")
 		},

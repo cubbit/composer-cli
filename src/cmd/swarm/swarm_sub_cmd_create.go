@@ -29,23 +29,23 @@ Nexus Format:
 
 Examples:
    # Interactive mode (guided TUI wizard)
-   cubbit swarm create --interactive
+   ds3-composer swarm create --interactive
 
    # Create a swarm with flags
-   cubbit swarm create \
+   ds3-composer swarm create \
      --name "my-swarm" \
      --description "Production swarm" \
      --nexus <cluster-id>:<node-id1> \
      --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":0,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-id>"]}'
 
    # Create a swarm with multiple nodes from the same cluster
-   cubbit swarm create \
+   ds3-composer swarm create \
      --name "my-swarm" \
      --nexus <cluster-id>:<node-1>,<node-2>,<node-3> \
      --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":0,"inner_n":4,"inner_k":2,"anti_affinity_group":1,"cluster_ids":["<cluster-id>"]}'
 
    # Create a swarm with multiple clusters
-   cubbit swarm create \
+   ds3-composer swarm create \
      --name "multi-cluster-swarm" \
      --nexus <cluster-1>:<node-1>,<node-2> \
      --nexus <cluster-2>:<node-3> \

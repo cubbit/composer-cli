@@ -28,11 +28,11 @@ Supported filters:
   - number_of_tenants: eq, lt, lte, gt, gte
 
 Examples:
-  cubbit gateway list
-  cubbit gateway list --query "name:eq(my-gateway)"
-  cubbit gateway list --query "type:in(manual,singlecluster)"
-  cubbit gateway list --query "name:eq(test)" --query "type:eq(manual)"
-  cubbit gateway list --page 1 --items 50`,
+  ds3-composer gateway list
+  ds3-composer gateway list --query "name:eq(my-gateway)"
+  ds3-composer gateway list --query "type:in(manual,singlecluster)"
+  ds3-composer gateway list --query "name:eq(test)" --query "type:eq(manual)"
+  ds3-composer gateway list --page 1 --items 50`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := gatewayService.List(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

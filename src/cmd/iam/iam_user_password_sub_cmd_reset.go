@@ -17,10 +17,10 @@ func NewIAMUserPasswordSubCmdReset(
 Specify exactly one target with USER_ID, --user-id or --username.
 
 Examples:
-  cubbit iam user password reset <uuid> --new-password new-secret
-  cubbit iam user password reset --user-id <uuid> --new-password new-secret
-  cubbit iam user password reset --username jdoe --password current-secret --new-password new-secret
-  cubbit iam user password reset --username jdoe --new-password new-secret --tfa-code 123456`,
+  ds3-composer iam user password reset <uuid> --new-password new-secret
+  ds3-composer iam user password reset --user-id <uuid> --new-password new-secret
+  ds3-composer iam user password reset --username jdoe --password current-secret --new-password new-secret
+  ds3-composer iam user password reset --username jdoe --new-password new-secret --tfa-code 123456`,
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.ResetUserPassword(cmd, args); err != nil {

@@ -23,7 +23,7 @@ Swarm-RC Format:
 
 Examples:
    # Create a gateway with required flags
-   cubbit gateway create \
+   ds3-composer gateway create \
      --name "my-gateway" \
      --slug "my-gateway" \
      --cluster-id "<cluster-uuid>" \
@@ -31,7 +31,7 @@ Examples:
      --swarm-rc "<swarm-uuid>:<rc-uuid>:true"
 
    # Create a gateway with optional description
-   cubbit gateway create \
+   ds3-composer gateway create \
      --name "my-gateway" \
      --slug "my-gateway" \
      --cluster-id "<cluster-uuid>" \
@@ -41,7 +41,7 @@ Examples:
      --swarm-rc "<swarm-uuid-2>:<rc-uuid-2>:false"
 
    # Create a gateway in interactive mode
-   cubbit gateway create --interactive`,
+   ds3-composer gateway create --interactive`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool("interactive")
 			if interactive {

@@ -1,9 +1,9 @@
 version: 2
-project_name: cubbit
+project_name: ds3-composer
 builds:
   - id: "cli"
     main: .
-    binary: cubbit
+    binary: ds3-composer
     ldflags:
       - -s -w
       - -X main.version={{.Version}}

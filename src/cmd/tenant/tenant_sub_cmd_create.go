@@ -23,27 +23,27 @@ Connection Format:
 
 Examples:
    # Create a tenant with required flags
-   cubbit tenant create \
+   ds3-composer tenant create \
      --name "Tenant Cubbit 1" \
      --slug "cubbit-1" \
      --connection "domainID:gatewayID1,gatewayID2:mysub"
 
    # Create a tenant with multiple connections
-   cubbit tenant create \
+   ds3-composer tenant create \
      --name "Tenant Cubbit 1" \
      --slug "cubbit-1" \
      --connection "domainID:gatewayID1,gatewayID2" \
      --connection "domainID2:gatewayID3"
 
    # Create a tenant with optional description
-   cubbit tenant create \
+   ds3-composer tenant create \
      --name "Tenant Cubbit 1" \
      --slug "cubbit-1" \
      --description "Production tenant" \
      --connection "domainID:gatewayID1:mysub"
 
    # Create a tenant in interactive mode
-   cubbit tenant create --interactive`,
+   ds3-composer tenant create --interactive`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool("interactive")
 			if interactive {

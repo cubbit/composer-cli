@@ -18,11 +18,11 @@ Only the provided fields are updated; the others are left unchanged.
 An empty value clears the field. The location name is the user-facing name of the location.
 
 Examples:
-  cubbit infrastructure location update --cluster-id <id> --name "Milan datacenter"
-  cubbit infrastructure location update --cluster-id <id> --description "Primary datacenter"
-  cubbit infrastructure location update --cluster-id <id> --position "Milan, Italy"
-  cubbit infrastructure location update --cluster-id <id> --contact-user jdoe
-  cubbit infrastructure location update --cluster-id <id> --description ""`,
+  ds3-composer infrastructure location update --cluster-id <id> --name "Milan datacenter"
+  ds3-composer infrastructure location update --cluster-id <id> --description "Primary datacenter"
+  ds3-composer infrastructure location update --cluster-id <id> --position "Milan, Italy"
+  ds3-composer infrastructure location update --cluster-id <id> --contact-user jdoe
+  ds3-composer infrastructure location update --cluster-id <id> --description ""`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := locationServiceFn.Update(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

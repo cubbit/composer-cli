@@ -21,7 +21,7 @@ This command checks if the DNS challenge has been configured correctly.
 
 Examples:
   # Verify a domain
-  cubbit domain verify --domain-id "domain-uuid"`,
+  ds3-composer domain verify --domain-id "domain-uuid"`,
 		PreRun: func(cmd *cobra.Command, args []string) {
 			cmd.MarkFlagRequired("domain-id")
 		},

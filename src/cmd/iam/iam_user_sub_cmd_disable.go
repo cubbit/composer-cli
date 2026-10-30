@@ -16,9 +16,9 @@ func NewIAMUserSubCmdDisable(
 		Long: `Disable an IAM user in the current profile organization.
 
 Examples:
-  cubbit iam user disable <uuid>
-  cubbit iam user disable --user-id <uuid>
-  cubbit iam user disable --username jdoe`,
+  ds3-composer iam user disable <uuid>
+  ds3-composer iam user disable --user-id <uuid>
+  ds3-composer iam user disable --username jdoe`,
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.DisableUser(cmd, args); err != nil {

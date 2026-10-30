@@ -27,10 +27,10 @@ Locations can be **physical clusters** (with actual hardware nodes) or **virtual
 
 ```bash
 # List all infrastructure locations
-cubbit infrastructure location list
+ds3-composer infrastructure location list
 
 # List all infrastructure locations (alias)
-cubbit infrastructure location ls
+ds3-composer infrastructure location ls
 ```
 
 The list shows the cluster ID, the location name, the type and the position. The name is the user-facing name of the location. The description and the contact are available in the JSON/YAML output.
@@ -41,10 +41,10 @@ To view detailed information about locations, including physical and virtual nod
 
 ```bash
 # Describe a specific location by name
-cubbit infrastructure location describe --cluster-name <cluster-name>
+ds3-composer infrastructure location describe --cluster-name <cluster-name>
 
 # Describe a specific location by ID
-cubbit infrastructure location describe --cluster-id <cluster-id>
+ds3-composer infrastructure location describe --cluster-id <cluster-id>
 ```
 
 **Note**: The `--cluster-name` and `--cluster-id` flags are mutually exclusive and one of them is required. The `--cluster-name` filter matches the location name. When used, the command displays detailed information including:
@@ -63,14 +63,14 @@ The command reads the location through the single-location endpoint (`GET /infra
 Update the metadata of a location. Only the provided fields are updated; the others are left unchanged. An empty value clears the field.
 
 ```bash
-cubbit infrastructure location update --cluster-id <cluster-id> \
+ds3-composer infrastructure location update --cluster-id <cluster-id> \
   --name "Milan datacenter" \
   --description "Primary datacenter" \
   --position "Milan, Italy" \
   --contact-user <iam-user-id-or-username>
 
 # Clear a field
-cubbit infrastructure location update --cluster-id <cluster-id> --description ""
+ds3-composer infrastructure location update --cluster-id <cluster-id> --description ""
 ```
 
 **Flags**:
@@ -90,7 +90,7 @@ At least one of the optional flags must be provided. Fields that are not provide
 Delete a location:
 
 ```bash
-cubbit infrastructure location delete --cluster-id <cluster-id>
+ds3-composer infrastructure location delete --cluster-id <cluster-id>
 ```
 
 **Aliases**: `rm`
@@ -106,7 +106,7 @@ The deletion is asynchronous: the command starts it and waits for the process to
 To create a virtual location (virtual cluster):
 
 ```bash
-cubbit infrastructure location create-virtual --name <name> [--description <description>]
+ds3-composer infrastructure location create-virtual --name <name> [--description <description>]
 ```
 
 **Aliases**: `cv`
@@ -122,7 +122,7 @@ cubbit infrastructure location create-virtual --name <name> [--description <desc
 
 ```bash
 # Create a virtual location for testing
-cubbit infrastructure location create-virtual \
+ds3-composer infrastructure location create-virtual \
   --name test-environment \
   --description "Testing environment for development"
 ```
@@ -138,7 +138,7 @@ The virtual location will be created and ready to accept virtual nodes.
 To create a virtual node within a virtual location:
 
 ```bash
-cubbit infrastructure location create-virtual-node \
+ds3-composer infrastructure location create-virtual-node \
   --cluster-id <cluster-id> \
   --name <name> \
   --storage-type <type> \
@@ -160,7 +160,7 @@ cubbit infrastructure location create-virtual-node \
 
 ```bash
 # Create an S3 virtual node
-cubbit infrastructure location create-virtual-node \
+ds3-composer infrastructure location create-virtual-node \
   --cluster-id abc-123-def-456 \
   --name my-s3-node \
   --storage-type s3 \
@@ -181,16 +181,16 @@ All location commands support multiple output formats via the `--output` flag:
 
 ```bash
 # Human-readable format (default)
-cubbit infrastructure location list
+ds3-composer infrastructure location list
 
 # JSON format for scripting
-cubbit infrastructure location list --output json
+ds3-composer infrastructure location list --output json
 
 # YAML format for configuration
-cubbit infrastructure location list --output yaml
+ds3-composer infrastructure location list --output yaml
 
 # XML format
-cubbit infrastructure location list --output xml
+ds3-composer infrastructure location list --output xml
 ```
 
 ### Suppressing Headers
@@ -198,17 +198,17 @@ cubbit infrastructure location list --output xml
 For cleaner output in scripts or CI/CD pipelines:
 
 ```bash
-cubbit infrastructure location list --no-headers
+ds3-composer infrastructure location list --no-headers
 ```
 
 ### Quiet and Silent Modes
 
 ```bash
 # Quiet mode - minimize non-essential output
-cubbit infrastructure location describe --quiet
+ds3-composer infrastructure location describe --quiet
 
 # Silent mode - redirect all output
-cubbit infrastructure location list --silent
+ds3-composer infrastructure location list --silent
 ```
 
 ---
@@ -219,39 +219,39 @@ cubbit infrastructure location list --silent
 
 ```bash
 # 1. Create a virtual location
-cubbit infrastructure location create-virtual \
+ds3-composer infrastructure location create-virtual \
   --name dev-environment \
   --description "Development testing environment"
 
 # 2. List locations to get the cluster ID
-cubbit infrastructure location list --output json
+ds3-composer infrastructure location list --output json
 
 # 3. Create virtual nodes for different storage backends
-cubbit infrastructure location create-virtual-node \
+ds3-composer infrastructure location create-virtual-node \
   --cluster-id <cluster-id-from-list> \
   --name s3-node-1 \
   --storage-type s3 \
   --configuration '{"endpoint": "https://s3.example.com", "bucket": "dev-bucket-1", "region": "eu-west-1", "access_key": "abcde", "secret_key": "abcde"}'
 
-cubbit infrastructure location create-virtual-node \
+ds3-composer infrastructure location create-virtual-node \
   --cluster-id <cluster-id-from-list> \
   --name s3-node-2 \
   --storage-type s3 \
   --configuration '{"endpoint": "https://s3.example.com", "bucket": "dev-bucket-2", "region": "eu-west-1", "access_key": "abcde", "secret_key": "abcde"}'
 
 # 4. Describe the location to see all nodes
-cubbit infrastructure location describe --cluster-name dev-environment
+ds3-composer infrastructure location describe --cluster-name dev-environment
 ```
 
 ### Inspecting Physical Infrastructure
 
 ```bash
 # List all physical clusters
-cubbit infrastructure location list
+ds3-composer infrastructure location list
 
 # Get detailed view of a production cluster
-cubbit infrastructure location describe --cluster-name production
+ds3-composer infrastructure location describe --cluster-name production
 
 # View cluster details in JSON for automation
-cubbit infrastructure location describe --cluster-id prod-cluster-123 --output json
+ds3-composer infrastructure location describe --cluster-id prod-cluster-123 --output json
 ```

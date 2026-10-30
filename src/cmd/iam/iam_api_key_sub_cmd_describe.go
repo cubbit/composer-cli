@@ -13,9 +13,9 @@ func NewIAMAPIKeySubCmdDescribe(apiKeyService iamAPIKeyService) *cobra.Command {
 		Long: `Describe an API key for the current user or for a specified IAM user.
 
 Examples:
-  cubbit iam api-key describe --id <uuid>
-  cubbit iam api-key describe --id <uuid> --user-id <user-uuid>
-  cubbit iam api-key describe --id <uuid> --username jdoe`,
+  ds3-composer iam api-key describe --id <uuid>
+  ds3-composer iam api-key describe --id <uuid> --user-id <user-uuid>
+  ds3-composer iam api-key describe --id <uuid> --username jdoe`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := apiKeyService.DescribeAPIKey(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

@@ -18,10 +18,10 @@ func NewIAMUserSubCmdDescribe(
 		Long: `Describe an IAM user in the current profile organization.
 
 Examples:
-  cubbit iam user describe --self
-  cubbit iam user describe --user-id <uuid>
-  cubbit iam user describe <uuid>
-  cubbit iam user describe --username jdoe`,
+  ds3-composer iam user describe --self
+  ds3-composer iam user describe --user-id <uuid>
+  ds3-composer iam user describe <uuid>
+  ds3-composer iam user describe --username jdoe`,
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.DescribeUser(cmd, args); err != nil {

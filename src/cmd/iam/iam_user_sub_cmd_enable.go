@@ -16,9 +16,9 @@ func NewIAMUserSubCmdEnable(
 		Long: `Enable an IAM user in the current profile organization.
 
 Examples:
-  cubbit iam user enable <uuid>
-  cubbit iam user enable --user-id <uuid>
-  cubbit iam user enable --username jdoe`,
+  ds3-composer iam user enable <uuid>
+  ds3-composer iam user enable --user-id <uuid>
+  ds3-composer iam user enable --username jdoe`,
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.EnableUser(cmd, args); err != nil {

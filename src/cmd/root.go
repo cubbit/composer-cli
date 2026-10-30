@@ -36,7 +36,7 @@ func NewRootCommand(
 	version string,
 ) *cobra.Command {
 	rootCommand := &cobra.Command{
-		Use:   "cubbit",
+		Use:   "ds3-composer",
 		Short: "The official Cubbit CLI (Command-Line Interface) for operators",
 		Long:  "The CLI for managing operators, tenants and swarms in Cubbit distributed datacenter",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

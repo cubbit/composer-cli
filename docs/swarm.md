@@ -16,14 +16,14 @@ The Cubbit CLI provides swarm management commands to create and manage distribut
 Use `describe` to inspect a single swarm in detail.
 
 ```bash
-cubbit swarm describe [SWARM_ID]
+ds3-composer swarm describe [SWARM_ID]
 ```
 
 Aliases:
 
 ```bash
-cubbit swarm info [SWARM_ID]
-cubbit swarm show [SWARM_ID]
+ds3-composer swarm info [SWARM_ID]
+ds3-composer swarm show [SWARM_ID]
 ```
 
 You can identify the swarm in exactly one of these ways:
@@ -57,20 +57,20 @@ When a nullable field is missing, the CLI prints `N/A`.
 
 ```bash
 # Describe by positional swarm ID
-cubbit swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
+ds3-composer swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
 
 # Describe by explicit swarm ID flag
-cubbit swarm describe --swarm-id 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
+ds3-composer swarm describe --swarm-id 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
 
 # Describe by swarm name
-cubbit swarm describe --swarm-name production-swarm
+ds3-composer swarm describe --swarm-name production-swarm
 
 # Use an alias
-cubbit swarm info 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
+ds3-composer swarm info 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11
 
 # Programmatic output
-cubbit swarm describe --swarm-name production-swarm --output json
-cubbit swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11 --output yaml
+ds3-composer swarm describe --swarm-name production-swarm --output json
+ds3-composer swarm describe 8d54c31e-7d9f-4fcb-9d48-9d9d7d0e4c11 --output yaml
 ```
 
 ---
@@ -94,13 +94,13 @@ Swarms use advanced erasure coding to distribute data across multiple nodes and 
 Use `list` to view all swarms in your organization.
 
 ```bash
-cubbit swarm list
+ds3-composer swarm list
 ```
 
 Aliases:
 
 ```bash
-cubbit swarm ls
+ds3-composer swarm ls
 ```
 
 ### List Flags
@@ -130,22 +130,22 @@ Human-readable output shows a table with the following columns:
 
 ```bash
 # List all swarms (human-readable table)
-cubbit swarm list
+ds3-composer swarm list
 
 # List all swarms (JSON output)
-cubbit swarm list --output json
+ds3-composer swarm list --output json
 
 # List all swarms (YAML output)
-cubbit swarm list --output yaml
+ds3-composer swarm list --output yaml
 
 # Use the ls alias
-cubbit swarm ls
+ds3-composer swarm ls
 
 # Suppress table headers for scripting
-cubbit swarm list --no-headers
+ds3-composer swarm list --no-headers
 
 # Quiet mode (only error output)
-cubbit swarm list --quiet
+ds3-composer swarm list --quiet
 ```
 
 ### Empty Results
@@ -165,7 +165,7 @@ The swarm creation process is **asynchronous** - when you submit a creation requ
 ### Creating a Swarm
 
 ```bash
-cubbit swarm create \
+ds3-composer swarm create \
   --name <swarm-name> \
   --nexus <cluster-id>:<node-id1>,<node-id2>,<node-id3> \
   --redundancy-class '<json-configuration>'
@@ -267,7 +267,7 @@ A physical redundancy of `inner_n=4, inner_k=4` means there are 8 volumes per da
 Create a simple swarm with one physical cluster:
 
 ```bash
-cubbit swarm create \
+ds3-composer swarm create \
   --name "production-swarm" \
   --description "Production storage swarm" \
   --nexus "bc7450ef-b858-4741-a044-871ffc39c343:bfb3e9d4-6a35-4c76-bf4e-07ac50f109ba" \
@@ -279,7 +279,7 @@ cubbit swarm create \
 Create a swarm with multiple nodes from the same cluster:
 
 ```bash
-cubbit swarm create \
+ds3-composer swarm create \
   --name "multi-node-swarm" \
   --nexus "bc7450ef-b858-4741-a044-871ffc39c343:bfb3e9d4-6a35-4c76-bf4e-07ac50f109ba,a3284691-f191-404f-9b5e-c2130d1b73ba,4302d028-520d-490d-949e-a9079a29722c" \
   --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":0,"inner_n":2,"inner_k":1,"cluster_ids":["bc7450ef-b858-4741-a044-871ffc39c343"]}'
@@ -290,7 +290,7 @@ cubbit swarm create \
 Create a swarm spanning multiple clusters for geo-distribution:
 
 ```bash
-cubbit swarm create \
+ds3-composer swarm create \
   --name "geo-distributed-swarm" \
   --nexus "bc7450ef-b858-4741-a044-871ffc39c343:bfb3e9d4-6a35-4c76-bf4e-07ac50f109ba,a3284691-f191-404f-9b5e-c2130d1b73ba" \
   --nexus "4043dd06-eb16-481e-a5bc-5ebc7d3de41e:ec3efde9-7c4e-4039-b6c6-739718baab8d,39c003ba-5772-4593-b269-6f9164484d69" \
@@ -325,7 +325,7 @@ cat > redundancy-classes.json <<EOF
 EOF
 
 # Use the file
-cubbit swarm create \
+ds3-composer swarm create \
   --name "multi-rc-swarm" \
   --nexus "47deed01-c5aa-4a61-a155-73de8d284af8:bf9d6ca8-fa10-4eba-adb3-56e901cddc80,dbfa59c6-b21b-4600-84f3-2cc1e34fb407" \
   --nexus "d777f072-5eeb-4f35-960e-5826d818c2af:91f9a8b6-c7fa-41a3-ba1c-9df557e361d3,efee5105-6562-4fb8-9b67-0e38d0d77420" \
@@ -337,7 +337,7 @@ cubbit swarm create \
 You can combine both approaches:
 
 ```bash
-cubbit swarm create \
+ds3-composer swarm create \
   --name "hybrid-swarm" \
   --nexus "1913d047-965c-44ff-b756-c345ef9206fa:65284758-3567-434d-85f6-421c46041dd3,ffd7f2c7-66aa-4268-8311-74e68303cbc4" \
   --redundancy-class '{"name":"rc-basic","outer_n":1,"outer_k":0,"inner_n":1,"inner_k":1,"cluster_ids":["1913d047-965c-44ff-b756-c345ef9206fa"]}' \
@@ -357,7 +357,7 @@ Swarm creation is **asynchronous**:
 
 ```bash
 # Non-interactive mode (returns immediately)
-cubbit swarm create \
+ds3-composer swarm create \
   --name "my-swarm" \
   --nexus "f4267663-ed58-49f5-af07-d51429a576f4:1ab945c7-af0c-446f-9fdd-731c571e152b,8385db64-0687-419a-823b-dc2bb41a8264" \
   --redundancy-class '{"name":"rc-1","outer_n":1,"outer_k":0,"inner_n":1,"inner_k":0,"cluster_ids":["f4267663-ed58-49f5-af07-d51429a576f4"]}'
@@ -388,10 +388,10 @@ First, identify available clusters and nodes:
 
 ```bash
 # List all infrastructure locations
-cubbit infrastructure location list
+ds3-composer infrastructure location list
 
 # Get detailed cluster information
-cubbit infrastructure location describe --cluster-name production
+ds3-composer infrastructure location describe --cluster-name production
 ```
 
 ### Step 2: Plan Your Swarm
@@ -405,7 +405,7 @@ Determine:
 ### Step 3: Create the Swarm
 
 ```bash
-cubbit swarm create \
+ds3-composer swarm create \
   --name "production-swarm-2024" \
   --description "Production swarm for Q1 2024" \
   --nexus "2f98fe0b-dd03-43a6-bf05-c030171394e1:fe913ba4-88bc-4723-8591-21ddc6bfd372,7b6cb15b-c8c0-44af-a4a2-a23fb1153110" \
@@ -438,10 +438,10 @@ Wait creation to complete.
 
 ```bash
 # List available clusters
-cubbit infrastructure location list
+ds3-composer infrastructure location list
 
 # Verify cluster ID exists
-cubbit infrastructure location describe --cluster-id <your-cluster-id>
+ds3-composer infrastructure location describe --cluster-id <your-cluster-id>
 ```
 
 ### "Node not found in cluster"
@@ -452,7 +452,7 @@ cubbit infrastructure location describe --cluster-id <your-cluster-id>
 
 ```bash
 # Get detailed cluster information with all nodes
-cubbit infrastructure location describe --cluster-id <cluster-id>
+ds3-composer infrastructure location describe --cluster-id <cluster-id>
 ```
 
 ### "No usable volumes"
@@ -468,6 +468,6 @@ cubbit infrastructure location describe --cluster-id <cluster-id>
 
 ## See Also
 
-- `cubbit infrastructure location` - Manage infrastructure clusters
-- `cubbit infrastructure location describe` - View cluster and node details
+- `ds3-composer infrastructure location` - Manage infrastructure clusters
+- `ds3-composer infrastructure location describe` - View cluster and node details
 - Process monitoring commands (when available)

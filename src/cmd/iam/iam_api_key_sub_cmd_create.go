@@ -12,10 +12,10 @@ func NewIAMAPIKeySubCmdCreate(apiKeyService iamAPIKeyService) *cobra.Command {
 		Long: `Create an API key for the current user or for a specified IAM user.
 
 Examples:
-  cubbit iam api-key create --name automation
-  cubbit iam api-key create --name automation --expires-at 2026-12-31T23:59:59Z
-  cubbit iam api-key create --name automation --user-id <uuid>
-  cubbit iam api-key create --name automation --username jdoe`,
+  ds3-composer iam api-key create --name automation
+  ds3-composer iam api-key create --name automation --expires-at 2026-12-31T23:59:59Z
+  ds3-composer iam api-key create --name automation --user-id <uuid>
+  ds3-composer iam api-key create --name automation --username jdoe`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := apiKeyService.CreateAPIKey(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)

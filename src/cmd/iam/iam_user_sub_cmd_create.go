@@ -14,8 +14,8 @@ func NewIAMUserSubCmdCreate(
 		Long: `Create one IAM user in the current profile organization.
 
 Examples:
-  cubbit iam user create --username user1 --password secret
-  cubbit iam user create --username user1 --password secret --email user1@example.com --policy <policy-uuid>`,
+  ds3-composer iam user create --username user1 --password secret
+  ds3-composer iam user create --username user1 --password secret --email user1@example.com --policy <policy-uuid>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := userService.CreateUser(cmd, args); err != nil {
 				utils.PrintErrorWithWriter(cmd.ErrOrStderr(), err)
