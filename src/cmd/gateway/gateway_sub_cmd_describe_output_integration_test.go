@@ -76,6 +76,7 @@ func TestGatewaySubCmd_Describe_Output_JSON(t *testing.T) {
   "id": "gw-json",
   "name": "json-test-gateway",
   "slug": "json-test-gateway",
+  "location": "",
   "type": "manual",
   "redundancy_classes": [
     {
@@ -87,7 +88,8 @@ func TestGatewaySubCmd_Describe_Output_JSON(t *testing.T) {
       "name": "redundancy-beta"
     }
   ],
-  "status": "ready"
+  "status": "ready",
+  "legacy": false
 }
 `
 	if commandOutput.String() != expected {
@@ -161,6 +163,7 @@ func TestGatewaySubCmd_Describe_Output_YAML(t *testing.T) {
 	expected := `id: gw-yaml
 name: yaml-test-gateway
 slug: yaml-test-gateway
+location: ""
 type: manual
 redundancy_classes:
     - id: rc-003
@@ -168,6 +171,7 @@ redundancy_classes:
     - id: rc-004
       name: redundancy-delta
 status: ready
+legacy: false
 `
 	if commandOutput.String() != expected {
 		t.Errorf("YAML snapshot mismatch\nexpected:\n%s\nactual:\n%s", expected, commandOutput.String())
@@ -249,6 +253,7 @@ func TestGatewaySubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
   "id": "gw-json",
   "name": "json-test-gateway",
   "slug": "json-test-gateway",
+  "location": "",
   "type": "manual",
   "redundancy_classes": [
     {
@@ -260,7 +265,8 @@ func TestGatewaySubCmd_Describe_Output_JSON_FromProfile(t *testing.T) {
       "name": "redundancy-beta"
     }
   ],
-  "status": "ready"
+  "status": "ready",
+  "legacy": false
 }
 `
 	if commandOutput.String() != expected {
@@ -342,6 +348,7 @@ func TestGatewaySubCmd_Describe_Output_YAML_FromProfile(t *testing.T) {
 	expected := `id: gw-yaml
 name: yaml-test-gateway
 slug: yaml-test-gateway
+location: ""
 type: manual
 redundancy_classes:
     - id: rc-003
@@ -349,6 +356,7 @@ redundancy_classes:
     - id: rc-004
       name: redundancy-delta
 status: ready
+legacy: false
 `
 	if commandOutput.String() != expected {
 		t.Errorf("YAML snapshot mismatch\nexpected:\n%s\nactual:\n%s", expected, commandOutput.String())

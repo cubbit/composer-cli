@@ -16,7 +16,19 @@ func NewGatewayCmd(
 	gatewayDescribeCmd := NewGatewaySubCmdDescribe(gatewayService)
 	gatewayCreateCmd := NewGatewaySubCmdCreate(gatewayService)
 	gatewayListCmd := NewGatewaySubCmdList(gatewayService)
-	gatewayCmd.AddCommand(gatewayCreateCmd, gatewayDescribeCmd, gatewayListCmd)
+	gatewayUpdateCmd := NewGatewaySubCmdUpdate(gatewayService)
+	gatewayStorageClassCmd := NewGatewayStorageClassCmd(gatewayService)
+	gatewayConnectionCmd := NewGatewayConnectionCmd(gatewayService)
+	gatewayRoutingRulesCmd := NewGatewayRoutingRulesCmd(gatewayService)
+	gatewayCmd.AddCommand(
+		gatewayCreateCmd,
+		gatewayDescribeCmd,
+		gatewayListCmd,
+		gatewayUpdateCmd,
+		gatewayStorageClassCmd,
+		gatewayConnectionCmd,
+		gatewayRoutingRulesCmd,
+	)
 
 	return gatewayCmd
 }

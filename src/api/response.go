@@ -1132,9 +1132,12 @@ type GatewayV5GetResponse struct {
 	ID                string                        `json:"id" yaml:"id"`
 	Name              string                        `json:"name" yaml:"name"`
 	Slug              string                        `json:"slug" yaml:"slug"`
+	Description       *string                       `json:"description,omitempty" yaml:"description,omitempty"`
+	Location          string                        `json:"location" yaml:"location"`
 	Type              CubbitIngressType             `json:"type" yaml:"type"`
 	RedundancyClasses []GatewayV5GetRedundancyClass `json:"redundancy_classes" yaml:"redundancy_classes"`
 	Status            GatewayV5Status               `json:"status" yaml:"status"`
+	Legacy            bool                          `json:"legacy" yaml:"legacy"`
 }
 
 // GatewayV5ListItemResponse represents a gateway summary item returned in paginated list responses
