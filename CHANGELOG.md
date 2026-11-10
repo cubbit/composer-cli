@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.0.0
+
+### Major Changes
+
+- bb2411f: Rename the release binary and archives from `cubbit` to `ds3-composer`, and align the build and documentation references with the new name. This is a breaking change for download scripts that depend on the previous `cubbit_*` asset names.
+
+### Minor Changes
+
+- 8c04b55: Add `gateway update` plus `gateway connection`, `gateway routing-rules` (alias `rr`) and `gateway storage-class` commands backed by the Gateway V5 API.
+
 ## 2.11.0
 
 ### Minor Changes
