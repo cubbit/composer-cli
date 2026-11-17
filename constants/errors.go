@@ -21,6 +21,7 @@ const (
 	ErrorRemovingOperator = "error while removing operator"
 
 	ErrorGettingOperatorRequest = "failed request to get operator"
+	ErrorSignIn                 = "error while signing in"
 	ErrorSignRequest            = "failed request to sign in"
 
 	ErrorCreatingOperatorRequest    = "failed to create operator request"
@@ -129,4 +130,37 @@ const (
 
 	ErrorDeletingProfile              = "error while deleting profile"
 	ErrorRetrievingAgentStatusRequest = "failed request to retrieve agent status"
+
+	// Config version errors
+	ErrorConfigVersionMissing  = "error while checking config version"
+	ErrorConfigVersionMismatch = "error while validating config version"
+	ErrorConfigLegacyField     = "error while parsing config: legacy field detected"
+
+	// Swarm v5 errors
+	ErrorCreatingSwarmV5Request = "failed request to create swarm v5"
+	ErrorValidatingSwarmConfig  = "error while validating swarm configuration"
+
+	ErrorCreatingDomainRequest   = "failed request to create domain"
+	ErrorDescribingDomainRequest = "failed request to describe domain"
+	ErrorListingDomainsRequest   = "failed request to list domains"
+	ErrorDeletingDomainRequest   = "failed request to delete domain"
+	ErrorVerifyingDomainRequest  = "failed request to verify domain"
+
+	ErrorListingIAMUsersRequest     = "failed request to list IAM users"
+	ErrorDescribingIAMUserRequest   = "failed request to describe IAM user"
+	ErrorDeletingIAMUserRequest     = "failed request to delete IAM user"
+	ErrorCreatingIAMAPIKeyRequest   = "failed request to create IAM API key"
+	ErrorListingIAMAPIKeysRequest   = "failed request to list IAM API keys"
+	ErrorDescribingIAMAPIKeyRequest = "failed request to describe IAM API key"
+	ErrorEditingIAMAPIKeyRequest    = "failed request to edit IAM API key"
+	ErrorDeletingIAMAPIKeyRequest   = "failed request to delete IAM API key"
+
+	// Gateway v5 errors
+	ErrorCreatingGatewayV5Request = "failed request to create gateway v5"
+
+	// Endpoints file errors
+	ErrorParsingEndpointsFile     = "error while parsing endpoints file"
+	ErrorEndpointsFileMissingBase = "error while validating endpoints file: required field 'base' is missing"
+	ErrorProfileNotFound          = "profile not found"
+	ErrorLoadingRootConfig        = "failed to load config"
 )

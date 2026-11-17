@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -13,25 +14,25 @@ import (
 	syaml "gopkg.in/yaml.v3"
 )
 
-func PrintFormattedData(data interface{}, format string) {
+func PrintFormattedData(writer io.Writer, data interface{}, format string) {
 	switch format {
 	case "json":
-		printJSON(data)
+		printJSON(writer, data)
 	case "yaml":
-		printYAML(data)
+		printYAML(writer, data)
 	case "xml":
 		printXML(data)
 	case "csv":
 		printCSV(data)
 	default:
-		PrintVerbose(data, false)
+		PrintVerbose(writer, data, false)
 	}
 }
 
-func printJSON(data interface{}) {
+func printJSON(writer io.Writer, data interface{}) {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		fmt.Print("error encoding json:", err)
+		fmt.Fprint(writer, "error encoding json:", err)
 		return
 	}
 
@@ -39,7 +40,7 @@ func printJSON(data interface{}) {
 		return
 	}
 
-	fmt.Println(string(jsonData))
+	fmt.Fprintln(writer, string(jsonData))
 }
 
 func printCSV(data interface{}) {
@@ -188,13 +189,13 @@ func structToString(data interface{}) string {
 	return str.String()
 }
 
-func printYAML(data interface{}) {
+func printYAML(writer io.Writer, data interface{}) {
 	yamlData, err := syaml.Marshal(data)
 	if err != nil {
-		fmt.Print("error encoding yaml:", err)
+		fmt.Fprint(writer, "error encoding yaml:", err)
 		return
 	}
-	fmt.Println(string(yamlData))
+	fmt.Fprintln(writer, string(yamlData))
 }
 
 func printXML(data interface{}) {

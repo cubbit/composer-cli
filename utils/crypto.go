@@ -3,7 +3,9 @@ package utils
 import (
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -130,4 +132,40 @@ func PEMDecodeKeyPair(pub []byte, priv []byte) (ed25519.PublicKey, ed25519.Priva
 	}
 
 	return edPubKey, edPrivKey, nil
+}
+
+func SignChallenge(
+	salt string,
+	challenge string,
+	password string,
+) ([]byte, error) {
+	var err error
+	var privateKey ed25519.PrivateKey
+	h := sha256.New()
+	h.Write([]byte(password + salt))
+	seed := h.Sum(nil)
+
+	if _, privateKey, err = GenerateKeyPairFromSeed(seed); err != nil {
+		return nil, err
+	}
+
+	signedChallenge := ed25519.Sign(privateKey, []byte(challenge))
+
+	return signedChallenge, nil
+}
+
+func AuthenticationPublicKeyFromPassword(
+	password string,
+	salt string,
+) (string, error) {
+	h := sha256.New()
+	h.Write([]byte(password + salt))
+	seed := h.Sum(nil)
+
+	publicKey, _, err := GenerateKeyPairFromSeed(seed)
+	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(publicKey), nil
 }

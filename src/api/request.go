@@ -1,11 +1,21 @@
 package api
 
+import "time"
+
 type UpdateAccountRequest struct {
 	FirstName          *string `json:"first_name"`
 	LastName           *string `json:"last_name"`
 	EndpointGateway    *string `json:"endpoint_gateway"`
 	Internal           *bool   `json:"internal"`
 	MaxAllowedProjects *int    `json:"max_allowed_projects"`
+}
+
+type UpdateIAMUserRequestBody struct {
+	FirstName        *string   `json:"first_name,omitempty"`
+	LastName         *string   `json:"last_name,omitempty"`
+	Email            *string   `json:"email,omitempty"`
+	Enabled          *bool     `json:"enabled,omitempty"`
+	AttachedPolicies *[]string `json:"attached_policies,omitempty"`
 }
 
 type UpdateTenantProjectRequestBody struct {
@@ -98,11 +108,8 @@ type CreateGatewayRequestBody struct {
 }
 
 type UpdateGatewayRequestBody struct {
-	Name                      *string           `json:"name"`
-	Location                  *string           `json:"location"`
-	DefaultRedundancyClassID  *string           `json:"default_redundancy_class_id"`
-	SmartDataPlacementEnabled *bool             `json:"smart_data_placement_enabled"`
-	SmartDataPlacementRules   *[]map[string]any `json:"placement_policies"`
+	Name     *string `json:"name"`
+	Location *string `json:"location"`
 }
 
 type UpdateSwarmRequest struct {
@@ -140,3 +147,136 @@ type InviteOperatorRequestBody struct {
 	LastName  *string `json:"last_name"`
 	PolicyID  string  `json:"policy_id"`
 }
+
+// #region auth
+
+type SignUpRequestBody struct {
+	Operator     CreateOperatorRequestBodyV2     `json:"operator"`
+	Organization CreateOrganizationRequestBodyV2 `json:"organization"`
+}
+
+type CreateOrganizationRequestBodyV2 struct {
+	Name       string                 `json:"name"`
+	BasePolicy map[string]interface{} `json:"base_policy"`
+	Settings   map[string]interface{} `json:"settings"`
+}
+
+type CreateOperatorRequestBodyV2 struct {
+	Email                   string  `json:"email"`
+	FirstName               *string `json:"first_name"`
+	LastName                *string `json:"last_name"`
+	Username                string  `json:"username"`
+	AuthenticationPublicKey *string `json:"authentication_public_key"`
+}
+
+func CreateSignUpRequestBody(
+	email string,
+	username string,
+	firstName *string,
+	lastName *string,
+	authenticationPublicKey *string,
+	organizationName string,
+	organizationBasePolicy map[string]interface{},
+	organizationSettings map[string]interface{},
+) SignUpRequestBody {
+	return SignUpRequestBody{
+		Operator: CreateOperatorRequestBodyV2{
+			Email:                   email,
+			Username:                username,
+			FirstName:               firstName,
+			LastName:                lastName,
+			AuthenticationPublicKey: authenticationPublicKey,
+		},
+		Organization: CreateOrganizationRequestBodyV2{
+			Name:       organizationName,
+			BasePolicy: organizationBasePolicy,
+			Settings:   organizationSettings,
+		},
+	}
+}
+
+type ChallengeRequestBodyV3 struct {
+	Email            *string `json:"email,omitempty"`
+	Username         *string `json:"username,omitempty"`
+	OrganizationName *string `json:"organization_name,omitempty"`
+}
+
+func CreateChallengeRequestBodyV3(
+	email *string,
+	username *string,
+	organizationName *string,
+) ChallengeRequestBodyV3 {
+	return ChallengeRequestBodyV3{
+		Email:            email,
+		Username:         username,
+		OrganizationName: organizationName,
+	}
+}
+
+type CreateDomainRequestBody struct {
+	DomainName string `json:"domain_name"`
+}
+
+// #region users v3
+
+type BulkCreateIAMUserRequestBody struct {
+	Username                string   `json:"username"`
+	AuthenticationPublicKey string   `json:"authentication_public_key"`
+	FirstName               *string  `json:"first_name,omitempty"`
+	LastName                *string  `json:"last_name,omitempty"`
+	Email                   *string  `json:"email,omitempty"`
+	AttachedPolicies        []string `json:"attached_policies,omitempty"`
+}
+
+type BulkCreateIAMUsersRequestBody struct {
+	Users []BulkCreateIAMUserRequestBody `json:"users"`
+}
+
+type BulkGenerateSaltRequestBodyItem struct {
+	Username string `json:"username"`
+}
+
+type BulkGenerateSaltsRequestBody struct {
+	Operators []BulkGenerateSaltRequestBodyItem `json:"operators"`
+}
+
+type ResetIAMUserPasswordRequestBody struct {
+	IAMPasswordChangeToken  string `json:"iam_password_change_token"`
+	AuthenticationPublicKey string `json:"authentication_public_key"`
+}
+
+type UpdateIAMUserTFARequestBody struct {
+	Secret         string   `json:"secret"`
+	ValidationCode string   `json:"validation_code"`
+	Codes          []string `json:"codes"`
+}
+
+type CreateIAMAPIKeyRequestBody struct {
+	Name      string     `json:"name"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+}
+
+type UpdateIAMAPIKeyRequestBody struct {
+	Name      *string    `json:"name,omitempty"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Enabled   *bool      `json:"enabled,omitempty"`
+}
+
+// #endregion
+
+// #region tenant v5
+
+type CreateTenantV5Connection struct {
+	DomainID   string   `json:"id" binding:"required,uuid"`
+	GatewayIDs []string `json:"gateway_ids" binding:"required,min=1,dive,uuid"`
+	Subdomain  *string  `json:"subdomain,omitempty"`
+}
+
+type CreateTenantV5Request struct {
+	Name        string                     `json:"name" binding:"required"`
+	Slug        string                     `json:"slug" binding:"required"`
+	Description *string                    `json:"description,omitempty"`
+	Connections []CreateTenantV5Connection `json:"connections" binding:"required,min=1"`
+}
+
+// #endregion
