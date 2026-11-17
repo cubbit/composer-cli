@@ -1,111 +1,342 @@
-# Cubbit Composer CLI
+# Cubbit CLI
 
-<p align="center">
-  <img src="assets/logo.png" alt="Cubbit Logo" width="200"/>
-</p>
+[![Go Version](https://img.shields.io/badge/Go-1.24+-blue.svg)](https://golang.org/)
+[![Version](https://img.shields.io/github/package-json/v/cubbit/composer-cli)](https://github.com/cubbit/composer-cli/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<p align="center">
-  <a href="https://golang.org/"><img src="https://img.shields.io/badge/Go-1.24+-blue.svg" alt="Go Version"/></a>
-  <a href="https://github.com/cubbit/composer-cli/releases"><img src="https://img.shields.io/github/package-json/v/cubbit/composer-cli" alt="Version"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"/></a>
-</p>
+The official Cubbit CLI (Command-Line Interface) for managing your DS3 composer infrastructure.
 
-The official CLI for managing your **Cubbit DS3 Composer** infrastructure. Built with Go, it provides a comprehensive and automation-friendly interface to control your entire DS3 environment — from swarms and tenants to gateways and user accounts.
+## Overview
 
----
+The Cubbit CLI is a powerful command-line tool designed to provide comprehensive management capabilities for your DS3 composer environment. Built with Go and featuring an intuitive interface, it streamlines operations across your entire infrastructure stack.
 
-## Features
+### Key Capabilities
 
-- **Swarm Management** — Create, configure, and manage distributed swarms
-- **Tenant Operations** — Full tenant lifecycle management and configuration
-- **Infrastructure Control** — Deploy Nexus, Redundancy Classes, nodes, and agents
-- **User & Account Management** — Handle tenant accounts and user administration
-- **Gateway Configuration** — Set up and manage S3-compatible gateway operations
-- **IAM** — Fine-grained operator and policy management
-- **Interactive Workflows** — Guided, step-by-step processes for complex tasks
-- **Automation-friendly** — JSON/YAML/CSV output, quiet and silent modes
+- **Swarm Management** - Create, configure, and manage distributed swarms
+- **Tenant Operations** - Complete tenant lifecycle management and configuration
+- **Infrastructure Control** - Deploy and manage Nexus, Redundancy Classes, nodes, and agents
+- **User & Account Management** - Handle tenant accounts and user administration
+- **Gateway Configuration** - Set up and manage gateway operations
+- **Interactive Workflows** - User-friendly guided processes for complex tasks
 
----
+The CLI leverages modern Go libraries including Cobra for command structure and Bubble Tea for terminal user interfaces, supporting both automated scripting and interactive modes.
 
 ## Installation
 
-### Pre-built Binaries (Recommended)
+### Prerequisites
 
-Download the latest release for your platform from the [releases page](https://github.com/cubbit/composer-cli/releases), then:
+- Go 1.24.1 or higher
+- Git (for source installation)
 
-```bash
-# Linux / macOS
-chmod +x cubbit
-sudo mv cubbit /usr/local/bin/
+### Option 1: Pre-built Binaries (Recommended)
 
-# Verify
-cubbit --version
-```
+Download the latest release for your platform from our [releases page](https://github.com/cubbit/composer-cli/releases).
 
-### Go Install
+### Option 2: Go Install
+
+Install directly using Go's package manager:
 
 ```bash
 go install github.com/cubbit/composer-cli@latest
 ```
 
-Make sure `$GOPATH/bin` is in your system `PATH`.
+This will download, compile, and install the `ds3-composer` binary to your `$GOPATH/bin` directory. Make sure `$GOPATH/bin` is in your system's PATH.
 
-For more installation options (build from source, Bazel), see the [Installation Guide](docs/installation.md).
+### Option 3: Build from Source
 
----
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/cubbit/composer-cli.git
+   cd composer-cli
+   ```
+
+2. **Build the CLI:**
+   ```bash
+   # Build for current platform
+   go build -o build/ds3-composer .
+
+   # Cross-compile for specific platform (example for macOS)
+   env GOOS=darwin GOARCH=amd64 go build -o build/ds3-composer .
+   ```
+
+3. **Install to your PATH:**
+   ```bash
+   # Linux/macOS
+   sudo cp build/ds3-composer /usr/local/bin/
+
+   # Windows: Copy build/ds3-composer.exe to a directory in your PATH
+   ```
+
+### Verify Installation
+
+```bash
+ds3-composer version
+```
 
 ## Quick Start
 
+### Initial Setup
+
+1. **Initialize configuration** (optional - creates config file at `$HOME/.config/cubbit/config.toml`):
+   ```bash
+   ds3-composer config init
+   ```
+
+2. **Authenticate with your composer account:**
+   ```bash
+   ds3-composer auth login --profile <profile_name>
+   ```
+
+   This will open your browser for secure authentication and automatically configure your API key.
+
+   **Optional: Specify custom endpoints**
+
+   You can provide custom API endpoints via a TOML file:
+
+   ```bash
+   ds3-composer auth login --profile <profile_name> --endpoints <path/to/endpoints.toml>
+   ```
+
+   Example `endpoints.toml`:
+
+   ```toml
+   base = "https://api.example.com"
+   iam = "https://iam.example.com"
+   dash = "https://dash.example.com"
+   ch = "https://ch.example.com"
+   ```
+
+   All keys are optional. When `base` is provided, the CLI derives default URIs for `iam`, `dash`, and `ch` by appending path suffixes. Individual endpoints (`iam`, `dash`, `ch`) override the derived values.
+
+3. **Verify your setup:**
+   ```bash
+   ds3-composer config view
+   ```
+
+### Basic Commands
+
 ```bash
-# 1. Initialize configuration
-cubbit config init
+# Display help and available commands
+ds3-composer --help
 
-# 2. Log in
-cubbit auth login --profile <profile_name>
+# View command structure
+ds3-composer docs tree
 
-# 3. Verify setup
-cubbit config view
+# Manage configuration profiles
+ds3-composer config [command]
 
-# 4. Explore available commands
-cubbit --help
-cubbit docs tree
+# Manage tenants
+ds3-composer tenant [command]
+
+# Manage swarms
+ds3-composer swarm [command]
+
+# Manage infrastructure locations
+ds3-composer infrastructure location [command]
 ```
 
-For a full walkthrough, see the [Getting Started Guide](docs/getting-started.md).
+## Configuration
 
----
+The CLI uses a profile-based configuration system stored in `$HOME/.config/cubbit/config.toml` (or `$XDG_CONFIG_HOME/cubbit/config.toml`). This allows you to manage multiple environments and accounts efficiently.
+
+### Configuration Version
+
+The CLI uses configuration version `v2` with strict validation for configuration files.
+
+### Configuration Example
+
+```toml
+version = "v2"
+
+[active]
+profile = "composer"
+
+[profile.composer]
+output = "human"
+api_key = "<your_api_key>"
+organization_id = "<your_organization_id>"
+updated_at = 2025-01-01T00:00:00Z
+
+[profile.composer.endpoints]
+iam = "https://iam.eu00wi.cubbit.services"
+dash = "https://dashboard.cubbit.eu/api"
+ch = "https://api.eu00wi.cubbit.services/composer-hub"
+
+[profile.dev]
+output = "human"
+api_key = "<your_api_key>"
+organization_id = "<your_organization_id>"
+updated_at = 2025-01-01T00:00:00Z
+
+[profile.dev.endpoints]
+iam = "http://localhost:8181/iam"
+dash = "http://localhost:8181/api"
+ch = "http://localhost:8181/composer-hub"
+```
+
+### Endpoints Configuration
+
+You can specify custom API endpoints using a TOML file with the `--endpoints` flag during `auth login`:
+
+```toml
+base = "https://api.example.com"
+iam = "https://iam.example.com"
+dash = "https://dash.example.com"
+ch = "https://ch.example.com"
+```
+
+All keys are optional. When `base` is set without individual endpoints, the CLI derives defaults by appending path suffixes (`/iam`, `/api`, `/composer-hub`). Individual endpoints override derived values.
+
+### Configuration Options
+
+| Field | Profile Option | Description | Required |
+|-------|---------------|-------------|----------|
+| `output` | Output format | `human` (default) | Yes |
+| `api_key` | Authentication API key | - | Yes |
+| `organization_id` | Organization identifier | - | Yes |
+| `updated_at` | Profile last-updated timestamp | ISO 8601 | Yes |
+| `endpoints` | API endpoint set | `iam`, `dash`, `ch` | Yes |
+
+### Profile Management
+
+```bash
+# Switch between profiles
+ds3-composer config switch-profile <profile_name>
+
+# List available profiles
+ds3-composer config profiles
+
+# View current configuration
+ds3-composer config view
+
+# Edit configuration in $EDITOR
+ds3-composer config edit
+
+# Validate configuration
+ds3-composer config validate
+```
+
+## Authentication
+
+Authentication is handled through API keys generated via secure browser-based login or inline password-based flow.
+
+### Login Process
+
+1. Run the login command:
+   ```bash
+   ds3-composer auth login --profile <profile_name>
+   ```
+
+2. Choose an authentication method when prompted:
+   - **Browser-based**: Opens your browser for device-code authentication
+   - **Inline**: Enter username, organization, and password directly
+   - **API key**: Provide an existing API key
+
+3. For browser-based login, copy the displayed one-time device code and enter it in the browser to complete authorization.
+
+4. The CLI will automatically update your configuration with the new API key and organization ID.
+
+### Non-interactive Login
+
+For scripting and automation, you can provide credentials via flags:
+
+```bash
+# Using username/password
+ds3-composer auth login --profile <profile_name> --username <user> --organization <org> --password <pass>
+
+# Using an API key
+ds3-composer auth login --profile <profile_name> --api-key <key>
+
+# Using environment variables
+API_KEY=<key> ds3-composer auth login --profile <profile_name>
+```
+
+**Warning**: Providing credentials via CLI flags may expose them in shell history and process lists. Prefer environment variables or interactive prompts.
+
+### Logout
+
+```bash
+# Logout from specific profile
+ds3-composer auth logout --profile <profile_name>
+
+# Logout from all profiles
+ds3-composer auth logout --all
+```
+
+## Interactive Mode
+
+For complex operations and guided workflows, use interactive mode:
+
+```bash
+ds3-composer --interactive
+```
+
+Interactive mode provides step-by-step assistance for gateway configuration and installation processes.
+
+## Advanced Usage
+
+### Scripting and Automation
+
+The CLI provides multiple modes for automation and scripting:
+
+- **Quiet mode** - Suppresses non-essential output
+- **Silent mode** - Redirects all output to /dev/null
+
+```bash
+# Quiet mode example
+ds3-composer tenant list --quiet
+
+# Silent mode example
+ds3-composer swarm deploy --silent
+```
+
+## Features
+
+- ✅ **Cross-platform Support** - Linux, macOS, Windows
+- ✅ **Profile-based Configuration** - Manage multiple environments and accounts
+- ✅ **Interactive Workflows** - Guided setup processes
+- ✅ **Automation-friendly** - Scriptable with multiple output formats
+- ✅ **Comprehensive Documentation** - Built-in help system
+- ✅ **Secure Authentication** - Browser-based OAuth flow with device code
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [Installation](docs/installation.md) | All installation options: binaries, Go install, source, Bazel |
-| [Getting Started](docs/getting-started.md) | First login, config setup, and your first commands |
-| [Configuration](docs/configuration.md) | Profiles, endpoints, output formats, config file reference |
-| [Swarms & Infrastructure](docs/swarms-and-infrastructure.md) | Swarms, Nexus, nodes, agents, and redundancy classes |
-| [Tenants, Users & Gateways](docs/tenants-users-and-gateways.md) | Tenant lifecycle, projects, user management, and S3 gateway setup |
-| [IAM](docs/iam.md) | Operators, policies, and access control |
+- **Cubbit Official Documentation**: [docs.cubbit.io](https://docs.cubbit.io)
+- **Command Reference**: Run `ds3-composer docs` for detailed command documentation
 
----
+## Support
 
-## Platform Support
+### Getting Help
 
-| Platform | Supported |
-|----------|-----------|
-| Linux (amd64, arm64, armv6, armv7, 386) | ✅ |
-| macOS (amd64, arm64) | ✅ |
-| Windows (amd64, 386) | ✅ |
+- **Issues**: [GitHub Issues](https://github.com/cubbit/composer-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/cubbit/composer-cli/discussions)
+- **Documentation**: [docs.cubbit.io](https://docs.cubbit.io)
 
----
+### Reporting Bugs
+
+Please include the following information when reporting issues:
+- CLI version (`ds3-composer version`)
+- Operating system and version
+- Complete error messages
+- Steps to reproduce
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style guidelines, and the pull request process.
+We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for:
 
-When reporting a bug, please include the CLI version (`cubbit --version`), your OS, the full error output, and steps to reproduce. [Open an issue →](https://github.com/cubbit/composer-cli/issues)
-
----
+- Code style guidelines
+- Development setup instructions
+- Pull request process
+- Issue reporting guidelines
 
 ## License
 
-This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for complete details.
+
+## Changelog
+
+For a complete history of changes and new features, see [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+**Need help?** Check our [documentation](https://docs.cubbit.io) or open an [issue](https://github.com/cubbit/composer-cli/issues).

@@ -13,6 +13,10 @@ import (
 
 type RequestBody = map[string]interface{}
 
+// AnyStatusCode can be passed to WithExpectedStatusCode to disable the automatic status check,
+// so the caller can inspect the status code and the response body itself.
+const AnyStatusCode = -1
+
 type RequestOptions struct {
 	method    string
 	headers   map[string]string
@@ -23,6 +27,7 @@ type RequestOptions struct {
 type RequestModifier = func(*RequestOptions, *http.Response) error
 
 type Data struct {
+	Param           string        `json:"param" example:"param1"`
 	Params          []string      `json:"params" example:"param1,param2"`
 	ActionsRequired []string      `json:"actions_required" example:"iam:AttachUserPolicy,iam:DetachUserPolicy"`
 	Reason          string        `json:"reason" example:"policy_id"`
@@ -106,6 +111,10 @@ func DoRequest(url string, opts ...RequestModifier) error {
 			errorLines = append(errorLines, fmt.Sprintf("reason %s", apiErr.Reason))
 		}
 
+		if apiErr.Data.Param != "" {
+			errorLines = append(errorLines, fmt.Sprintf("param %s", apiErr.Data.Param))
+		}
+
 		if len(apiErr.Params) > 0 {
 			errorLines = append(errorLines, fmt.Sprintf("params [%s]", strings.Join(apiErr.Params, ", ")))
 		}
@@ -127,7 +136,9 @@ func DoRequest(url string, opts ...RequestModifier) error {
 			errorLines = append(errorLines, fmt.Sprintf("issue found [%s]", strings.Join(issues, ", ")))
 		}
 
-		return fmt.Errorf(strings.Join(errorLines, "\n"))
+		errrorOutput := strings.Join(errorLines, "\n")
+
+		return fmt.Errorf("%s", errrorOutput)
 	}
 	for _, modifier := range opts {
 		if err = modifier(nil, res); err != nil {
@@ -155,7 +166,36 @@ func WithAccessToken(accessToken string) RequestModifier {
 			return nil
 		}
 
-		opt.headers[constants.Authorization] = constants.APIKey + " " + accessToken
+		opt.headers[constants.Authorization] = constants.Bearer + " " + accessToken
+
+		return nil
+	}
+}
+
+func WithApiKey(apiKey string) RequestModifier {
+	return func(opt *RequestOptions, res *http.Response) error {
+		if opt == nil {
+			return nil
+		}
+
+		opt.headers[constants.Authorization] = constants.APIKey + " " + apiKey
+
+		return nil
+	}
+}
+
+func WithRefreshToken(refreshToken string) RequestModifier {
+	return func(opt *RequestOptions, res *http.Response) error {
+		if opt == nil {
+			return nil
+		}
+
+		existingCookieHeader := opt.headers["Cookie"]
+		if existingCookieHeader == "" {
+			opt.headers["Cookie"] = constants.RefreshCookie + "=" + refreshToken
+		} else {
+			opt.headers["Cookie"] = existingCookieHeader + "; " + constants.RefreshCookie + "=" + refreshToken
+		}
 
 		return nil
 	}
