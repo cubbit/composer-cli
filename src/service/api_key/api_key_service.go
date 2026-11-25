@@ -39,7 +39,7 @@ func NewAPIKeyService(
 }
 
 func (s *APIKeyService) CreateAPIKey(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -48,7 +48,7 @@ func (s *APIKeyService) CreateAPIKey(cmd *cobra.Command, args []string) error {
 }
 
 func (s *APIKeyService) ListAPIKeys(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -57,7 +57,7 @@ func (s *APIKeyService) ListAPIKeys(cmd *cobra.Command, args []string) error {
 }
 
 func (s *APIKeyService) DescribeAPIKey(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -66,7 +66,7 @@ func (s *APIKeyService) DescribeAPIKey(cmd *cobra.Command, args []string) error 
 }
 
 func (s *APIKeyService) EditAPIKey(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -75,7 +75,7 @@ func (s *APIKeyService) EditAPIKey(cmd *cobra.Command, args []string) error {
 }
 
 func (s *APIKeyService) RevokeAPIKey(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

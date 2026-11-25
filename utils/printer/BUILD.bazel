@@ -1,0 +1,27 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "printer",
+    srcs = ["printer.go"],
+    importpath = "github.com/cubbit/composer-cli/utils/printer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/configuration/configuration_handler",
+        "//utils/printer/table",
+        "//utils/printer/text",
+        "//utils/printer/tree",
+        "@com_github_spf13_cobra//:cobra",
+        "@in_gopkg_yaml_v3//:yaml_v3",
+    ],
+)
+
+go_test(
+    name = "printer_test",
+    srcs = ["printer_test.go"],
+    embed = [":printer"],
+    deps = [
+        "//utils/printer/table",
+        "//utils/printer/tree",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

@@ -1,0 +1,40 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "domain",
+    srcs = [
+        "domain_cmd.go",
+        "domain_sub_cmd_create.go",
+        "domain_sub_cmd_delete.go",
+        "domain_sub_cmd_describe.go",
+        "domain_sub_cmd_list.go",
+        "domain_sub_cmd_verify.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd/domain",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/service",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "domain_test",
+    srcs = [
+        "domain_cmd_integration_test.go",
+        "domain_cmd_structure_test.go",
+        "domain_sub_cmd_create_output_integration_test.go",
+        "domain_sub_cmd_describe_output_integration_test.go",
+        "domain_sub_cmd_list_output_integration_test.go",
+        "domain_sub_cmd_verify_output_integration_test.go",
+    ],
+    embed = [":domain"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

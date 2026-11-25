@@ -219,6 +219,79 @@ func TestLocationAPI_GetAggregated(t *testing.T) {
 	}
 }
 
+func TestLocationAPI_List_SendsNotInProfileTypeFilter(t *testing.T) {
+	var (
+		method string
+		path   string
+		q      string
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		method = r.Method
+		path = r.URL.Path
+		q = r.URL.Query().Get("q")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data":[],"next_page":null,"count":0}`))
+	}))
+	defer server.Close()
+
+	api := NewLocationAPI()
+	clusters, err := api.List(
+		configuration_models.EndpointsV2{CH: server.URL},
+		"api-key",
+		"org-1",
+		WithProfileType(LocationProfileFilterOpNotIn, LocationProfileGateway),
+	)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if method != http.MethodGet {
+		t.Errorf("Expected GET, got %s", method)
+	}
+	if path != "/v1/organizations/org-1/infra/clusters" {
+		t.Errorf("Unexpected path %q", path)
+	}
+	if q != "profile-type:notin(ProfileGateway)" {
+		t.Errorf("Expected q to be %q, got %q", "profile-type:notin(ProfileGateway)", q)
+	}
+	if len(clusters) != 0 {
+		t.Errorf("Expected no clusters, got %d", len(clusters))
+	}
+}
+
+func TestBuildProfileTypeQuery(t *testing.T) {
+	cases := []struct {
+		name   string
+		filter *LocationProfileFilter
+		want   string
+	}{
+		{
+			name:   "in",
+			filter: &LocationProfileFilter{Op: LocationProfileFilterOpIn, Values: []LocationProfileType{LocationProfileAgent}},
+			want:   "profile-type:in(ProfileAgent)",
+		},
+		{
+			name:   "notin",
+			filter: &LocationProfileFilter{Op: LocationProfileFilterOpNotIn, Values: []LocationProfileType{LocationProfileGateway}},
+			want:   "profile-type:notin(ProfileGateway)",
+		},
+		{
+			name:   "multiple values",
+			filter: &LocationProfileFilter{Op: LocationProfileFilterOpIn, Values: []LocationProfileType{LocationProfileAgent, LocationProfileGateway}},
+			want:   "profile-type:in(ProfileAgent,ProfileGateway)",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := buildProfileTypeQuery(tc.filter); got != tc.want {
+				t.Errorf("Expected %q, got %q", tc.want, got)
+			}
+		})
+	}
+}
+
 // TestInfrastructureClusterUnmarshalAppliesDisplayName pins the implicit override: the display name
 // replaces the cluster name in the parsed value and is never exposed as a separate field.
 func TestInfrastructureClusterUnmarshalAppliesDisplayName(t *testing.T) {

@@ -157,7 +157,7 @@ func promptForGatewayCreate(
 			endpoints,
 			apiKey,
 			organizationID,
-			api.WithProfileType("not-it", api.LocationProfileGateway),
+			api.WithProfileType(api.LocationProfileFilterOpNotIn, api.LocationProfileGateway),
 		)
 		h.Stop()
 		if err != nil {

@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "configuration_models",
+    srcs = [
+        "configuration_model_errors.go",
+        "configuration_models_const.go",
+        "configuration_models_v2.go",
+        "configuration_models_v2_inits.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/configuration/configuration_models",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "@com_github_burntsushi_toml//:toml",
+    ],
+)
+
+go_test(
+    name = "configuration_models_test",
+    srcs = ["configuration_models_v2_test.go"],
+    embed = [":configuration_models"],
+)

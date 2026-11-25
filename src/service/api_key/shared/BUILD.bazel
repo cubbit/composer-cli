@@ -1,0 +1,32 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "shared",
+    srcs = [
+        "api_key_service_printer.go",
+        "api_key_service_shared.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/api_key/shared",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/user/shared",
+        "//utils/printer",
+        "//utils/printer/table",
+        "//utils/printer/utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "shared_test",
+    srcs = ["api_key_service_shared_test.go"],
+    embed = [":shared"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_models",
+    ],
+)

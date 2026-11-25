@@ -137,6 +137,43 @@ func writeTempConfig(t *testing.T, dir string) string {
 	return path
 }
 
+// writeTempMultiProfileConfig writes a configuration with a "prod" active profile
+// and an additional "dev" profile.
+func writeTempMultiProfileConfig(t *testing.T, dir string) string {
+	t.Helper()
+	cfg := configuration_models.ConfigV2{
+		Version: configuration_models.ConfigurationV2VersionValue,
+		Active:  configuration_models.ActiveConfigV2{Profile: "prod"},
+		Profile: map[string]configuration_models.ProfileV2{
+			"prod": {
+				Output:         configuration_models.OutputHuman,
+				APIKey:         "prod-key",
+				OrganizationID: "prod-org",
+				Endpoints: configuration_models.EndpointsV2{
+					IAM:  "https://iam.prod.example.com",
+					Dash: "https://dash.prod.example.com",
+					CH:   "https://ch.prod.example.com",
+				},
+			},
+			"dev": {
+				Output:         configuration_models.OutputHuman,
+				APIKey:         "dev-key",
+				OrganizationID: "dev-org",
+				Endpoints: configuration_models.EndpointsV2{
+					IAM:  "https://iam.dev.example.com",
+					Dash: "https://dash.dev.example.com",
+					CH:   "https://ch.dev.example.com",
+				},
+			},
+		},
+	}
+	path := filepath.Join(dir, "config.toml")
+	if err := cfg.Save(path); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+	return path
+}
+
 // --- Load ---
 
 func TestLoad_AlreadyLoaded(t *testing.T) {
@@ -266,6 +303,7 @@ func TestLoad_ForAuthCommandsNoExistingConfig(t *testing.T) {
 	child := &cobra.Command{Use: "login"}
 	cmd.AddCommand(child)
 	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
 	child.Flags().String("endpoints", "", "")
 	child.Flags().Set("config-path", filepath.Join(t.TempDir(), "nonexistent.toml"))
 
@@ -302,6 +340,7 @@ func TestLoad_ForAuthCommandsWithExistingConfig(t *testing.T) {
 	child := &cobra.Command{Use: "login"}
 	cmd.AddCommand(child)
 	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
 	child.Flags().String("endpoints", "", "")
 	child.Flags().Set("config-path", configPath)
 
@@ -958,5 +997,229 @@ func TestMockConfigurationHandler_OverrideFuncs(t *testing.T) {
 	err := m.Load(nil, nil)
 	if err != configuration_models.ErrConfigurationIsAlreadyLoaded {
 		t.Errorf("expected ErrConfigurationIsAlreadyLoaded, got: %v", err)
+	}
+}
+
+// --- profile selection (--profile) ---
+
+func TestLoad_ForAuthCommandsWithProfileFlag(t *testing.T) {
+	dir := t.TempDir()
+	configPath := writeTempMultiProfileConfig(t, dir)
+
+	h := NewConfigurationHandler()
+	root := newRootCmd()
+	cmd := addSubCommand(root, "auth")
+	child := &cobra.Command{Use: "login"}
+	cmd.AddCommand(child)
+	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
+	child.Flags().String("endpoints", "", "")
+	child.Flags().Set("config-path", configPath)
+	child.Flags().Set("profile", "dev")
+
+	if err := child.Execute(); err != nil {
+		t.Fatalf("execute failed: %v", err)
+	}
+
+	if err := h.Load(child, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if h.endpoints == nil {
+		t.Fatal("expected endpoints to be set")
+	}
+	if h.endpoints.IAM != "https://iam.dev.example.com" {
+		t.Errorf("expected endpoints of the requested profile, got %q", h.endpoints.IAM)
+	}
+
+	name, err := h.GetSelectedProfileName()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != "dev" {
+		t.Errorf("expected selected profile 'dev', got %q", name)
+	}
+}
+
+func TestLoad_ForAuthCommandsWithoutProfileFlag(t *testing.T) {
+	dir := t.TempDir()
+	configPath := writeTempMultiProfileConfig(t, dir)
+
+	h := NewConfigurationHandler()
+	root := newRootCmd()
+	cmd := addSubCommand(root, "auth")
+	child := &cobra.Command{Use: "login"}
+	cmd.AddCommand(child)
+	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
+	child.Flags().String("endpoints", "", "")
+	child.Flags().Set("config-path", configPath)
+
+	if err := child.Execute(); err != nil {
+		t.Fatalf("execute failed: %v", err)
+	}
+
+	if err := h.Load(child, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if h.endpoints == nil {
+		t.Fatal("expected endpoints to be set")
+	}
+	if h.endpoints.IAM != "https://iam.prod.example.com" {
+		t.Errorf("expected endpoints of the active profile, got %q", h.endpoints.IAM)
+	}
+
+	name, err := h.GetSelectedProfileName()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != "prod" {
+		t.Errorf("expected selected profile 'prod', got %q", name)
+	}
+}
+
+func TestLoad_ForAuthCommandsWithUnknownProfileFlag(t *testing.T) {
+	dir := t.TempDir()
+	configPath := writeTempMultiProfileConfig(t, dir)
+
+	h := NewConfigurationHandler()
+	root := newRootCmd()
+	cmd := addSubCommand(root, "auth")
+	child := &cobra.Command{Use: "login"}
+	cmd.AddCommand(child)
+	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
+	child.Flags().String("endpoints", "", "")
+	child.Flags().Set("config-path", configPath)
+	child.Flags().Set("profile", "new-profile")
+
+	if err := child.Execute(); err != nil {
+		t.Fatalf("execute failed: %v", err)
+	}
+
+	if err := h.Load(child, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// the profile does not exist yet, it is going to be created by the login:
+	// the active profile endpoints are used as a starting point.
+	if h.endpoints == nil {
+		t.Fatal("expected endpoints to be set")
+	}
+	if h.endpoints.IAM != "https://iam.prod.example.com" {
+		t.Errorf("expected endpoints of the active profile, got %q", h.endpoints.IAM)
+	}
+
+	name, err := h.GetSelectedProfileName()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != "new-profile" {
+		t.Errorf("expected selected profile 'new-profile', got %q", name)
+	}
+}
+
+func TestGetSelectedProfile_WithProfileFlag(t *testing.T) {
+	dir := t.TempDir()
+	configPath := writeTempMultiProfileConfig(t, dir)
+
+	h := NewConfigurationHandler()
+	root := newRootCmd()
+	cmd := addSubCommand(root, "tenant")
+	child := &cobra.Command{Use: "list"}
+	cmd.AddCommand(child)
+	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
+	child.Flags().Set("config-path", configPath)
+	child.Flags().Set("profile", "dev")
+
+	if err := child.Execute(); err != nil {
+		t.Fatalf("execute failed: %v", err)
+	}
+
+	if err := h.Load(child, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	profile, err := h.GetSelectedProfile()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if profile.APIKey != "dev-key" {
+		t.Errorf("expected API key of the requested profile, got %q", profile.APIKey)
+	}
+	if profile.OrganizationID != "dev-org" {
+		t.Errorf("expected organization ID of the requested profile, got %q", profile.OrganizationID)
+	}
+	if profile.Endpoints.IAM != "https://iam.dev.example.com" {
+		t.Errorf("expected endpoints of the requested profile, got %q", profile.Endpoints.IAM)
+	}
+}
+
+func TestGetSelectedProfile_WithoutProfileFlag(t *testing.T) {
+	dir := t.TempDir()
+	configPath := writeTempMultiProfileConfig(t, dir)
+
+	h := NewConfigurationHandler()
+	root := newRootCmd()
+	cmd := addSubCommand(root, "tenant")
+	child := &cobra.Command{Use: "list"}
+	cmd.AddCommand(child)
+	child.Flags().String("config-path", "", "")
+	child.Flags().String("profile", "", "")
+	child.Flags().Set("config-path", configPath)
+
+	if err := child.Execute(); err != nil {
+		t.Fatalf("execute failed: %v", err)
+	}
+
+	if err := h.Load(child, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	profile, err := h.GetSelectedProfile()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if profile.APIKey != "prod-key" {
+		t.Errorf("expected API key of the active profile, got %q", profile.APIKey)
+	}
+
+	name, err := h.GetSelectedProfileName()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != "prod" {
+		t.Errorf("expected selected profile 'prod', got %q", name)
+	}
+}
+
+func TestGetSelectedProfile_NotLoaded(t *testing.T) {
+	h := NewConfigurationHandler()
+	_, err := h.GetSelectedProfile()
+	if err == nil {
+		t.Fatal("expected error for not loaded, got nil")
+	}
+}
+
+func TestGetSelectedProfileName_NoConfigReturnsDefault(t *testing.T) {
+	h := NewConfigurationHandler()
+	h.loadType = LoadTypeForAuthCommands
+
+	name, err := h.GetSelectedProfileName()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != constants.DefaultProfile {
+		t.Errorf("expected default profile %q, got %q", constants.DefaultProfile, name)
+	}
+}
+
+func TestGetSelectedProfileName_NotLoaded(t *testing.T) {
+	h := NewConfigurationHandler()
+	_, err := h.GetSelectedProfileName()
+	if err == nil {
+		t.Fatal("expected error for not loaded, got nil")
 	}
 }

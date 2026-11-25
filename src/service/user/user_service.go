@@ -57,7 +57,7 @@ func (s *UserService) ImportUsers(cmd *cobra.Command, args []string) error {
 		return usercreate.ImportUsers(usercreate.Dependencies{}, cmd, s.configuration, configuration_models.ProfileV2{}, "")
 	}
 
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -80,7 +80,7 @@ func (s *UserService) ImportUsers(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) CreateUser(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -103,7 +103,7 @@ func (s *UserService) CreateUser(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) ListUsers(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -112,7 +112,7 @@ func (s *UserService) ListUsers(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) DescribeUser(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -121,7 +121,7 @@ func (s *UserService) DescribeUser(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) EditUser(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -130,7 +130,7 @@ func (s *UserService) EditUser(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) EnableUser(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -139,7 +139,7 @@ func (s *UserService) EnableUser(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) DisableUser(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -148,7 +148,7 @@ func (s *UserService) DisableUser(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) DeleteUser(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -164,7 +164,7 @@ func (s *UserService) DeleteUser(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) ResetUserPassword(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -181,7 +181,7 @@ func (s *UserService) ResetUserPassword(cmd *cobra.Command, args []string) error
 }
 
 func (s *UserService) EnableUserTFA(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -190,7 +190,7 @@ func (s *UserService) EnableUserTFA(cmd *cobra.Command, args []string) error {
 }
 
 func (s *UserService) DisableUserTFA(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

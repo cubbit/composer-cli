@@ -13,9 +13,6 @@ func NewAuthSubCmdLogin(
 		Use:     "login",
 		Short:   "Login the user",
 		Aliases: []string{"signin"},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.MarkFlagRequired("profile")
-		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := authService.Login(cmd, args); err != nil {
 				utils.PrintError(err)
@@ -27,7 +24,7 @@ func NewAuthSubCmdLogin(
 	authLoginSubCmd.RegisterFlagCompletionFunc("endpoints", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"toml"}, cobra.ShellCompDirectiveFilterFileExt
 	})
-	authLoginSubCmd.Flags().StringP("profile", "P", "", "Profile to setup in the login (required)")
+	authLoginSubCmd.Flags().StringP("profile", "P", "", "Profile to setup in the login (default: use active profile)")
 	authLoginSubCmd.Flags().StringP("username", "u", "", "Username of the operator")
 	authLoginSubCmd.Flags().StringP("organization", "o", "", "Organization name of the operator")
 	authLoginSubCmd.Flags().StringP("password", "p", "", "Password of the operator (WARNING: providing passwords via CLI flags may expose them in shell history, process lists, and logs; prefer PASSWORD environment variables, or interactive prompts)")

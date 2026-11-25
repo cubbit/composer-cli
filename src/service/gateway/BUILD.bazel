@@ -1,0 +1,24 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "gateway",
+    srcs = [
+        "gateway_service.go",
+        "gateway_service_mock.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/gateway",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/service/gateway/connection",
+        "//src/service/gateway/create",
+        "//src/service/gateway/describe",
+        "//src/service/gateway/list",
+        "//src/service/gateway/routing_rules",
+        "//src/service/gateway/storageclass",
+        "//src/service/gateway/update",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

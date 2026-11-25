@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "update",
+    srcs = [
+        "user_service_password_reset.go",
+        "user_service_update.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/user/update",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/user/shared",
+        "//src/tui",
+        "//utils",
+        "//utils/printer",
+        "//utils/printer/table",
+        "//utils/printer/utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "update_test",
+    srcs = ["user_service_password_reset_test.go"],
+    embed = [":update"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_models",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

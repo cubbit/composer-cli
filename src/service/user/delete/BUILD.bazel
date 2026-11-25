@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "delete",
+    srcs = ["user_service_delete.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/user/delete",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_models",
+        "//src/service/user/shared",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

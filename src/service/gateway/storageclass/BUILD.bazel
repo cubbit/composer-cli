@@ -1,0 +1,31 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "storageclass",
+    srcs = [
+        "storage_class_service.go",
+        "storage_class_service_printer.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/gateway/storageclass",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//utils/printer",
+        "//utils/printer/table",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "storageclass_test",
+    srcs = ["storage_class_service_test.go"],
+    embed = [":storageclass"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_models",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

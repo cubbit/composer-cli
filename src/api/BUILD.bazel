@@ -1,0 +1,53 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "api",
+    srcs = [
+        "auth_api.go",
+        "auth_api_mock.go",
+        "authentication_client.go",
+        "connection_api.go",
+        "connection_api_mock.go",
+        "domain_api.go",
+        "domain_api_mock.go",
+        "gateway_api.go",
+        "gateway_api_mock.go",
+        "location_api.go",
+        "location_api_mock.go",
+        "operator_api.go",
+        "paginator_handler.go",
+        "process_api.go",
+        "process_api_mock.go",
+        "redundancy_class_api.go",
+        "redundancy_class_api_mock.go",
+        "request.go",
+        "response.go",
+        "response_extractors.go",
+        "swarm_api.go",
+        "swarm_api_mock.go",
+        "tenant_api.go",
+        "tenant_api_mock.go",
+        "url_builder.go",
+        "user_api.go",
+        "user_api_mock.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/api",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/configuration/configuration_models",
+        "//src/request_utils",
+        "//utils",
+    ],
+)
+
+go_test(
+    name = "api_test",
+    srcs = [
+        "location_api_test.go",
+        "user_api_api_key_test.go",
+        "user_api_password_test.go",
+    ],
+    embed = [":api"],
+    deps = ["//src/configuration/configuration_models"],
+)

@@ -1,0 +1,22 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "verify_connection",
+    srcs = [
+        "tenant_service_verify_connection.go",
+        "tenant_service_verify_connection_printer.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/tenant/verify_connection",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/gateway/shared",
+        "//utils",
+        "//utils/printer",
+        "//utils/printer/tree",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

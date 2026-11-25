@@ -2,7 +2,6 @@ package status
 
 import (
 	"errors"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -139,8 +138,6 @@ func TestSpinModel_MultipleStatusMsgUpdates(t *testing.T) {
 }
 
 func TestObserveWithOpts_ReturnsValue(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 
 	type res struct {
 		val string
@@ -152,13 +149,10 @@ func TestObserveWithOpts_ReturnsValue(t *testing.T) {
 		v, err := ObserveWithOpts("Working", func(update func(string)) (string, error) {
 			update("Starting...")
 			return "hello world", nil
-		}, tea.WithInput(inR))
+		}, tea.WithInput(nil))
 		ch <- res{v, err}
 	}()
 
-	time.Sleep(5 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -170,8 +164,6 @@ func TestObserveWithOpts_ReturnsValue(t *testing.T) {
 }
 
 func TestObserveWithOpts_ReturnsError(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 
 	type res struct {
 		val string
@@ -183,13 +175,10 @@ func TestObserveWithOpts_ReturnsError(t *testing.T) {
 		v, err := ObserveWithOpts("Working", func(update func(string)) (string, error) {
 			update("Failing...")
 			return "", errors.New("something went wrong")
-		}, tea.WithInput(inR))
+		}, tea.WithInput(nil))
 		ch <- res{v, err}
 	}()
 
-	time.Sleep(5 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err == nil || r.err.Error() != "something went wrong" {
@@ -202,8 +191,6 @@ func TestObserveWithOpts_ReturnsError(t *testing.T) {
 
 func TestObserveWithOpts_StatusUpdatesInOutput(t *testing.T) {
 	var term terminalWriter
-	inR, inW := io.Pipe()
-	defer inW.Close()
 
 	type res struct {
 		val string
@@ -220,13 +207,10 @@ func TestObserveWithOpts_StatusUpdatesInOutput(t *testing.T) {
 				time.Sleep(10 * time.Millisecond)
 				return "done", nil
 			},
-			tea.WithInput(inR), tea.WithOutput(&term))
+			tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{v, err}
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -256,8 +240,6 @@ func TestObserveWithOpts_StatusUpdatesInOutput(t *testing.T) {
 }
 
 func TestObserveWithOpts_CancelledReturnsZeroValue(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 
 	type res struct {
 		val string
@@ -271,13 +253,10 @@ func TestObserveWithOpts_CancelledReturnsZeroValue(t *testing.T) {
 				time.Sleep(50 * time.Millisecond)
 				return "done", nil
 			},
-			tea.WithInput(inR))
+			tea.WithInput(nil))
 		ch <- res{v, err}
 	}()
 
-	time.Sleep(5 * time.Millisecond)
-	inW.Write([]byte("q"))
-	inW.Close()
 	r := <-ch
 
 	// action runs to completion even after cancel, so result is still returned

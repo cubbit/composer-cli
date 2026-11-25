@@ -2,7 +2,6 @@ package cmd_auth
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 
 	"github.com/cubbit/composer-cli/src/service"
@@ -73,7 +72,7 @@ func TestAuthSubCmd_Structure_LoginWithEndpointsFlag(t *testing.T) {
 	}
 }
 
-func TestAuthSubCmd_Structure_LoginWithMissingFlags(t *testing.T) {
+func TestAuthSubCmd_Structure_LoginWithoutProfileFlag(t *testing.T) {
 	mockAuthService := service.NewAuthServiceMock()
 
 	mockAuthService.LoginFunc = func(cmd *cobra.Command, args []string) error {
@@ -81,31 +80,52 @@ func TestAuthSubCmd_Structure_LoginWithMissingFlags(t *testing.T) {
 		return nil
 	}
 
-	flags := []string{
-		"--profile", "test-profile",
+	authCmd := NewAuthCmd(mockAuthService)
+
+	commandOutput := new(bytes.Buffer)
+	authCmd.SetOut(commandOutput)
+	authCmd.SetErr(commandOutput)
+	authCmd.SetArgs([]string{"login"})
+
+	err := authCmd.Execute()
+	if err != nil {
+		t.Fatalf("Expected no error (profile flag should be optional), got %v", err)
 	}
 
-	for i := 0; i < len(flags); i += 2 {
-		authCmd := NewAuthCmd(mockAuthService)
+	if commandOutput.String() != "Mock: Login successful\n" {
+		t.Fatalf("Expected output %q, got %q", "Mock: Login successful\n", commandOutput.String())
+	}
+}
 
-		commandOutput := new(bytes.Buffer)
-		authCmd.SetOut(commandOutput)
-		authCmd.SetErr(commandOutput)
+func TestAuthSubCmd_Structure_LoginProfileFlagIsOptional(t *testing.T) {
+	mockAuthService := service.NewAuthServiceMock()
 
-		args := []string{"login"}
-		flagsCopy := append([]string(nil), flags...)
-		missingFlag := flagsCopy[i][2:]
-		filteredFlags := append(flagsCopy[:i], flagsCopy[i+2:]...)
-		args = append(args, filteredFlags...)
+	mockAuthService.LoginFunc = func(cmd *cobra.Command, args []string) error {
+		return nil
+	}
 
-		authCmd.SetArgs(args)
-		err := authCmd.Execute()
-		if err == nil {
-			t.Fatalf("Expected error due to missing flag %s, got none", missingFlag)
-		}
+	authCmd := NewAuthCmd(mockAuthService)
 
-		if err.Error() != fmt.Sprintf("required flag(s) \"%s\" not set", missingFlag) {
-			t.Fatalf("error %s", err)
-		}
+	commandOutput := new(bytes.Buffer)
+	authCmd.SetOut(commandOutput)
+	authCmd.SetErr(commandOutput)
+	authCmd.SetArgs([]string{"login"})
+
+	if err := authCmd.Execute(); err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	loginCmd, _, err := authCmd.Find([]string{"login"})
+	if err != nil {
+		t.Fatalf("Expected login command, got %v", err)
+	}
+
+	flag := loginCmd.Flags().Lookup("profile")
+	if flag == nil {
+		t.Fatal("expected profile flag to be defined")
+	}
+
+	if _, required := flag.Annotations[cobra.BashCompOneRequiredFlag]; required {
+		t.Error("expected the profile flag to be optional")
 	}
 }

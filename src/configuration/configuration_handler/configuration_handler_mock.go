@@ -1,24 +1,27 @@
 package configuration_handler
 
 import (
+	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 	"github.com/spf13/cobra"
 )
 
 type MockConfigurationHandler struct {
-	LoadFunc                 func(cmd *cobra.Command, args []string) error
-	SaveFunc                 func() error
-	CreateProfileFunc        func(profileName string, apiKey string, organizationID string) error
-	SwitchProfileFunc        func(profileName string) error
-	DeleteProfileFunc        func(profileName string) error
-	DeleteAllProfilesFunc    func() error
-	GetConfigFileFunc        func() (configuration_models.ConfigV2, error)
-	GetConfigFilePathFunc    func() (string, error)
-	GetProfilesFunc          func() (map[string]configuration_models.ProfileV2, error)
-	GetActiveProfileFunc     func() (configuration_models.ProfileV2, error)
-	GetActiveProfileNameFunc func() (string, error)
-	GetEndpointsFunc         func() (configuration_models.EndpointsV2, error)
-	GetAPIKeyFunc            func() (string, error)
+	LoadFunc                   func(cmd *cobra.Command, args []string) error
+	SaveFunc                   func() error
+	CreateProfileFunc          func(profileName string, apiKey string, organizationID string) error
+	SwitchProfileFunc          func(profileName string) error
+	DeleteProfileFunc          func(profileName string) error
+	DeleteAllProfilesFunc      func() error
+	GetConfigFileFunc          func() (configuration_models.ConfigV2, error)
+	GetConfigFilePathFunc      func() (string, error)
+	GetProfilesFunc            func() (map[string]configuration_models.ProfileV2, error)
+	GetActiveProfileFunc       func() (configuration_models.ProfileV2, error)
+	GetActiveProfileNameFunc   func() (string, error)
+	GetSelectedProfileFunc     func() (configuration_models.ProfileV2, error)
+	GetSelectedProfileNameFunc func() (string, error)
+	GetEndpointsFunc           func() (configuration_models.EndpointsV2, error)
+	GetAPIKeyFunc              func() (string, error)
 }
 
 func NewMockConfigurationHandler() *MockConfigurationHandler {
@@ -140,6 +143,35 @@ func (m *MockConfigurationHandler) GetActiveProfileName() (string, error) {
 		return m.GetActiveProfileNameFunc()
 	}
 	return "", nil
+}
+
+// GetSelectedProfile falls back to the active profile, mirroring the handler behavior
+// when the --profile flag is not provided.
+func (m *MockConfigurationHandler) GetSelectedProfile() (configuration_models.ProfileV2, error) {
+	if m.GetSelectedProfileFunc != nil {
+		return m.GetSelectedProfileFunc()
+	}
+
+	return m.GetActiveProfile()
+}
+
+// GetSelectedProfileName falls back to the active profile name, mirroring the handler
+// behavior when the --profile flag is not provided.
+func (m *MockConfigurationHandler) GetSelectedProfileName() (string, error) {
+	if m.GetSelectedProfileNameFunc != nil {
+		return m.GetSelectedProfileNameFunc()
+	}
+
+	profileName, err := m.GetActiveProfileName()
+	if err != nil {
+		return "", err
+	}
+
+	if profileName == "" {
+		return constants.DefaultProfile, nil
+	}
+
+	return profileName, nil
 }
 
 func (m *MockConfigurationHandler) GetEndpoints() (configuration_models.EndpointsV2, error) {

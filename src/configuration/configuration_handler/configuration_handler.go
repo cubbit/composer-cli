@@ -25,9 +25,13 @@ type ConfigurationHandlerInterface interface {
 	GetProfiles() (map[string]configuration_models.ProfileV2, error)
 	GetActiveProfile() (configuration_models.ProfileV2, error)
 	GetActiveProfileName() (string, error)
-	// returns endpoints for active profile
+	// returns the profile requested with --profile, falling back to the active profile
+	GetSelectedProfile() (configuration_models.ProfileV2, error)
+	// returns the name of the profile requested with --profile, falling back to the active profile
+	GetSelectedProfileName() (string, error)
+	// returns endpoints for the selected profile
 	GetEndpoints() (configuration_models.EndpointsV2, error)
-	// returns API key for active profile
+	// returns API key for the selected profile
 	GetAPIKey() (string, error)
 }
 

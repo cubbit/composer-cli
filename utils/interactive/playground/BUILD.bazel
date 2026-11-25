@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "playground_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/cubbit/composer-cli/utils/interactive/playground",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//utils/interactive",
+        "//utils/interactive/tui/input",
+    ],
+)
+
+go_binary(
+    name = "playground",
+    embed = [":playground_lib"],
+    visibility = ["//visibility:public"],
+)

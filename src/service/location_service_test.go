@@ -805,6 +805,74 @@ func TestLocationService_InterfaceCompliance(t *testing.T) {
 	var _ LocationServiceInterface = LocationService{}
 }
 
+func TestLocationService_List_UsesSelectedProfileOverActiveProfile(t *testing.T) {
+	mockCfg := configuration_handler.NewMockConfigurationHandler()
+
+	activeProfile := configuration_models.ProfileV2{
+		APIKey:         "active-api-key",
+		OrganizationID: "active-org-id",
+		Output:         configuration_models.OutputHuman,
+		Endpoints: configuration_models.EndpointsV2{
+			IAM:  "https://iam.active.example.com",
+			Dash: "https://dash.active.example.com",
+			CH:   "https://ch.active.example.com",
+		},
+	}
+	selectedProfile := configuration_models.ProfileV2{
+		APIKey:         "selected-api-key",
+		OrganizationID: "selected-org-id",
+		Output:         configuration_models.OutputHuman,
+		Endpoints: configuration_models.EndpointsV2{
+			IAM:  "https://iam.selected.example.com",
+			Dash: "https://dash.selected.example.com",
+			CH:   "https://ch.selected.example.com",
+		},
+	}
+
+	mockCfg.GetActiveProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return activeProfile, nil
+	}
+	mockCfg.GetSelectedProfileFunc = func() (configuration_models.ProfileV2, error) {
+		return selectedProfile, nil
+	}
+
+	var requestedEndpoints configuration_models.EndpointsV2
+	var requestedAPIKey, requestedOrganizationID string
+	mockLocationAPI := &api.MockLocationAPI{
+		ListFunc: func(
+			endpoints configuration_models.EndpointsV2,
+			apiKey string,
+			organizationID string,
+			opts ...api.LocationListOption,
+		) ([]api.InfrastructureCluster, error) {
+			requestedEndpoints = endpoints
+			requestedAPIKey = apiKey
+			requestedOrganizationID = organizationID
+
+			return []api.InfrastructureCluster{}, nil
+		},
+	}
+
+	service := NewLocationService(mockCfg, mockLocationAPI, &api.UserAPI{}, nil)
+
+	cmd := setupTestCommand()
+	cmd.Flags().Set("profile", "selected")
+
+	if err := service.List(cmd, []string{}); err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+
+	if requestedEndpoints.IAM != selectedProfile.Endpoints.IAM {
+		t.Errorf("Expected endpoints of the selected profile, got %q", requestedEndpoints.IAM)
+	}
+	if requestedAPIKey != selectedProfile.APIKey {
+		t.Errorf("Expected API key of the selected profile, got %q", requestedAPIKey)
+	}
+	if requestedOrganizationID != selectedProfile.OrganizationID {
+		t.Errorf("Expected organization ID of the selected profile, got %q", requestedOrganizationID)
+	}
+}
+
 func contains(s, substr string) bool {
 	for i := 0; i <= len(s)-len(substr); i++ {
 		if s[i:i+len(substr)] == substr {

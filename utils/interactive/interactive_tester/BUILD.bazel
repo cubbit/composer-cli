@@ -1,0 +1,12 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "interactive_tester",
+    srcs = ["interactive_tester.go"],
+    importpath = "github.com/cubbit/composer-cli/utils/interactive/interactive_tester",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_creack_pty//:pty",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

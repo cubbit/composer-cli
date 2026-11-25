@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "shared",
+    srcs = ["gateway_command_output.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/gateway/shared",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/configuration/configuration_models",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

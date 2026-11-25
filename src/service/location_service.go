@@ -49,7 +49,7 @@ func NewLocationService(
 }
 
 func (s LocationService) List(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -67,7 +67,7 @@ func (s LocationService) List(cmd *cobra.Command, args []string) error {
 }
 
 func (s LocationService) Describe(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -138,7 +138,7 @@ func resolveClusterIDByName(clusters []api.InfraAggregateCluster, name string) (
 }
 
 func (s LocationService) CreateVirtual(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -179,7 +179,7 @@ func (s LocationService) CreateVirtual(cmd *cobra.Command, args []string) error 
 }
 
 func (s LocationService) CreateVirtualNode(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -216,7 +216,7 @@ func (s LocationService) CreateVirtualNode(cmd *cobra.Command, args []string) er
 }
 
 func (s LocationService) Update(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -274,7 +274,7 @@ func (s LocationService) Update(cmd *cobra.Command, args []string) error {
 }
 
 func (s LocationService) Delete(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

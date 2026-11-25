@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "configuration_handler",
+    srcs = [
+        "configuration_handler.go",
+        "configuration_handler_common.go",
+        "configuration_handler_create_profile.go",
+        "configuration_handler_delete_profile.go",
+        "configuration_handler_get.go",
+        "configuration_handler_load.go",
+        "configuration_handler_mock.go",
+        "configuration_handler_save.go",
+        "configuration_handler_switch_profile.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/configuration/configuration_handler",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/configuration/configuration_models",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "configuration_handler_test",
+    srcs = ["configuration_handler_test.go"],
+    embed = [":configuration_handler"],
+    deps = [
+        "//constants",
+        "//src/configuration/configuration_models",
+        "@com_github_burntsushi_toml//:toml",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

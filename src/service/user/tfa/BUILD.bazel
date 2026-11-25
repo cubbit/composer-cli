@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tfa",
+    srcs = ["user_service_tfa.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/user/tfa",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/tui",
+        "//utils",
+        "//utils/printer",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

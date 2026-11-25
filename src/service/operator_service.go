@@ -36,7 +36,7 @@ func (s *OperatorService) Connect(cmd *cobra.Command, args []string) error {
 	var err error
 	var command string
 
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

@@ -1,0 +1,49 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "tenant",
+    srcs = [
+        "tenant_cmd.go",
+        "tenant_sub_cmd_create.go",
+        "tenant_sub_cmd_describe.go",
+        "tenant_sub_cmd_list.go",
+        "tenant_sub_cmd_list_connections.go",
+        "tenant_sub_cmd_verify_connection.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd/tenant",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/service/tenant",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "tenant_test",
+    srcs = [
+        "tenant_sub_cmd_create_inline_integration_test.go",
+        "tenant_sub_cmd_create_interactive_integration_test.go",
+        "tenant_sub_cmd_create_output_integration_test.go",
+        "tenant_sub_cmd_create_structure_test.go",
+        "tenant_sub_cmd_describe_integration_test.go",
+        "tenant_sub_cmd_describe_output_integration_test.go",
+        "tenant_sub_cmd_describe_structure_test.go",
+        "tenant_sub_cmd_list_connections_integration_test.go",
+        "tenant_sub_cmd_list_connections_structure_test.go",
+        "tenant_sub_cmd_list_integration_test.go",
+        "tenant_sub_cmd_list_output_integration_test.go",
+        "tenant_sub_cmd_list_structure_test.go",
+        "tenant_sub_cmd_verify_connection_integration_test.go",
+        "tenant_sub_cmd_verify_connection_structure_test.go",
+    ],
+    embed = [":tenant"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/tenant",
+        "//utils/interactive/interactive_tester",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

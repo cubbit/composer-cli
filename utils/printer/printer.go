@@ -26,7 +26,7 @@ const (
 // resolveFormat resolves the output format with the following priority:
 // 1. --quiet flag (OutputQuiet)
 // 2. --output flag when explicitly set (OutputJSON / OutputYAML)
-// 3. handler-provided default from the active profile config
+// 3. handler-provided default from the selected profile config
 // 4. OutputHuman as ultimate fallback
 func resolveFormat(cmd *cobra.Command, handler configuration_handler.ConfigurationHandlerInterface) (OutputFormat, error) {
 	f := cmd.Flag("quiet")
@@ -46,7 +46,7 @@ func resolveFormat(cmd *cobra.Command, handler configuration_handler.Configurati
 	}
 
 	if handler != nil {
-		if profile, err := handler.GetActiveProfile(); err == nil {
+		if profile, err := handler.GetSelectedProfile(); err == nil {
 			if o := outputFromString(string(profile.Output)); o != OutputHuman {
 				return o, nil
 			}

@@ -1,6 +1,7 @@
 package configuration_handler
 
 import (
+	"github.com/cubbit/composer-cli/constants"
 	"github.com/cubbit/composer-cli/src/configuration/configuration_models"
 )
 
@@ -55,6 +56,40 @@ func (h *ConfigurationHandler) GetActiveProfile() (configuration_models.ProfileV
 func (h *ConfigurationHandler) GetActiveProfileName() (string, error) {
 	if h.loadType != LoadTypeStandard {
 		return "", configuration_models.ErrConfigurationIsNotLoaded
+	}
+
+	return h.configFile.GetActiveProfileName(), nil
+}
+
+// GetSelectedProfile returns the profile requested with the --profile flag.
+// When the flag is not provided, the active profile is returned.
+func (h *ConfigurationHandler) GetSelectedProfile() (configuration_models.ProfileV2, error) {
+	if h.loadType != LoadTypeStandard {
+		return configuration_models.ProfileV2{}, configuration_models.ErrConfigurationIsNotLoaded
+	}
+
+	profileName, err := h.GetSelectedProfileName()
+	if err != nil {
+		return configuration_models.ProfileV2{}, err
+	}
+
+	return h.configFile.GetProfile(profileName)
+}
+
+// GetSelectedProfileName returns the name of the profile requested with the --profile flag.
+// When the flag is not provided, the active profile name is returned. When no configuration
+// is available yet (e.g. the first login), the default profile name is returned.
+func (h *ConfigurationHandler) GetSelectedProfileName() (string, error) {
+	if h.loadType == LoadTypeNotLoaded || h.loadType == LoadTypeForConfigCommands || h.loadType == LoadTypeConfigNotRequired {
+		return "", configuration_models.ErrConfigurationIsNotLoaded
+	}
+
+	if h.requestedProfile != nil && *h.requestedProfile != "" {
+		return *h.requestedProfile, nil
+	}
+
+	if h.configFile == nil {
+		return constants.DefaultProfile, nil
 	}
 
 	return h.configFile.GetActiveProfileName(), nil

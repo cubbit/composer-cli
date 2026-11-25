@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "revoke",
+    srcs = ["api_key_service_revoke.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/api_key/revoke",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/configuration/configuration_models",
+        "//src/service/api_key/shared",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

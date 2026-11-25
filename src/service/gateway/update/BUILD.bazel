@@ -1,0 +1,31 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "update",
+    srcs = [
+        "gateway_service_update.go",
+        "gateway_service_update_printer.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/gateway/update",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/gateway/describe",
+        "//utils",
+        "//utils/printer",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "update_test",
+    srcs = ["gateway_service_update_test.go"],
+    embed = [":update"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_models",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

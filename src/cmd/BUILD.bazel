@@ -1,0 +1,32 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cmd",
+    srcs = [
+        "root.go",
+        "root_init.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/api",
+        "//src/cmd/auth",
+        "//src/cmd/config",
+        "//src/cmd/docs",
+        "//src/cmd/domain",
+        "//src/cmd/gateway",
+        "//src/cmd/iam",
+        "//src/cmd/infrastructure",
+        "//src/cmd/operator",
+        "//src/cmd/swarm",
+        "//src/cmd/tenant",
+        "//src/cmd/version",
+        "//src/configuration/configuration_handler",
+        "//src/service",
+        "//src/service/api_key",
+        "//src/service/gateway",
+        "//src/service/tenant",
+        "//src/service/user",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

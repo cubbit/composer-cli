@@ -24,14 +24,22 @@ type LocationListOptions struct {
 	ProfileType *LocationProfileFilter
 }
 
+// LocationProfileFilterOp is the CubQL operator of a profile-type filter.
+type LocationProfileFilterOp string
+
+const (
+	LocationProfileFilterOpIn    LocationProfileFilterOp = "in"
+	LocationProfileFilterOpNotIn LocationProfileFilterOp = "notin"
+)
+
 type LocationProfileFilter struct {
-	Op     string // "in" or "notin"
+	Op     LocationProfileFilterOp
 	Values []LocationProfileType
 }
 
 type LocationListOption func(*LocationListOptions)
 
-func WithProfileType(op string, types ...LocationProfileType) LocationListOption {
+func WithProfileType(op LocationProfileFilterOp, types ...LocationProfileType) LocationListOption {
 	return func(opts *LocationListOptions) {
 		opts.ProfileType = &LocationProfileFilter{Op: op, Values: types}
 	}

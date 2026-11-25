@@ -3,7 +3,6 @@ package status
 import (
 	"bytes"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -12,8 +11,6 @@ import (
 )
 
 func TestSpinWithOpts_Success(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var outBuf bytes.Buffer
 
 	type res struct{ err error }
@@ -22,13 +19,10 @@ func TestSpinWithOpts_Success(t *testing.T) {
 	go func() {
 		err := SpinWithOpts("Working", func() error {
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&outBuf))
+		}, tea.WithInput(nil), tea.WithOutput(&outBuf))
 		ch <- res{err}
 	}()
 
-	time.Sleep(5 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -37,8 +31,6 @@ func TestSpinWithOpts_Success(t *testing.T) {
 }
 
 func TestSpinWithOpts_ReturnsActionError(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var outBuf bytes.Buffer
 	want := errors.New("something went wrong")
 
@@ -48,13 +40,10 @@ func TestSpinWithOpts_ReturnsActionError(t *testing.T) {
 	go func() {
 		err := SpinWithOpts("Working", func() error {
 			return want
-		}, tea.WithInput(inR), tea.WithOutput(&outBuf))
+		}, tea.WithInput(nil), tea.WithOutput(&outBuf))
 		ch <- res{err}
 	}()
 
-	time.Sleep(5 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if !errors.Is(r.err, want) {
@@ -63,8 +52,6 @@ func TestSpinWithOpts_ReturnsActionError(t *testing.T) {
 }
 
 func TestSpinWithOpts_OutputContainsTitle(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var term terminalWriter
 
 	type res struct{ err error }
@@ -74,13 +61,10 @@ func TestSpinWithOpts_OutputContainsTitle(t *testing.T) {
 		err := SpinWithOpts("Connecting to server", func() error {
 			time.Sleep(30 * time.Millisecond)
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&term))
+		}, tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{err}
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -105,8 +89,6 @@ func TestSpinWithOpts_OutputContainsTitle(t *testing.T) {
 }
 
 func TestSpinWithOpts_OutputContainsSpinnerCharacter(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var term terminalWriter
 
 	type res struct{ err error }
@@ -116,13 +98,10 @@ func TestSpinWithOpts_OutputContainsSpinnerCharacter(t *testing.T) {
 		err := SpinWithOpts("Working", func() error {
 			time.Sleep(30 * time.Millisecond)
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&term))
+		}, tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{err}
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {

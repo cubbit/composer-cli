@@ -1,0 +1,2 @@
+try-import %workspace%/.bazelrc.user
+build --symlink_prefix=dist/

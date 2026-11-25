@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "list",
+    srcs = [
+        "gateway_service_list.go",
+        "gateway_service_list_inline.go",
+        "gateway_service_list_printer.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/gateway/list",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//utils/printer",
+        "//utils/printer/table",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

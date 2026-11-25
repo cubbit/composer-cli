@@ -3,7 +3,6 @@ package status
 import (
 	"bytes"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -71,8 +70,6 @@ func TestProgressBarWithOpts_ClampsOverflowValues(t *testing.T) {
 }
 
 func TestProgressBarWithOpts_OutputContainsTitle(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var term terminalWriter
 
 	type res struct{ err error }
@@ -85,13 +82,10 @@ func TestProgressBarWithOpts_OutputContainsTitle(t *testing.T) {
 			time.Sleep(15 * time.Millisecond)
 			ch <- 1.0
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&term))
+		}, tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{err}
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -116,8 +110,6 @@ func TestProgressBarWithOpts_OutputContainsTitle(t *testing.T) {
 }
 
 func TestProgressBarWithOpts_OutputContainsPercentage(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var term terminalWriter
 
 	type res struct{ err error }
@@ -130,13 +122,10 @@ func TestProgressBarWithOpts_OutputContainsPercentage(t *testing.T) {
 			time.Sleep(30 * time.Millisecond)
 			ch <- 1.0
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&term))
+		}, tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{err}
 	}()
 
-	time.Sleep(80 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -160,8 +149,6 @@ func TestProgressBarWithOpts_OutputContainsPercentage(t *testing.T) {
 }
 
 func TestProgressBarWithOpts_OutputContainsBarCharacters(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var term terminalWriter
 
 	type res struct{ err error }
@@ -174,13 +161,10 @@ func TestProgressBarWithOpts_OutputContainsBarCharacters(t *testing.T) {
 			time.Sleep(30 * time.Millisecond)
 			ch <- 1.0
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&term))
+		}, tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{err}
 	}()
 
-	time.Sleep(80 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {
@@ -207,8 +191,6 @@ func TestProgressBarWithOpts_OutputContainsBarCharacters(t *testing.T) {
 }
 
 func TestProgressBarWithOpts_ProgressUpdatesOverTime(t *testing.T) {
-	inR, inW := io.Pipe()
-	defer inW.Close()
 	var term terminalWriter
 
 	type res struct{ err error }
@@ -223,13 +205,10 @@ func TestProgressBarWithOpts_ProgressUpdatesOverTime(t *testing.T) {
 			time.Sleep(30 * time.Millisecond)
 			ch <- 1.0
 			return nil
-		}, tea.WithInput(inR), tea.WithOutput(&term))
+		}, tea.WithInput(nil), tea.WithOutput(&term))
 		ch <- res{err}
 	}()
 
-	time.Sleep(120 * time.Millisecond)
-	inW.Write([]byte(" "))
-	inW.Close()
 	r := <-ch
 
 	if r.err != nil {

@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "create",
+    srcs = [
+        "tenant_service_create.go",
+        "tenant_service_create_inline.go",
+        "tenant_service_create_interactive.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/tenant/create",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//utils",
+        "//utils/interactive",
+        "//utils/interactive/tui/input",
+        "//utils/printer",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

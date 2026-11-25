@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "describe",
+    srcs = [
+        "tenant_service_describe.go",
+        "tenant_service_describe_printer.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/tenant/describe",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//utils/printer",
+        "//utils/printer/tree",
+        "//utils/printer/utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

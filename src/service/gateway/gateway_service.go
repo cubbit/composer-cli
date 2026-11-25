@@ -62,7 +62,7 @@ func NewGatewayService(
 }
 
 func (s GatewayService) List(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -74,7 +74,7 @@ func (s GatewayService) List(cmd *cobra.Command, args []string) error {
 }
 
 func (s GatewayService) Create(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -96,7 +96,7 @@ func (s GatewayService) Create(cmd *cobra.Command, args []string) error {
 }
 
 func (s GatewayService) Describe(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -109,7 +109,7 @@ func (s GatewayService) Describe(cmd *cobra.Command, args []string) error {
 }
 
 func (s GatewayService) Update(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -122,7 +122,7 @@ func (s GatewayService) Update(cmd *cobra.Command, args []string) error {
 }
 
 func (s GatewayService) ListStorageClasses(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -135,7 +135,7 @@ func (s GatewayService) ListStorageClasses(cmd *cobra.Command, args []string) er
 }
 
 func (s GatewayService) CreateStorageClass(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -148,7 +148,7 @@ func (s GatewayService) CreateStorageClass(cmd *cobra.Command, args []string) er
 }
 
 func (s GatewayService) DeleteStorageClass(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -161,7 +161,7 @@ func (s GatewayService) DeleteStorageClass(cmd *cobra.Command, args []string) er
 }
 
 func (s GatewayService) ListConnections(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -174,7 +174,7 @@ func (s GatewayService) ListConnections(cmd *cobra.Command, args []string) error
 }
 
 func (s GatewayService) CreateConnections(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -187,7 +187,7 @@ func (s GatewayService) CreateConnections(cmd *cobra.Command, args []string) err
 }
 
 func (s GatewayService) DeleteConnection(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -200,7 +200,7 @@ func (s GatewayService) DeleteConnection(cmd *cobra.Command, args []string) erro
 }
 
 func (s GatewayService) ListRoutingRules(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -213,7 +213,7 @@ func (s GatewayService) ListRoutingRules(cmd *cobra.Command, args []string) erro
 }
 
 func (s GatewayService) GetRoutingRule(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -226,7 +226,7 @@ func (s GatewayService) GetRoutingRule(cmd *cobra.Command, args []string) error 
 }
 
 func (s GatewayService) CreateRoutingRule(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -239,7 +239,7 @@ func (s GatewayService) CreateRoutingRule(cmd *cobra.Command, args []string) err
 }
 
 func (s GatewayService) UpdateRoutingRule(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -252,7 +252,7 @@ func (s GatewayService) UpdateRoutingRule(cmd *cobra.Command, args []string) err
 }
 
 func (s GatewayService) DeleteRoutingRule(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

@@ -23,10 +23,10 @@ func (w *terminalWriter) Write(p []byte) (int, error) {
 			for i < len(p) && !(p[i] >= 0x40 && p[i] <= 0x7E) {
 				i++
 			}
-			seq := string(p[seqStart:i])
 			if i < len(p) {
 				i++
 			}
+			seq := string(p[seqStart:i])
 
 			if seq == "2K" || seq == "K" {
 				if w.line.Len() > 0 {

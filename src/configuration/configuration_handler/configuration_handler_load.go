@@ -52,6 +52,11 @@ func (h *ConfigurationHandler) loadForAuthCommands(cmd *cobra.Command, args []st
 		return fmt.Errorf("failed to get 'endpoints' flag: %w", err)
 	}
 
+	requestedProfileName, err := cmd.Flags().GetString("profile")
+	if err != nil {
+		return fmt.Errorf("failed to get 'profile' flag: %w", err)
+	}
+
 	var initEndpoints *configuration_models.EndpointsV2Inits
 	if initEndpointsPath != "" {
 		initEndpoints, err = configuration_models.ParseAndValidateEndpointsV2Inits(initEndpointsPath)
@@ -73,8 +78,12 @@ func (h *ConfigurationHandler) loadForAuthCommands(cmd *cobra.Command, args []st
 		if initEndpoints != nil {
 			h.endpoints = initEndpoints.ToEndpointsV2()
 		} else {
-			endpoints := config.GetActiveProfile().Endpoints
+			endpoints := getEndpointsForProfile(config, requestedProfileName)
 			h.endpoints = &endpoints
+		}
+
+		if requestedProfileName != "" {
+			h.requestedProfile = &requestedProfileName
 		}
 
 		h.loadType = LoadTypeForAuthCommands
@@ -116,24 +125,38 @@ func (h *ConfigurationHandler) loadStandard(cmd *cobra.Command, _ []string) erro
 		return fmt.Errorf("failed to get 'profile' flag: %w", err)
 	}
 
-	h.configFile = config
-	h.loadType = LoadTypeStandard
-
-	var requestedProfile configuration_models.ProfileV2
+	selectedProfile := config.GetActiveProfile()
 	if requestedProfileName != "" {
-		requestedProfile, err = config.GetProfile(requestedProfileName)
+		// the requested profile must exist, we are not creating a new one here
+		selectedProfile, err = config.GetProfile(requestedProfileName)
 		if err != nil {
 			return err
 		}
-	} else {
-		requestedProfile = config.GetActiveProfile()
 	}
 
+	h.configFile = config
+	h.loadType = LoadTypeStandard
 	h.requestedProfile = &requestedProfileName
-	h.endpoints = &requestedProfile.Endpoints
-	h.apiKey = &requestedProfile.APIKey
+	h.endpoints = &selectedProfile.Endpoints
+	h.apiKey = &selectedProfile.APIKey
 
 	return nil
+}
+
+// getEndpointsForProfile returns the endpoints of the requested profile, falling back
+// to the active profile when the requested one is not configured (it might be a profile
+// that is going to be created by the running command).
+func getEndpointsForProfile(
+	config *configuration_models.ConfigV2,
+	requestedProfileName string,
+) configuration_models.EndpointsV2 {
+	if requestedProfileName != "" {
+		if requestedProfile, err := config.GetProfile(requestedProfileName); err == nil {
+			return requestedProfile.Endpoints
+		}
+	}
+
+	return config.GetActiveProfile().Endpoints
 }
 
 func getEndpointsFromDefaults() *configuration_models.EndpointsV2 {

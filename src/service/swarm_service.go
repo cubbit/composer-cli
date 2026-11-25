@@ -48,7 +48,7 @@ func NewSwarmService(
 }
 
 func (s SwarmService) CreateInteractive(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -728,7 +728,7 @@ func monitorSwarmCreation(
 }
 
 func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -804,7 +804,7 @@ func (s SwarmService) Create(cmd *cobra.Command, args []string) error {
 }
 
 func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -823,7 +823,7 @@ func (s SwarmService) Describe(cmd *cobra.Command, args []string) error {
 }
 
 func (s SwarmService) List(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

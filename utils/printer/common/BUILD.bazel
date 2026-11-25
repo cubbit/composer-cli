@@ -1,0 +1,9 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "common",
+    srcs = ["config.go"],
+    importpath = "github.com/cubbit/composer-cli/utils/printer/common",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_charmbracelet_lipgloss//:lipgloss"],
+)

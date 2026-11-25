@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "interactive",
+    srcs = [
+        "feedback.go",
+        "interactive.go",
+        "progress.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/utils/interactive",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//utils/interactive/tui/input",
+        "//utils/interactive/tui/status",
+        "//utils/printer/text",
+        "@com_github_charmbracelet_bubbletea//:bubbletea",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+    ],
+)

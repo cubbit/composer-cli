@@ -1,0 +1,28 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "playground_lib",
+    srcs = [
+        "gateway.go",
+        "main.go",
+        "tenant.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/playground",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//src/api",
+        "//src/cmd",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service",
+        "//src/service/gateway",
+        "//src/service/tenant",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_binary(
+    name = "playground",
+    embed = [":playground_lib"],
+    visibility = ["//visibility:public"],
+)

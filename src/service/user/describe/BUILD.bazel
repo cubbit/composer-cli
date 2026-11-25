@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "describe",
+    srcs = ["user_service_describe.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/user/describe",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/user/shared",
+        "//utils/printer",
+        "//utils/printer/utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "describe_test",
+    srcs = ["user_service_describe_test.go"],
+    embed = [":describe"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_models",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

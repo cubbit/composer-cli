@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1
+
+### Patch Changes
+
+- 592890c: Creating a gateway interactively now lists the locations available for deployment instead of stopping with a generic internal error. Only locations that do not already host a gateway are offered, as intended.
+- ab9446c: The `--profile` flag is now optional for `auth login`: when it is omitted, the login is stored in the active profile, and a `default` profile is created on the very first login. The flag is also honoured consistently by every command now: the requested profile overrides the active one for API key, organization and endpoint URLs, including during the login flow. Logging into a non-active profile therefore authenticates against that profile's endpoints and keeps them in the configuration instead of copying the active profile ones. `auth logout` falls back to the active profile when no profile is specified.
+
 ## 2.0.0
 
 ### Major Changes

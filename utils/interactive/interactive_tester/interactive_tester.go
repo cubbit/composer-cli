@@ -215,7 +215,10 @@ func (h *InteractiveTester) WriteLine(s string) (int, error) {
 // WriteKeys writes each byte sequence in order, pausing briefly between them.
 // Useful for multi-step key sequences like down-arrow → space → enter.
 func (h *InteractiveTester) WriteKeys(keys ...[]byte) error {
-	for _, k := range keys {
+	for i, k := range keys {
+		if i > 0 {
+			time.Sleep(25 * time.Millisecond)
+		}
 		if _, err := h.ptmx.Write(k); err != nil {
 			return err
 		}

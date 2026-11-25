@@ -1,0 +1,32 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "docs",
+    srcs = [
+        "docs_cmd.go",
+        "docs_sub_cmd_man.go",
+        "docs_sub_cmd_markdown.go",
+        "docs_sub_cmd_rst.go",
+        "docs_sub_cmd_tree.go",
+        "docs_sub_cmd_yaml.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/cmd/docs",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_spf13_cobra//:cobra",
+        "@com_github_spf13_cobra//doc",
+        "@com_github_spf13_pflag//:pflag",
+    ],
+)
+
+go_test(
+    name = "docs_test",
+    srcs = [
+        "docs_sub_cmd_man_structure_test.go",
+        "docs_sub_cmd_markdown_structure_test.go",
+        "docs_sub_cmd_rst_structure_test.go",
+        "docs_sub_cmd_tree_structure_test.go",
+        "docs_sub_cmd_yaml_structure_test.go",
+    ],
+    embed = [":docs"],
+)

@@ -38,7 +38,7 @@ func NewDomainService(
 }
 
 func (s DomainService) Create(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -67,7 +67,7 @@ func (s DomainService) Create(cmd *cobra.Command, args []string) error {
 }
 
 func (s DomainService) Describe(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -89,7 +89,7 @@ func (s DomainService) Describe(cmd *cobra.Command, args []string) error {
 }
 
 func (s DomainService) List(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -128,7 +128,7 @@ func (s DomainService) fetchAllDomains(endpoints configuration_models.EndpointsV
 }
 
 func (s DomainService) Delete(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -147,7 +147,7 @@ func (s DomainService) Delete(cmd *cobra.Command, args []string) error {
 }
 
 func (s DomainService) Verify(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

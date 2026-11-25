@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "tree",
+    srcs = ["tree.go"],
+    importpath = "github.com/cubbit/composer-cli/utils/printer/tree",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//utils/printer/common",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+        "@com_github_charmbracelet_lipgloss//tree",
+    ],
+)
+
+go_test(
+    name = "tree_test",
+    srcs = ["tree_test.go"],
+    embed = [":tree"],
+    deps = ["@com_github_charmbracelet_lipgloss//:lipgloss"],
+)

@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "status",
+    srcs = [
+        "progress.go",
+        "spinner.go",
+        "styles.go",
+        "test_utils.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/utils/interactive/tui/status",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_charmbracelet_bubbles//progress",
+        "@com_github_charmbracelet_bubbles//spinner",
+        "@com_github_charmbracelet_bubbletea//:bubbletea",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+    ],
+)
+
+go_test(
+    name = "status_test",
+    srcs = [
+        "progress_integration_test.go",
+        "progress_test.go",
+        "spinner_integration_test.go",
+        "spinner_test.go",
+    ],
+    embed = [":status"],
+    deps = [
+        "@com_github_charmbracelet_bubbles//progress",
+        "@com_github_charmbracelet_bubbles//spinner",
+        "@com_github_charmbracelet_bubbletea//:bubbletea",
+    ],
+)

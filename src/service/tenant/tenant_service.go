@@ -50,7 +50,7 @@ func NewTenantService(
 }
 
 func (s TenantService) List(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -63,7 +63,7 @@ func (s TenantService) List(cmd *cobra.Command, args []string) error {
 }
 
 func (s TenantService) Describe(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -76,7 +76,7 @@ func (s TenantService) Describe(cmd *cobra.Command, args []string) error {
 }
 
 func (s TenantService) Create(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -97,7 +97,7 @@ func (s TenantService) Create(cmd *cobra.Command, args []string) error {
 }
 
 func (s TenantService) ListConnections(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}
@@ -111,7 +111,7 @@ func (s TenantService) ListConnections(cmd *cobra.Command, args []string) error 
 }
 
 func (s TenantService) VerifyConnection(cmd *cobra.Command, args []string) error {
-	profile, err := s.configuration.GetActiveProfile()
+	profile, err := s.configuration.GetSelectedProfile()
 	if err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
 	}

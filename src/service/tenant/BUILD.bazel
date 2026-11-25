@@ -1,0 +1,22 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tenant",
+    srcs = [
+        "tenant_service.go",
+        "tenant_service_mock.go",
+    ],
+    importpath = "github.com/cubbit/composer-cli/src/service/tenant",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/service/tenant/create",
+        "//src/service/tenant/describe",
+        "//src/service/tenant/list",
+        "//src/service/tenant/list_connections",
+        "//src/service/tenant/verify_connection",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

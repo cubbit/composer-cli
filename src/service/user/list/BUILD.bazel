@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "list",
+    srcs = ["user_service_list.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/user/list",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/user/shared",
+        "//utils",
+        "//utils/printer",
+        "//utils/printer/table",
+        "//utils/printer/utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

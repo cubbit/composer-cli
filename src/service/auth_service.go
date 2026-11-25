@@ -171,6 +171,12 @@ func (as *AuthService) Login(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
 
+	if profile == "" {
+		if profile, err = as.configuration.GetSelectedProfileName(); err != nil {
+			return fmt.Errorf("failed to get profile name: %w", err)
+		}
+	}
+
 	if username, err = cmd.Flags().GetString("username"); err != nil {
 		return fmt.Errorf("%s: %w", constants.ErrorRetrievingField, err)
 	}
@@ -502,6 +508,12 @@ func (as *AuthService) Logout(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to logout from all profiles: %w", err)
 		}
 	} else {
+		if profile == "" {
+			if profile, err = as.configuration.GetActiveProfileName(); err != nil {
+				return fmt.Errorf("%s: %w", constants.ErrorLoadingConfig, err)
+			}
+		}
+
 		if err = as.configuration.DeleteProfile(profile); err != nil {
 			return fmt.Errorf("failed to logout from profile '%s': %w", profile, err)
 		}

@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "edit",
+    srcs = ["api_key_service_edit.go"],
+    importpath = "github.com/cubbit/composer-cli/src/service/api_key/edit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//constants",
+        "//src/api",
+        "//src/configuration/configuration_handler",
+        "//src/configuration/configuration_models",
+        "//src/service/api_key/shared",
+        "//utils",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_test(
+    name = "edit_test",
+    srcs = ["api_key_service_edit_test.go"],
+    embed = [":edit"],
+    deps = [
+        "//src/api",
+        "//src/configuration/configuration_models",
+        "//src/service/api_key/shared",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
